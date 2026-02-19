@@ -1,5 +1,6 @@
 export default function Home() {
   function HandleSubmit(): string {
+    const variable = "Hello there";
     return "string";
   }
 
