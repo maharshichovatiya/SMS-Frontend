@@ -3,5 +3,13 @@
   "singleQuote": false,
   "trailingComma": "all",
   "tabWidth": 2,
-  "printWidth": 100
+  "printWidth": 80,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "proseWrap": "preserve"
 }
