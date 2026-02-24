@@ -1,5 +1,5 @@
 "use client";
-import StudentForm from "@/components/forms/StudentForm";
+import StudentForm from "@/components/forms/studentForm";
 import StudentsTable from "@/components/tables/StudentTable";
 import Modal from "@/components/ui/Modal";
 import { Users } from "lucide-react";

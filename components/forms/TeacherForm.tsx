@@ -26,6 +26,7 @@ export default function TeacherForm({
 
   const onSubmit: SubmitHandler<TeacherFormData> = _data => {
     // Submit logic here
+    return _data;
   };
 
   return (
