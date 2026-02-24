@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 
 export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false);

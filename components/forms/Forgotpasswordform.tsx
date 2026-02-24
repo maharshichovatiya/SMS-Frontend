@@ -49,7 +49,7 @@ export default function ForgotPasswordForm() {
 
         <div className="inline-flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--blue)] mb-3">
           <span className="inline-block w-5 h-0.5 rounded-full bg-[var(--grad-primary)]" />
-          Email Sent Successfully
+          Email Sent
           <span className="inline-block w-5 h-0.5 rounded-full bg-[var(--grad-primary)]" />
         </div>
 
