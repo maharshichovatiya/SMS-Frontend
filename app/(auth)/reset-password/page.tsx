@@ -35,7 +35,6 @@ export default function ResetPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setLoading(true);
-    console.log("Reset password data:", data);
     await new Promise(r => setTimeout(r, 1800));
     setLoading(false);
   };

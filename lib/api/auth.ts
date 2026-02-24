@@ -1,7 +1,12 @@
 import api from "./client";
 import { PersonalDetails } from "@/lib/validations/signupSchema";
 
-export interface BackendSchoolDto {
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+}
+
+export interface BackendSchoolTypes {
   name: string;
   type: "private" | "govt" | "aided";
   address: string;
@@ -23,10 +28,20 @@ export interface Role {
   updatedAt: string;
 }
 
-export const getRoles = () => api.get("/role");
+export interface SchoolResponse {
+  id: string;
+}
 
-export const signup = (data: PersonalDetails & { schoolId: string }) =>
-  api.post("auth/register", data);
+export interface SignupPayload extends PersonalDetails {
+  schoolId: string;
+}
 
-export const createSchool = (schoolData: BackendSchoolDto) =>
-  api.post("school", schoolData);
+export const authApi = {
+  getRoles: () => api.get<ApiResponse<Role[]>>("/role"),
+
+  signup: (data: SignupPayload) =>
+    api.post<ApiResponse<{ id: string }>>("/auth/register", data),
+
+  createSchool: (schoolData: BackendSchoolTypes) =>
+    api.post<ApiResponse<SchoolResponse>>("/school", schoolData),
+};

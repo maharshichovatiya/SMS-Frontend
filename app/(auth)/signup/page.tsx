@@ -15,7 +15,8 @@ import { useFormCompletion } from "@/lib/hooks/useFormCompletion";
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
 import { PW_COLORS, PW_LABELS } from "@/lib/utils/signupConstants";
-import { createSchool, signup, getRoles, Role } from "@/lib/api/auth";
+import { authApi, Role } from "@/lib/api/auth";
+import toast from "react-hot-toast";
 import { showToast } from "@/lib/utils/toast";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
@@ -76,19 +77,26 @@ export default function SignUpPage() {
     schoolForm,
   );
   useEffect(() => {
+    const controller = new AbortController();
     const fetchRoles = async () => {
       setRolesLoading(true);
       try {
-        const response = await getRoles();
-        setRoles(response.data.data);
-        showToast.apiSuccess("Roles are added");
+        const response = await authApi.getRoles();
+        if (!controller.signal.aborted) {
+          setRoles(response.data.data);
+        }
       } catch (error) {
-        showToast.apiError(error);
+        if (!controller.signal.aborted) {
+          showToast.apiError(error);
+        }
       } finally {
-        setRolesLoading(false);
+        if (!controller.signal.aborted) {
+          setRolesLoading(false);
+        }
       }
     };
     fetchRoles();
+    return () => controller.abort();
   }, []);
 
   const nextStep = async () => {
@@ -130,18 +138,29 @@ export default function SignUpPage() {
         websiteUrl: schoolData.websiteUrl || undefined,
       };
 
-      console.log("Mapped school data:", mappedSchoolData);
-      showToast.loading("Creating your school...");
-      const SchoolResponse = await createSchool(mappedSchoolData);
-      showToast.loading("Creating your account...");
-      const response = await signup({
-        ...personalDetails,
-        schoolId: SchoolResponse.data.data.id,
-      });
-      showToast.apiSuccess("Account created successfully!");
+      const schoolResponse = await toast.promise(
+        authApi.createSchool(mappedSchoolData),
+        {
+          loading: "Creating your school...",
+          success: "School created!",
+          error: "Failed to create school",
+        },
+      );
+
+      await toast.promise(
+        authApi.signup({
+          ...personalDetails,
+          schoolId: schoolResponse.data.data.id,
+        }),
+        {
+          loading: "Creating your account...",
+          success: "Account created successfully!",
+          error: "Signup failed",
+        },
+      );
+
       router.replace("/dashboard");
     } catch (error: unknown) {
-      console.error("Signup error:", error);
       showToast.apiError(error);
     } finally {
       setLoading(false);
