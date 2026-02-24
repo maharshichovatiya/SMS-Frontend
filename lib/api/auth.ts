@@ -1,18 +1,14 @@
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
-import api from "./client";
-import { PersonalDetails } from "@/lib/validations/signupSchema";
 
 type ApiSuccess<T> = {
-  statusCode: number;
-  message: string;
+  success: true;
   data: T;
 };
 
 type ApiError = {
-  statusCode: number;
+  success: false;
   message: string;
-  data: null;
 };
 
 type ApiResponse<T> = ApiSuccess<T> | ApiError;
@@ -52,20 +48,15 @@ export const login = async (data: {
     const res = await api.post<LoginResponse>("/auth/login", data);
 
     return {
-      statusCode: 200,
-      message: "Login successful",
+      success: true,
       data: res.data,
     };
   } catch (error) {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
-      statusCode: 400,
-      message:
-        err.response?.data?.message ||
-        err.message ||
-        "Login failed. Please try again.",
-      data: null,
+      success: false,
+      message: err.response?.data?.message || "Login failed. Please try again.",
     };
   }
 };
@@ -88,18 +79,15 @@ export const verifyOtp = async (data: {
     }
 
     return {
-      statusCode: 200,
-      message: "OTP verified successfully",
+      success: true,
       data: res.data,
     };
   } catch (error) {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
-      statusCode: 400,
-      message:
-        err.response?.data?.message || err.message || "Verification failed",
-      data: null,
+      success: false,
+      message: err.response?.data?.message || "Verification failed",
     };
   }
 };
@@ -114,20 +102,17 @@ export const forgotPassword = async (email: {
     );
 
     return {
-      statusCode: 200,
-      message: "Reset link sent successfully",
+      success: true,
       data: res.data,
     };
   } catch (error) {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
-      statusCode: 400,
+      success: false,
       message:
         err.response?.data?.message ||
-        err.message ||
         "Failed to send reset link. Please try again.",
-      data: null,
     };
   }
 };
@@ -143,24 +128,24 @@ export const resetPassword = async (data: {
     );
 
     return {
-      statusCode: 200,
-      message: "Password reset successfully",
+      success: true,
       data: res.data,
     };
   } catch (error) {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
-      statusCode: 400,
+      success: false,
       message:
         err.response?.data?.message ||
-        err.message ||
         "Failed to reset password. Please try again.",
-      data: null,
     };
   }
 };
-export interface BackendSchoolTypes {
+import api from "./client";
+import { PersonalDetails } from "@/lib/validations/signupSchema";
+
+export interface BackendSchoolDto {
   name: string;
   type: "private" | "govt" | "aided";
   address: string;
@@ -182,33 +167,10 @@ export interface Role {
   updatedAt: string;
 }
 
-export interface SchoolResponse {
-  id: string;
-}
+export const getRoles = () => api.get("/role");
 
-export interface SignupPayload extends PersonalDetails {
-  schoolId: string;
-}
+export const signup = (data: PersonalDetails & { schoolId: string }) =>
+  api.post("auth/register", data);
 
-export const authApi = {
-  getRoles: async () => {
-    const response = await api.get<ApiResponse<Role[]>>("/role");
-    return response.data;
-  },
-
-  signup: async (data: SignupPayload) => {
-    const response = await api.post<ApiResponse<{ id: string }>>(
-      "/auth/register",
-      data,
-    );
-    return response.data;
-  },
-
-  createSchool: async (schoolData: BackendSchoolTypes) => {
-    const response = await api.post<ApiResponse<SchoolResponse>>(
-      "/school",
-      schoolData,
-    );
-    return response.data;
-  },
-};
+export const createSchool = (schoolData: BackendSchoolDto) =>
+  api.post("school", schoolData);

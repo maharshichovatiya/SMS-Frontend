@@ -49,7 +49,7 @@ export default function StudentForm({
     }
   }, [initialData, reset]);
 
-  const onSubmit = async (_data: CreateStudentFormValues) => {
+  const onSubmit = async (data: CreateStudentFormValues) => {
     if (isEditMode) {
       // TODO: await fetch(`/api/students/${id}`, { method: "PUT", body: JSON.stringify(data) })
     } else {

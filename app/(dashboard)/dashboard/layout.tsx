@@ -1,11 +1,22 @@
+// app/dashboard/layout.tsx
+import Link from "next/link";
+import { Home, Users, Settings } from "lucide-react";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex-1 p-6 overflow-y-auto bg-[var(--bg)]">
-      {children}
-    </main>
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1 p-6 overflow-y-auto bg-[var(--bg)]">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

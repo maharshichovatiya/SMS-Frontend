@@ -15,8 +15,7 @@ import { useFormCompletion } from "@/lib/hooks/useFormCompletion";
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
 import { PW_COLORS, PW_LABELS } from "@/lib/utils/signupConstants";
-import { authApi, Role } from "@/lib/api/auth";
-import toast from "react-hot-toast";
+import { createSchool, signup, getRoles, Role } from "@/lib/api/auth";
 import { showToast } from "@/lib/utils/toast";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
@@ -77,30 +76,19 @@ export default function SignUpPage() {
     schoolForm,
   );
   useEffect(() => {
-    const controller = new AbortController();
     const fetchRoles = async () => {
       setRolesLoading(true);
       try {
-        const response = await authApi.getRoles();
-        if (
-          response.statusCode === 200 &&
-          response.data &&
-          !controller.signal.aborted
-        ) {
-          setRoles(response.data);
-        }
+        const response = await getRoles();
+        setRoles(response.data.data);
+        showToast.apiSuccess("Roles are added");
       } catch (error) {
-        if (!controller.signal.aborted) {
-          showToast.apiError(error);
-        }
+        showToast.apiError(error);
       } finally {
-        if (!controller.signal.aborted) {
-          setRolesLoading(false);
-        }
+        setRolesLoading(false);
       }
     };
     fetchRoles();
-    return () => controller.abort();
   }, []);
 
   const nextStep = async () => {
@@ -142,29 +130,18 @@ export default function SignUpPage() {
         websiteUrl: schoolData.websiteUrl || undefined,
       };
 
-      const schoolResponse = await toast.promise(
-        authApi.createSchool(mappedSchoolData),
-        {
-          loading: "Creating your school...",
-          success: "School created!",
-          error: "Failed to create school",
-        },
-      );
-
-      await toast.promise(
-        authApi.signup({
-          ...personalDetails,
-          schoolId: schoolResponse.data?.id || "",
-        }),
-        {
-          loading: "Creating your account...",
-          success: "Account created successfully!",
-          error: "Signup failed",
-        },
-      );
-
+      console.log("Mapped school data:", mappedSchoolData);
+      showToast.loading("Creating your school...");
+      const SchoolResponse = await createSchool(mappedSchoolData);
+      showToast.loading("Creating your account...");
+      const response = await signup({
+        ...personalDetails,
+        schoolId: SchoolResponse.data.data.id,
+      });
+      showToast.apiSuccess("Account created successfully!");
       router.replace("/dashboard");
     } catch (error: unknown) {
+      console.error("Signup error:", error);
       showToast.apiError(error);
     } finally {
       setLoading(false);
@@ -198,7 +175,7 @@ export default function SignUpPage() {
             <h2 className="text-[var(--text-inverse)] text-[36px] font-extrabold leading-[1.1] tracking-tight">
               Create your Admin Account
               <br />
-              <span className="text-[var(--text-inverse)]/50 font-normal">
+              <span className="text-(--text-inverse)/50 font-normal">
                 and setup your school.
               </span>
             </h2>

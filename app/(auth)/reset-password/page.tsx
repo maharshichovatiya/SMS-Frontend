@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 
 export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false);
@@ -33,8 +33,9 @@ export default function ResetPasswordPage() {
     },
   });
 
-  const onSubmit = async (_data: ResetPasswordFormData) => {
+  const onSubmit = async (data: ResetPasswordFormData) => {
     setLoading(true);
+    console.log("Reset password data:", data);
     await new Promise(r => setTimeout(r, 1800));
     setLoading(false);
   };

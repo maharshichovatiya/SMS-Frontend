@@ -5,6 +5,11 @@ import Modal from "@/components/ui/Modal";
 import { Plus, Users } from "lucide-react";
 import { useState } from "react";
 
+interface AddTeacherModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 export default function TeachersPage() {
   const [open, setOpen] = useState(false);
   const teachers: Teacher[] = [

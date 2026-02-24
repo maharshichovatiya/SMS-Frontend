@@ -24,8 +24,8 @@ export default function TeacherForm({
     defaultValues,
   });
 
-  const onSubmit: SubmitHandler<TeacherFormData> = _data => {
-    // Submit logic here
+  const onSubmit: SubmitHandler<TeacherFormData> = data => {
+    console.log(mode === "edit" ? "Update Teacher:" : "Add Teacher:", data);
   };
 
   return (
