@@ -11,6 +11,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { verifyOtp } from "@/lib/api/auth";
+import { showToast } from "@/lib/utils/toast";
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -73,16 +74,24 @@ export default function VerifyOTPPage() {
       return;
     }
 
-    const result = await verifyOtp({
-      userId,
-      otp: code,
-    });
+    try {
+      const result = await verifyOtp({
+        userId,
+        otp: code,
+      });
 
-    if (result.success) {
-      setVerified(true);
-      localStorage.removeItem("userId");
-    } else {
-      setError(result.message || "Incorrect code. Please try again.");
+      if (result.statusCode === 200) {
+        showToast.success("Email verified successfully!");
+        setVerified(true);
+        localStorage.removeItem("userId");
+      } else {
+        setError(result.message || "Incorrect code. Please try again.");
+        setOtp(["", "", "", ""]);
+        focus(0);
+      }
+    } catch (error) {
+      showToast.apiError(error);
+      setError("Verification failed. Please try again.");
       setOtp(["", "", "", ""]);
       focus(0);
     }

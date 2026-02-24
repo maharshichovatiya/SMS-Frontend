@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Josefin_Sans } from "next/font/google";
 import { ToasterProvider } from "@/components/ui/Toaster";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
 
 const josefinSans = Josefin_Sans({
   subsets: ["latin"],

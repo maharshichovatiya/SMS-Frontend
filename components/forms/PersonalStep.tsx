@@ -1,7 +1,7 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { PersonalDetails } from "@/lib/validations/signupSchema";
-import { PersonalDetailsForm } from "@/components/forms/SignupForm";
+import { PersonalDetailsForm } from "@/components/forms/signupForm";
 
 interface PersonalStepProps {
   form: UseFormReturn<PersonalDetails>;

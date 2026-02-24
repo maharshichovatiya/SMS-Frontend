@@ -1,11 +1,10 @@
 "use client";
-
+import { useRouter, usePathname } from "next/navigation";
 import {
   Home,
   Users,
   BookOpen,
   Building,
-  FileText,
   Settings,
   ChevronLeft,
   GraduationCap,
@@ -75,6 +74,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isActive = (path: string) => {
+    if (path === "/dashboard" && pathname === "/") return true;
+    return pathname === path || pathname.startsWith(path + "/");
+  };
+
   return (
     <aside
       className={`fixed left-[14px] top-1/2 -translate-y-1/2 h-[calc(100vh-40px)] bg-[var(--surface)] border border-[var(--border)] rounded-[22px] shadow-[var(--shadow)] flex flex-col z-[var(--z-sidebar)] transition-all duration-300 ease-[var(--ease)] overflow-hidden
@@ -84,13 +91,18 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex items-start gap-[11px] px-[18px] py-[22px] pb-[18px] border-b border-[var(--border)] relative">
         {/* Toggle Button - Top when collapsed */}
         <button
-          onClick={onToggle}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggle?.();
+          }}
           className={`absolute transition-all duration-300 z-20 w-[32px] h-[32px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-full flex items-center justify-center cursor-pointer shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 border border-white/20 ${
             collapsed
               ? "top-[22px] left-[50%] translate-x-[-50%]"
               : "top-[22px] right-10"
           }`}
           aria-label="Toggle sidebar"
+          type="button"
         >
           <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none rounded-full" />
           <span
@@ -131,8 +143,9 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         <NavItem
           icon={<Home className="w-[18px] h-[18px]" />}
           label="Dashboard"
-          active
+          active={isActive("/dashboard")}
           collapsed={collapsed}
+          onClick={() => router.push("/dashboard")}
         />
 
         <div
@@ -140,29 +153,41 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
           Modules
         </div>
+
+        {/* Teachers */}
         <NavItem
           icon={<Users className="w-[18px] h-[18px]" />}
           label="Teachers"
           badge="86"
           badgeColor="bg-[var(--green)]"
+          active={isActive("/teachers")}
           collapsed={collapsed}
+          onClick={() => router.push("/teachers")}
         />
+
+        {/* Students */}
         <NavItem
           icon={<Users className="w-[18px] h-[18px]" />}
           label="Students"
           badge="1.2k"
           badgeColor="bg-[var(--blue)]"
+          active={isActive("/students")}
           collapsed={collapsed}
+          onClick={() => router.push("/students")}
         />
         <NavItem
           icon={<BookOpen className="w-[18px] h-[18px]" />}
           label="Subjects"
+          active={isActive("/subjects")}
           collapsed={collapsed}
+          onClick={() => router.push("/subjects")}
         />
         <NavItem
           icon={<Building className="w-[18px] h-[18px]" />}
           label="Classes"
+          active={isActive("/classes")}
           collapsed={collapsed}
+          onClick={() => router.push("/classes")}
         />
 
         <div
@@ -173,7 +198,9 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         <NavItem
           icon={<Settings className="w-[18px] h-[18px]" />}
           label="Settings"
+          active={isActive("/settings")}
           collapsed={collapsed}
+          onClick={() => router.push("/settings")}
         />
       </div>
 

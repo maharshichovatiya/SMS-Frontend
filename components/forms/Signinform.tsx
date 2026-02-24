@@ -11,7 +11,7 @@ import {
 } from "@/lib/validations/signinSchema";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api/auth";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/toast";
 
 export default function SignInForm() {
   const [showPass, setShowPass] = useState(false);
@@ -26,18 +26,22 @@ export default function SignInForm() {
   });
 
   const onSubmit = async (data: SignInFormValues) => {
-    const result = await login(data);
+    try {
+      const result = await login(data);
 
-    if (result.success) {
-      toast.success("OTP sent to your login email");
+      if (result.statusCode === 200) {
+        showToast.success("OTP sent to your login email");
 
-      if (result.data.data?.userId) {
-        localStorage.setItem("userId", result.data.data?.userId);
+        if (result.data?.data?.userId) {
+          localStorage.setItem("userId", result.data.data.userId);
+        }
+
+        router.push("/verify-otp");
+      } else {
+        showToast.error(result.message || "Login failed");
       }
-
-      router.push("/verify-otp");
-    } else {
-      toast.error(result.message || "Login failed");
+    } catch (error) {
+      showToast.apiError(error);
     }
   };
 

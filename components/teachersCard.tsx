@@ -2,6 +2,7 @@
 
 import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
 
@@ -51,9 +52,11 @@ export default function TeacherCard({ teacher }: Props) {
 
       <div className="flex items-start gap-4 mt-5">
         {teacher.profilePhoto ? (
-          <img
+          <Image
             src={teacher.profilePhoto}
             alt={fullName}
+            width={64}
+            height={64}
             className="w-16 h-16 rounded-[var(--radius-md)] object-cover"
           />
         ) : (

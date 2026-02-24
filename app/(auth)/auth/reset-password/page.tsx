@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
 import toast from "react-hot-toast";
 import { resetPassword } from "@/lib/api/auth";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -38,8 +38,6 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const onSubmit = async (data: ResetPasswordFormData) => {
-    setLoading(true);
-    // console.log("Reset password data:", data);
     const token = searchParams.get("token"); // from URL
 
     if (!token) {
@@ -47,20 +45,24 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (isComplete) {
+    setLoading(true);
+    try {
       const result = await resetPassword({
         token,
         newPassword: data.password,
       });
 
-      if (result.success) {
+      if (result.statusCode === 200) {
         toast.success("Password reset successfully");
         router.push("/signin");
       } else {
         toast.error(result.message);
       }
+    } catch {
+      toast.error("Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const password = form.watch("password");
