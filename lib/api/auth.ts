@@ -1,11 +1,165 @@
+import Cookies from "js-cookie";
+import { AxiosError } from "axios";
 import api from "./client";
 import { PersonalDetails } from "@/lib/validations/signupSchema";
 
-interface ApiResponse<T> {
-  data: T;
+type ApiSuccess<T> = {
+  statusCode: number;
   message: string;
-}
+  data: T;
+};
 
+type ApiError = {
+  statusCode: number;
+  message: string;
+  data: null;
+};
+
+type ApiResponse<T> = ApiSuccess<T> | ApiError;
+
+type ErrorResponse = {
+  message?: string;
+};
+
+type LoginResponse = {
+  statusCode: number;
+  data?: {
+    userId?: string;
+  };
+};
+
+type VerifyOtpResponse = {
+  statusCode: number;
+  accessToken: string;
+  refreshToken: string;
+};
+
+type ForgotPasswordResponse = {
+  statusCode: number;
+  message: string;
+};
+
+type ResetPasswordResponse = {
+  statusCode: number;
+  message: string;
+};
+
+export const login = async (data: {
+  email: string;
+  password: string;
+}): Promise<ApiResponse<LoginResponse>> => {
+  try {
+    const res = await api.post<LoginResponse>("/auth/login", data);
+
+    return {
+      statusCode: 200,
+      message: "Login successful",
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again.",
+      data: null,
+    };
+  }
+};
+
+export const verifyOtp = async (data: {
+  userId: string;
+  otp: string;
+}): Promise<ApiResponse<VerifyOtpResponse>> => {
+  try {
+    const res = await api.post<VerifyOtpResponse>("/auth/verify-otp", data);
+
+    if (res.data.statusCode === 200) {
+      Cookies.set("accessToken", res.data.accessToken, {
+        expires: 1,
+      });
+
+      Cookies.set("refreshToken", res.data.refreshToken, {
+        expires: 7,
+      });
+    }
+
+    return {
+      statusCode: 200,
+      message: "OTP verified successfully",
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      statusCode: 400,
+      message:
+        err.response?.data?.message || err.message || "Verification failed",
+      data: null,
+    };
+  }
+};
+
+export const forgotPassword = async (email: {
+  email: string;
+}): Promise<ApiResponse<ForgotPasswordResponse>> => {
+  try {
+    const res = await api.post<ForgotPasswordResponse>(
+      "/auth/forgot-password",
+      email,
+    );
+
+    return {
+      statusCode: 200,
+      message: "Reset link sent successfully",
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to send reset link. Please try again.",
+      data: null,
+    };
+  }
+};
+
+export const resetPassword = async (data: {
+  token: string;
+  newPassword: string;
+}): Promise<ApiResponse<ResetPasswordResponse>> => {
+  try {
+    const res = await api.post<ResetPasswordResponse>(
+      "/auth/reset-password",
+      data,
+    );
+
+    return {
+      statusCode: 200,
+      message: "Password reset successfully",
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to reset password. Please try again.",
+      data: null,
+    };
+  }
+};
 export interface BackendSchoolTypes {
   name: string;
   type: "private" | "govt" | "aided";
@@ -37,11 +191,24 @@ export interface SignupPayload extends PersonalDetails {
 }
 
 export const authApi = {
-  getRoles: () => api.get<ApiResponse<Role[]>>("/role"),
+  getRoles: async () => {
+    const response = await api.get<ApiResponse<Role[]>>("/role");
+    return response.data;
+  },
 
-  signup: (data: SignupPayload) =>
-    api.post<ApiResponse<{ id: string }>>("/auth/register", data),
+  signup: async (data: SignupPayload) => {
+    const response = await api.post<ApiResponse<{ id: string }>>(
+      "/auth/register",
+      data,
+    );
+    return response.data;
+  },
 
-  createSchool: (schoolData: BackendSchoolTypes) =>
-    api.post<ApiResponse<SchoolResponse>>("/school", schoolData),
+  createSchool: async (schoolData: BackendSchoolTypes) => {
+    const response = await api.post<ApiResponse<SchoolResponse>>(
+      "/school",
+      schoolData,
+    );
+    return response.data;
+  },
 };

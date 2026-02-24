@@ -82,8 +82,12 @@ export default function SignUpPage() {
       setRolesLoading(true);
       try {
         const response = await authApi.getRoles();
-        if (!controller.signal.aborted) {
-          setRoles(response.data.data);
+        if (
+          response.statusCode === 200 &&
+          response.data &&
+          !controller.signal.aborted
+        ) {
+          setRoles(response.data);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -150,7 +154,7 @@ export default function SignUpPage() {
       await toast.promise(
         authApi.signup({
           ...personalDetails,
-          schoolId: schoolResponse.data.data.id,
+          schoolId: schoolResponse.data?.id || "",
         }),
         {
           loading: "Creating your account...",
@@ -194,7 +198,7 @@ export default function SignUpPage() {
             <h2 className="text-[var(--text-inverse)] text-[36px] font-extrabold leading-[1.1] tracking-tight">
               Create your Admin Account
               <br />
-              <span className="text-(--text-inverse)/50 font-normal">
+              <span className="text-[var(--text-inverse)]/50 font-normal">
                 and setup your school.
               </span>
             </h2>

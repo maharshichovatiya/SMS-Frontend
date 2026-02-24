@@ -5,7 +5,6 @@ import {
   Users,
   BookOpen,
   Building,
-  FileText,
   Settings,
   ChevronLeft,
   GraduationCap,
@@ -92,13 +91,18 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       <div className="flex items-start gap-[11px] px-[18px] py-[22px] pb-[18px] border-b border-[var(--border)] relative">
         {/* Toggle Button - Top when collapsed */}
         <button
-          onClick={onToggle}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggle?.();
+          }}
           className={`absolute transition-all duration-300 z-20 w-[32px] h-[32px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-full flex items-center justify-center cursor-pointer shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 border border-white/20 ${
             collapsed
               ? "top-[22px] left-[50%] translate-x-[-50%]"
               : "top-[22px] right-10"
           }`}
           aria-label="Toggle sidebar"
+          type="button"
         >
           <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none rounded-full" />
           <span

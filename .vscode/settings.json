@@ -1,0 +1,4 @@
+{
+  "editor.renderValidationDecorations": "off",
+  "tailwindCSS.validate": false
+}
