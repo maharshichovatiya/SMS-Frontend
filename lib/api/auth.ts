@@ -62,10 +62,6 @@ export const login = async (data: {
   }
 };
 
-/* =======================
-   VERIFY OTP
-======================= */
-
 export const verifyOtp = async (data: {
   userId: string;
   otp: string;
@@ -97,10 +93,6 @@ export const verifyOtp = async (data: {
   }
 };
 
-/* =======================
-   FORGOT PASSWORD
-======================= */
-
 export const forgotPassword = async (email: {
   email: string;
 }): Promise<ApiResponse<ForgotPasswordResponse>> => {
@@ -125,10 +117,6 @@ export const forgotPassword = async (email: {
     };
   }
 };
-
-/* =======================
-   RESET PASSWORD
-======================= */
 
 export const resetPassword = async (data: {
   token: string;

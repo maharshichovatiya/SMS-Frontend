@@ -215,8 +215,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 52px;
-  padding: 0 32px;
+  height: 45px;
+  padding: 0 25px;
   background: var(--grad-primary);
   color: var(--text-inverse);
   border: none;
