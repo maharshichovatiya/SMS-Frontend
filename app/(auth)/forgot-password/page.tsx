@@ -1,5 +1,5 @@
 import { GraduationCap, ShieldCheck, Clock, KeyRound } from "lucide-react";
-import ForgotPasswordForm from "@/components/forms/Forgotpasswordform";
+import ForgotPasswordForm from "@/components/forms/ForgotPasswordForm";
 
 const tips = [
   {

@@ -51,10 +51,8 @@ export default function StudentForm({
 
   const onSubmit = async (data: CreateStudentFormValues) => {
     if (isEditMode) {
-      console.log("Update student data", data);
       // TODO: await fetch(`/api/students/${id}`, { method: "PUT", body: JSON.stringify(data) })
     } else {
-      console.log("Create student data", data);
       // TODO: await fetch("/api/students", { method: "POST", body: JSON.stringify(data) })
     }
     onSubmitSuccess?.();
