@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 import toast from "react-hot-toast";
 import { resetPassword } from "@/lib/api/auth";
 import { useRouter, useSearchParams } from "next/navigation";

@@ -50,7 +50,7 @@ export function ResetPasswordForm({
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-3)] pointer-events-none" />
             <input
               type={showPass ? "text" : "password"}
-              placeholder="Min. 8 characters"
+              placeholder="Min 8 characters"
               {...register("password")}
               className={fieldInput(!!errors.password)}
             />

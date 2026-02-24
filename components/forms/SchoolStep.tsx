@@ -1,7 +1,7 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { SchoolDetails } from "@/lib/validations/signupSchema";
-import { SchoolDetailsForm } from "@/components/forms/signupForm";
+import { SchoolDetailsForm } from "@/components/forms/SignupForm";
 
 interface SchoolStepProps {
   form: UseFormReturn<SchoolDetails>;
