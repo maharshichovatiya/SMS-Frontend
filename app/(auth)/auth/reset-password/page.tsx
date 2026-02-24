@@ -18,6 +18,9 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
 import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
+import toast from "react-hot-toast";
+import { resetPassword } from "@/lib/api/auth";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false);
@@ -32,11 +35,31 @@ export default function ResetPasswordPage() {
       confirmPassword: "",
     },
   });
-
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const onSubmit = async (data: ResetPasswordFormData) => {
     setLoading(true);
-    console.log("Reset password data:", data);
-    await new Promise(r => setTimeout(r, 1800));
+    // console.log("Reset password data:", data);
+    const token = searchParams.get("token"); // from URL
+
+    if (!token) {
+      toast.error("Invalid reset link");
+      return;
+    }
+
+    if (isComplete) {
+      const result = await resetPassword({
+        token,
+        newPassword: data.password,
+      });
+
+      if (result.success) {
+        toast.success("Password reset successfully");
+        router.push("/signin");
+      } else {
+        toast.error(result.message);
+      }
+    }
     setLoading(false);
   };
 
@@ -150,7 +173,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !isComplete}
-                  className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
+                  className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/35 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
                   {loading ? (
