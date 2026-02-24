@@ -4,12 +4,14 @@ import api from "./client";
 import { PersonalDetails } from "@/lib/validations/signupSchema";
 
 type ApiSuccess<T> = {
+  success: true;
   statusCode: number;
   message: string;
   data: T;
 };
 
 type ApiError = {
+  success: false;
   statusCode: number;
   message: string;
   data: null;
@@ -52,6 +54,7 @@ export const login = async (data: {
     const res = await api.post<LoginResponse>("/auth/login", data);
 
     return {
+      success: true,
       statusCode: 200,
       message: "Login successful",
       data: res.data,
@@ -60,6 +63,7 @@ export const login = async (data: {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
+      success: false,
       statusCode: 400,
       message:
         err.response?.data?.message ||
@@ -88,6 +92,7 @@ export const verifyOtp = async (data: {
     }
 
     return {
+      success: true,
       statusCode: 200,
       message: "OTP verified successfully",
       data: res.data,
@@ -96,6 +101,7 @@ export const verifyOtp = async (data: {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
+      success: false,
       statusCode: 400,
       message:
         err.response?.data?.message || err.message || "Verification failed",
@@ -114,6 +120,7 @@ export const forgotPassword = async (email: {
     );
 
     return {
+      success: true,
       statusCode: 200,
       message: "Reset link sent successfully",
       data: res.data,
@@ -122,6 +129,7 @@ export const forgotPassword = async (email: {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
+      success: false,
       statusCode: 400,
       message:
         err.response?.data?.message ||
@@ -143,6 +151,7 @@ export const resetPassword = async (data: {
     );
 
     return {
+      success: true,
       statusCode: 200,
       message: "Password reset successfully",
       data: res.data,
@@ -151,6 +160,7 @@ export const resetPassword = async (data: {
     const err = error as AxiosError<ErrorResponse>;
 
     return {
+      success: false,
       statusCode: 400,
       message:
         err.response?.data?.message ||

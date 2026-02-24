@@ -157,23 +157,6 @@ interface RoleBarProps {
   color: string;
 }
 
-function RoleBar({ label, count, width, color }: RoleBarProps) {
-  return (
-    <div className="flex items-center justify-between px-[18px] py-[11px] border-b border-[var(--border)] last:border-b-0">
-      <div>
-        <div className="text-[14.5px] font-medium">{label}</div>
-        <div className="text-[12.5px] text-[var(--text-2)]">{count}</div>
-      </div>
-      <div className="w-20 h-[5px] bg-[var(--bg-2)] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{ width, background: color }}
-        />
-      </div>
-    </div>
-  );
-}
-
 // ── Quick Access Item ──
 interface QuickItemProps {
   icon: React.ReactNode;
