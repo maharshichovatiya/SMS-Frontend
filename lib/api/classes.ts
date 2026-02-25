@@ -1,9 +1,7 @@
 import { AxiosError } from "axios";
 import { ClassFormData } from "@/lib/validations/classForm";
 import {
-  ClassItem,
   GetClassesResponse,
-  GetClassResponse,
   CreateClassResponse,
   UpdateClassResponse,
   DeleteClassResponse,
@@ -13,7 +11,6 @@ import api from "../axios";
 export const getAllClasses = async (): Promise<GetClassesResponse> => {
   try {
     const res = await api.get("/classes");
-    console.log(res.data.data);
     return {
       success: true,
       data: res.data.data,

@@ -32,7 +32,6 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div
         className="
           flex items-center justify-between

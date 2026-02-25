@@ -47,20 +47,24 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (isComplete) {
+    setLoading(true);
+    try {
       const result = await resetPassword({
         token,
         newPassword: data.password,
       });
 
-      if (result.success) {
+      if (result.statusCode === 200) {
         toast.success("Password reset successfully");
         router.push("/signin");
       } else {
         toast.error(result.message);
       }
+    } catch {
+      toast.error("Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const password = form.watch("password");

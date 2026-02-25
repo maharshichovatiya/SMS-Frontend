@@ -109,7 +109,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
       <div className="border-t border-[var(--border)] my-3" />
 
-      {/* Details */}
       <div className="space-y-2 text-xs text-[var(--text-2)]">
         <p className="flex items-center gap-1.5">
           <User size={12} className="shrink-0 text-[var(--text-3)]" />
@@ -143,7 +142,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         </p>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 mt-4">
         <button
           onClick={() => setOpenEdit(true)}
@@ -159,7 +157,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         </button>
       </div>
 
-      {/* Edit Modal */}
       <Modal
         isOpen={openEdit}
         onClose={() => setOpenEdit(false)}
@@ -183,7 +180,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         />
       </Modal>
 
-      {/* Delete Modal */}
       <Modal
         isOpen={openDelete}
         onClose={() => setOpenDelete(false)}

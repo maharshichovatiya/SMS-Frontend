@@ -1,14 +1,20 @@
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
+import api from "./client";
+import { PersonalDetails } from "@/lib/validations/signupSchema";
 
 type ApiSuccess<T> = {
   success: true;
+  statusCode: number;
+  message: string;
   data: T;
 };
 
 type ApiError = {
   success: false;
+  statusCode: number;
   message: string;
+  data: null;
 };
 
 type ApiResponse<T> = ApiSuccess<T> | ApiError;
@@ -58,6 +64,8 @@ export const login = async (data: {
 
     return {
       success: true,
+      statusCode: 200,
+      message: "Login successful",
       data: res.data,
     };
   } catch (error) {
@@ -65,7 +73,12 @@ export const login = async (data: {
 
     return {
       success: false,
-      message: err.response?.data?.message || "Login failed. Please try again.",
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again.",
+      data: null,
     };
   }
 };
@@ -87,6 +100,8 @@ export const verifyOtp = async (data: {
 
     return {
       success: true,
+      statusCode: 200,
+      message: "OTP verified successfully",
       data: res.data,
     };
   } catch (error) {
@@ -94,7 +109,10 @@ export const verifyOtp = async (data: {
 
     return {
       success: false,
-      message: err.response?.data?.message || "Verification failed",
+      statusCode: 400,
+      message:
+        err.response?.data?.message || err.message || "Verification failed",
+      data: null,
     };
   }
 };
@@ -107,6 +125,8 @@ export const resendOtp = async (data: {
 
     return {
       success: true,
+      statusCode: res.data.statusCode,
+      message: res.data.message,
       data: res.data,
     };
   } catch (error) {
@@ -114,9 +134,11 @@ export const resendOtp = async (data: {
 
     return {
       success: false,
+      statusCode: err.response?.status ?? 500,
       message:
         err.response?.data?.message ||
         "Failed to resend OTP. Please try again.",
+      data: null,
     };
   }
 };
@@ -132,6 +154,8 @@ export const forgotPassword = async (email: {
 
     return {
       success: true,
+      statusCode: 200,
+      message: "Reset link sent successfully",
       data: res.data,
     };
   } catch (error) {
@@ -139,9 +163,12 @@ export const forgotPassword = async (email: {
 
     return {
       success: false,
+      statusCode: 400,
       message:
         err.response?.data?.message ||
+        err.message ||
         "Failed to send reset link. Please try again.",
+      data: null,
     };
   }
 };
@@ -158,6 +185,8 @@ export const resetPassword = async (data: {
 
     return {
       success: true,
+      statusCode: 200,
+      message: "Password reset successfully",
       data: res.data,
     };
   } catch (error) {
@@ -165,17 +194,16 @@ export const resetPassword = async (data: {
 
     return {
       success: false,
+      statusCode: 400,
       message:
         err.response?.data?.message ||
+        err.message ||
         "Failed to reset password. Please try again.",
+      data: null,
     };
   }
 };
-
-import { PersonalDetails } from "@/lib/validations/signupSchema";
-import api from "../axios";
-
-export interface BackendSchoolDto {
+export interface BackendSchoolTypes {
   name: string;
   type: "private" | "govt" | "aided";
   address: string;
@@ -197,10 +225,33 @@ export interface Role {
   updatedAt: string;
 }
 
-export const getRoles = () => api.get("/role");
+export interface SchoolResponse {
+  id: string;
+}
 
-export const signup = (data: PersonalDetails & { schoolId: string }) =>
-  api.post("auth/register", data);
+export interface SignupPayload extends PersonalDetails {
+  schoolId: string;
+}
 
-export const createSchool = (schoolData: BackendSchoolDto) =>
-  api.post("school", schoolData);
+export const authApi = {
+  getRoles: async () => {
+    const response = await api.get<ApiResponse<Role[]>>("/role");
+    return response.data;
+  },
+
+  signup: async (data: SignupPayload) => {
+    const response = await api.post<ApiResponse<{ id: string }>>(
+      "/auth/register",
+      data,
+    );
+    return response.data;
+  },
+
+  createSchool: async (schoolData: BackendSchoolTypes) => {
+    const response = await api.post<ApiResponse<SchoolResponse>>(
+      "/school",
+      schoolData,
+    );
+    return response.data;
+  },
+};

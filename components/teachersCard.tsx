@@ -85,7 +85,6 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
 
       <div className="border-t border-[var(--border)] my-4" />
 
-      {/* Details */}
       <div className="text-xs sm:text-sm text-[var(--text-2)] grid grid-cols-1 xs:grid-cols-2 gap-x-4 gap-y-1.5">
         <p className="flex items-center gap-1.5">
           <Calendar size={12} className="shrink-0" />
@@ -96,7 +95,6 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
         <p>₹{teacher.salaryPackage.toLocaleString()}/mo</p>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 sm:gap-3 mt-5">
         <button
           onClick={() => setOpenEdit(true)}

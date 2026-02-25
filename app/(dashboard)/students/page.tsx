@@ -2,20 +2,20 @@
 import StudentForm from "@/components/forms/StudentForm";
 import StudentsTable from "@/components/tables/StudentTable";
 import Modal from "@/components/ui/Modal";
-import { Users } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import React, { useState } from "react";
 
 type Tab = {
   label: string;
-  count: number;
+
   key: string;
 };
 
 const tabs: Tab[] = [
-  { key: "all", label: "All", count: 1284 },
-  { key: "active", label: "Active", count: 1190 },
-  { key: "pending", label: "Pending", count: 62 },
-  { key: "inactive", label: "Inactive", count: 32 },
+  { key: "all", label: "All" },
+  { key: "active", label: "Active" },
+  { key: "pending", label: "Pending" },
+  { key: "inactive", label: "Inactive" },
 ];
 function Page() {
   const [active, setActive] = useState("all");
@@ -29,7 +29,10 @@ function Page() {
       >
         <div className="flex items-center gap-4">
           <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-[var(--blue-light)] flex items-center justify-center">
-            <Users className="w-5 h-5 text-[var(--blue)]" strokeWidth={1.8} />
+            <GraduationCap
+              className="w-5 h-5 text-[var(--blue)]"
+              strokeWidth={1.8}
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-[var(--text)] leading-tight">
@@ -67,16 +70,7 @@ function Page() {
                 }
               `}
             >
-              {tab.label}{" "}
-              <span
-                className={
-                  active === tab.key
-                    ? "text-[var(--blue-light)]"
-                    : "text-[var(--text-3)]"
-                }
-              >
-                ({tab.count.toLocaleString()})
-              </span>
+              {tab.label}
             </button>
           ))}
         </div>
