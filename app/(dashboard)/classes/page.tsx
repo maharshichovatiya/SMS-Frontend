@@ -1,6 +1,12 @@
 "use client";
 import { Building2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import ClassCard from "@/components/classesCard";
+import ClassForm from "@/components/forms/ClassForm";
+import Modal from "@/components/ui/Modal";
+import { getAllClasses } from "@/lib/api/classes";
+import { ClassItem } from "@/lib/types/class";
+import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 
 const GRADE_TABS = [
   { key: "all", label: "All Grades" },
@@ -10,146 +16,27 @@ const GRADE_TABS = [
   { key: "senior", label: "Senior (11–12)" },
 ];
 
-import ClassCard, { ClassItem } from "@/components/classesCard";
-
-const SAMPLE_CLASSES: ClassItem[] = [
-  {
-    id: "1",
-    class_name: "10-A",
-    section: "A",
-    class_teacher_id: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    student_capacity: 40,
-    status: "active",
-    teacher: "Sunita Mishra",
-    subjects: [
-      { label: "Math", color: "bg-[var(--blue-light)] text-[var(--blue)]" },
-      {
-        label: "Science",
-        color: "bg-[var(--green-light)] text-[var(--green)]",
-      },
-      {
-        label: "English",
-        color: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-      },
-    ],
-    students: 38,
-    subjects_count: 8,
-    teachers: 6,
-  },
-  {
-    id: "2",
-    class_name: "9-B",
-    section: "B",
-    class_teacher_id: "a1b2c3d4-1111-2222-3333-444455556666",
-    student_capacity: 45,
-    status: "active",
-    teacher: "Vivek Pandey",
-    subjects: [
-      {
-        label: "Science",
-        color: "bg-[var(--green-light)] text-[var(--green)]",
-      },
-      { label: "Math", color: "bg-[var(--blue-light)] text-[var(--blue)]" },
-      { label: "CS", color: "bg-[var(--cyan-light)] text-[var(--cyan)]" },
-    ],
-    students: 42,
-    subjects_count: 8,
-    teachers: 6,
-  },
-  {
-    id: "3",
-    class_name: "11-C",
-    section: "C",
-    class_teacher_id: "b2c3d4e5-2222-3333-4444-555566667777",
-    student_capacity: 38,
-    status: "active",
-    teacher: "Rekha Tiwari",
-    subjects: [
-      {
-        label: "English",
-        color: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-      },
-      {
-        label: "Accounts",
-        color: "bg-[var(--amber-light)] text-[var(--amber)]",
-      },
-      { label: "CS", color: "bg-[var(--cyan-light)] text-[var(--cyan)]" },
-    ],
-    students: 35,
-    subjects_count: 7,
-    teachers: 5,
-  },
-  {
-    id: "4",
-    class_name: "7-A",
-    section: "A",
-    class_teacher_id: "c3d4e5f6-3333-4444-5555-666677778888",
-    student_capacity: 35,
-    status: "active",
-    teacher: "Anjali Sharma",
-    subjects: [
-      { label: "Math", color: "bg-[var(--blue-light)] text-[var(--blue)]" },
-      {
-        label: "English",
-        color: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-      },
-      { label: "Hindi", color: "bg-[var(--rose-light)] text-[var(--rose)]" },
-    ],
-    students: 32,
-    subjects_count: 6,
-    teachers: 5,
-  },
-  {
-    id: "5",
-    class_name: "8-B",
-    section: "B",
-    class_teacher_id: "d4e5f6a7-4444-5555-6666-777788889999",
-    student_capacity: 40,
-    status: "active",
-    teacher: "Ramesh Gupta",
-    subjects: [
-      {
-        label: "Science",
-        color: "bg-[var(--green-light)] text-[var(--green)]",
-      },
-      { label: "Math", color: "bg-[var(--blue-light)] text-[var(--blue)]" },
-      {
-        label: "English",
-        color: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-      },
-    ],
-    students: 39,
-    subjects_count: 7,
-    teachers: 5,
-  },
-  {
-    id: "6",
-    class_name: "5-A",
-    section: "A",
-    class_teacher_id: "e5f6a7b8-5555-6666-7777-888899990000",
-    student_capacity: 30,
-    status: "active",
-    teacher: "Priya Mehta",
-    subjects: [
-      { label: "Math", color: "bg-[var(--blue-light)] text-[var(--blue)]" },
-      { label: "EVS", color: "bg-[var(--green-light)] text-[var(--green)]" },
-      {
-        label: "English",
-        color: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-      },
-    ],
-    students: 28,
-    subjects_count: 5,
-    teachers: 4,
-  },
-];
-
 function Page() {
   const [active, setActive] = useState("all");
+  const [open, setOpen] = useState(false);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleClick = (key: string) => {
-    setActive(key);
-  };
+  const loadClasses = useCallback(async () => {
+    setLoading(true);
+    const res = await getAllClasses();
+
+    if (res.success && res.data) {
+      setClasses(Array.isArray(res.data) ? res.data : []);
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    loadClasses();
+  }, []);
 
   return (
     <div>
@@ -169,12 +56,16 @@ function Page() {
               Classes
             </h1>
             <p className="text-sm text-[var(--text-3)] mt-0.5">
-              40 sections · Academic Year 2026
+              {loading
+                ? "Loading..."
+                : `${classes.length} sections · Academic Year 2026`}
             </p>
           </div>
         </div>
-
-        <button className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10">
+        <button
+          onClick={() => setOpen(true)}
+          className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10"
+        >
           <span className="text-lg leading-none">+</span>
           Create Class
         </button>
@@ -184,25 +75,50 @@ function Page() {
         {GRADE_TABS.map(tab => (
           <button
             key={tab.key}
-            onClick={() => handleClick(tab.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-[var(--duration)] whitespace-nowrap
-            ${
+            onClick={() => setActive(tab.key)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-[var(--duration)] whitespace-nowrap ${
               active === tab.key
                 ? "bg-[var(--blue)] text-[var(--text-inverse)]"
                 : "bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--blue)] hover:text-[var(--blue)]"
-            }
-          `}
+            }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      <div className="grid mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SAMPLE_CLASSES.map(cls => (
-          <ClassCard key={cls.id} cls={cls} />
-        ))}
-      </div>
+      {loading ? (
+        <ClassCardSkeleton />
+      ) : classes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)]">
+          <Building2 className="w-12 h-12 mb-3 opacity-30" />
+          <p className="text-lg font-medium">No classes found</p>
+          <p className="text-sm">
+            Click &quot;Create Class&quot; to get started.
+          </p>
+        </div>
+      ) : (
+        <div className="grid mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {classes?.map(cls => (
+            <ClassCard key={cls.id} cls={cls} onSuccess={loadClasses} />
+          ))}
+        </div>
+      )}
+
+      <Modal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        title="Add New Class"
+        description="Fill in the details to create a new class."
+      >
+        <ClassForm
+          onCancel={() => setOpen(false)}
+          onSuccess={() => {
+            setOpen(false);
+            loadClasses();
+          }}
+        />
+      </Modal>
     </div>
   );
 }

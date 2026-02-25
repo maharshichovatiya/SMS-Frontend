@@ -31,8 +31,8 @@ export default function SignInForm() {
     if (result.success) {
       toast.success("OTP sent to your login email");
 
-      if (result.data.data?.userId) {
-        localStorage.setItem("userId", result.data.data?.userId);
+      if (result.data.data?.email) {
+        localStorage.setItem("email", result.data.data?.email);
       }
 
       router.push("/verify-otp");

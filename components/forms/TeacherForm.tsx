@@ -1,31 +1,95 @@
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TeacherFormData, teacherSchema } from "@/lib/validations/teacherForm";
+import {
+  createTeacherSchema,
+  TeacherFormData,
+} from "@/lib/validations/teacherForm";
+import toast from "react-hot-toast";
+import { createTeacher, updateTeacher } from "@/lib/api/teacher";
+import { Teacher } from "@/lib/types/teacher";
+import { useEffect, useState } from "react";
+import { getRoles, Role } from "@/lib/api/role";
 
 interface TeacherFormProps {
   onCancel: () => void;
+  onSuccess?: () => void;
   defaultValues?: Partial<TeacherFormData>;
   mode?: "add" | "edit";
   isLoading?: boolean;
+  teacherId?: string;
 }
 
 export default function TeacherForm({
   onCancel,
+  onSuccess,
   defaultValues,
   mode = "add",
   isLoading = false,
+  teacherId,
 }: TeacherFormProps) {
+  const schema = createTeacherSchema(mode);
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<TeacherFormData>({
-    resolver: zodResolver(teacherSchema),
+    resolver: zodResolver(schema) as Resolver<TeacherFormData>,
     defaultValues,
   });
 
-  const onSubmit: SubmitHandler<TeacherFormData> = data => {
-    console.log(mode === "edit" ? "Update Teacher:" : "Add Teacher:", data);
+  const [roles, setRoles] = useState<Role[]>([]);
+
+  useEffect(() => {
+    const loadRoles = async () => {
+      const res = await getRoles();
+      if (res.success && res.data) {
+        setRoles(res.data);
+      }
+    };
+
+    loadRoles();
+  }, []);
+
+  const onSubmit: SubmitHandler<TeacherFormData> = async data => {
+    try {
+      const schoolId = localStorage.getItem("schoolId") || undefined;
+
+      const teacherRoleId = roles.find(
+        role => role.roleName.toLowerCase() === "teacher",
+      )?.id;
+
+      const payload: Teacher = {
+        ...data,
+        ...(mode === "edit" && { password: undefined }),
+        schoolId,
+        roleId: teacherRoleId,
+        profilePhoto: data.profilePhoto?.[0] || null,
+      };
+
+      let res;
+
+      if (mode === "edit" && teacherId) {
+        res = await updateTeacher(teacherId, payload);
+      } else {
+        res = await createTeacher(payload);
+      }
+
+      if (res.success) {
+        toast.success(
+          mode === "edit"
+            ? "Teacher updated successfully "
+            : "Teacher created successfully ",
+        );
+
+        reset();
+        onSuccess?.();
+      } else {
+        toast.error(res.message || "Something went wrong ");
+      }
+    } catch (error) {
+      toast.error("Something went wrong ");
+    }
   };
 
   return (
@@ -174,20 +238,6 @@ export default function TeacherForm({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="label-base">School ID</label>
-            <input
-              {...register("schoolId")}
-              placeholder="SCH-001"
-              className={`input-base pl-4 ${errors.schoolId ? "error" : ""}`}
-            />
-            {errors.schoolId && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.schoolId.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
             <label className="label-base">Employee Code</label>
             <input
               {...register("employeeCode")}
@@ -209,9 +259,8 @@ export default function TeacherForm({
             >
               <option value="">Select category</option>
               <option value="teaching">Teaching</option>
-              <option value="non-teaching">Non-Teaching</option>
-              <option value="administrative">Administrative</option>
-              <option value="support">Support</option>
+              <option value="non_teaching">Non-Teaching</option>
+              <option value="admin">Administrative</option>
             </select>
             {errors.staffCategory && (
               <span className="text-xs text-[var(--rose)]">
@@ -222,18 +271,22 @@ export default function TeacherForm({
 
           <div className="flex flex-col gap-1">
             <label className="label-base">Department</label>
-            <input
+            <select
               {...register("department")}
-              placeholder="Mathematics"
-              className={`input-base pl-4 ${errors.department ? "error" : ""}`}
-            />
+              className={`input-base pl-4 appearance-none ${errors.department ? "error" : ""}`}
+            >
+              <option value="">Select department</option>
+              <option value="academic">Academic</option>
+              <option value="administration">Administration</option>
+              <option value="sports">Sports</option>
+              <option value="laboratory">Laboratory</option>
+            </select>
             {errors.department && (
               <span className="text-xs text-[var(--rose)]">
                 {errors.department.message}
               </span>
             )}
           </div>
-
           <div className="flex flex-col gap-1">
             <label className="label-base">Designation</label>
             <input

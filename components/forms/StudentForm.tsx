@@ -10,7 +10,7 @@ import {
 } from "@/lib/validations/studentSchema";
 
 interface StudentFormProps {
-  initialData?: Partial<CreateStudentFormValues>; // pass when editing
+  initialData?: Partial<CreateStudentFormValues>;
   onSubmitSuccess?: () => void;
   onclose: () => void;
 }
@@ -42,7 +42,6 @@ export default function StudentForm({
     },
   });
 
-  // Populate form when editing
   useEffect(() => {
     if (initialData) {
       reset({ ...initialData });
@@ -51,9 +50,9 @@ export default function StudentForm({
 
   const onSubmit = async (data: CreateStudentFormValues) => {
     if (isEditMode) {
-      // TODO: await fetch(`/api/students/${id}`, { method: "PUT", body: JSON.stringify(data) })
+      //  await fetch(`/api/students/${id}`, { method: "PUT", body: JSON.stringify(data) })
     } else {
-      // TODO: await fetch("/api/students", { method: "POST", body: JSON.stringify(data) })
+      // await fetch("/api/students", { method: "POST", body: JSON.stringify(data) })
     }
     onSubmitSuccess?.();
   };
@@ -61,7 +60,7 @@ export default function StudentForm({
   const handleCancel = () => {
     reset();
     onclose();
-    // TODO: router.back() or router.push("/students")
+    //router.back() or router.push("/students")
   };
 
   return (

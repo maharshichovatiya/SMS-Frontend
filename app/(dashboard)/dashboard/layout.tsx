@@ -1,4 +1,3 @@
-// app/dashboard/layout.tsx
 import Link from "next/link";
 import { Home, Users, Settings } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";

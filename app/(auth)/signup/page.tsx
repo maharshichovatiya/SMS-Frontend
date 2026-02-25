@@ -130,7 +130,6 @@ export default function SignUpPage() {
         websiteUrl: schoolData.websiteUrl || undefined,
       };
 
-      console.log("Mapped school data:", mappedSchoolData);
       showToast.loading("Creating your school...");
       const SchoolResponse = await createSchool(mappedSchoolData);
       showToast.loading("Creating your account...");
@@ -141,7 +140,6 @@ export default function SignUpPage() {
       showToast.apiSuccess("Account created successfully!");
       router.replace("/dashboard");
     } catch (error: unknown) {
-      console.error("Signup error:", error);
       showToast.apiError(error);
     } finally {
       setLoading(false);

@@ -10,7 +10,6 @@ import {
   Edit,
 } from "lucide-react";
 
-// ── Stat Card ──
 interface StatCardProps {
   icon: React.ReactNode;
   iconBg: string;
@@ -59,7 +58,6 @@ function StatCard({
   );
 }
 
-// ── Badge ──
 type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
 
 interface BadgeProps {
@@ -85,7 +83,6 @@ function Badge({ children, variant = "blue" }: BadgeProps) {
   );
 }
 
-// ── Recent Admissions Data ──
 const admissions = [
   {
     initials: "AK",
@@ -149,7 +146,6 @@ const admissions = [
   },
 ];
 
-// ── Role Bar ──
 interface RoleBarProps {
   label: string;
   count: string;
@@ -174,7 +170,6 @@ function RoleBar({ label, count, width, color }: RoleBarProps) {
   );
 }
 
-// ── Quick Access Item ──
 interface QuickItemProps {
   icon: React.ReactNode;
   iconBg: string;

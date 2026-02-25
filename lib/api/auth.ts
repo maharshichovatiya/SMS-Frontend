@@ -20,14 +20,18 @@ type ErrorResponse = {
 type LoginResponse = {
   statusCode: number;
   data?: {
-    userId?: string;
+    email?: string;
   };
 };
 
 type VerifyOtpResponse = {
-  statusCode: number;
-  accessToken: string;
-  refreshToken: string;
+  data: {
+    statusCode: number;
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    schoolId: string;
+  };
 };
 
 type ForgotPasswordResponse = {
@@ -36,6 +40,11 @@ type ForgotPasswordResponse = {
 };
 
 type ResetPasswordResponse = {
+  statusCode: number;
+  message: string;
+};
+
+type ResendOtpResponse = {
   statusCode: number;
   message: string;
 };
@@ -62,21 +71,19 @@ export const login = async (data: {
 };
 
 export const verifyOtp = async (data: {
-  userId: string;
+  email: string;
   otp: string;
 }): Promise<ApiResponse<VerifyOtpResponse>> => {
   try {
     const res = await api.post<VerifyOtpResponse>("/auth/verify-otp", data);
 
-    if (res.data.statusCode === 200) {
-      Cookies.set("accessToken", res.data.accessToken, {
-        expires: 1,
-      });
+    Cookies.set("accessToken", res.data.data.accessToken, {
+      expires: 1,
+    });
 
-      Cookies.set("refreshToken", res.data.refreshToken, {
-        expires: 7,
-      });
-    }
+    Cookies.set("refreshToken", res.data.data.refreshToken, {
+      expires: 7,
+    });
 
     return {
       success: true,
@@ -88,6 +95,28 @@ export const verifyOtp = async (data: {
     return {
       success: false,
       message: err.response?.data?.message || "Verification failed",
+    };
+  }
+};
+
+export const resendOtp = async (data: {
+  email: string;
+}): Promise<ApiResponse<ResendOtpResponse>> => {
+  try {
+    const res = await api.post<ResendOtpResponse>("/auth/resend-otp", data);
+
+    return {
+      success: true,
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      success: false,
+      message:
+        err.response?.data?.message ||
+        "Failed to resend OTP. Please try again.",
     };
   }
 };
@@ -142,8 +171,9 @@ export const resetPassword = async (data: {
     };
   }
 };
-import api from "./client";
+
 import { PersonalDetails } from "@/lib/validations/signupSchema";
+import api from "../axios";
 
 export interface BackendSchoolDto {
   name: string;

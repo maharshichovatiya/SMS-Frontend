@@ -10,7 +10,8 @@ import {
   GraduationCap,
   PartyPopper,
 } from "lucide-react";
-import { verifyOtp } from "@/lib/api/auth";
+import { resendOtp, verifyOtp } from "@/lib/api/auth";
+import toast from "react-hot-toast";
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -65,22 +66,24 @@ export default function VerifyOTPPage() {
     setLoading(true);
     setError("");
 
-    const userId = localStorage.getItem("userId");
+    const email = localStorage.getItem("email");
 
-    if (!userId) {
-      setError("Session expired. Please login again.");
+    if (!email) {
+      setError("Email Not found.");
       setLoading(false);
       return;
     }
 
     const result = await verifyOtp({
-      userId,
+      email,
       otp: code,
     });
 
     if (result.success) {
       setVerified(true);
-      localStorage.removeItem("userId");
+      localStorage.removeItem("email");
+      localStorage.setItem("userId", result.data.data.userId);
+      localStorage.setItem("schoolId", result.data.data.schoolId);
     } else {
       setError(result.message || "Incorrect code. Please try again.");
       setOtp(["", "", "", ""]);
@@ -90,12 +93,32 @@ export default function VerifyOTPPage() {
     setLoading(false);
   }
 
-  function handleResend() {
-    setOtp(["", "", "", ""]);
-    setError("");
-    setTimer(30);
-    focus(0);
-  }
+  const handleResend = async () => {
+    try {
+      const email = localStorage.getItem("email");
+
+      if (!email) {
+        setError("Email not found. Please login again.");
+        return;
+      }
+
+      const res = await resendOtp({ email });
+
+      if (res.success) {
+        setOtp(["", "", "", ""]);
+        setError("");
+        setTimer(90);
+        focus(0);
+        localStorage.removeItem("email");
+        toast.success("OTP Resend");
+      } else {
+        setError(res.message);
+        toast.error(res.message);
+      }
+    } catch (err) {
+      setError("Something went wrong");
+    }
+  };
 
   const features = [
     { icon: <Clock className="w-4 h-4" />, text: "Code expires in 10 minutes" },
@@ -450,8 +473,8 @@ export default function VerifyOTPPage() {
                         color: "var(--amber)",
                       }}
                     >
-                      <Clock className="w-3 h-3" /> 00:
-                      {String(timer).padStart(2, "0")}
+                      <Clock className="w-3 h-3" />
+                      {String(timer).padStart(2)}
                     </span>
                   ) : (
                     <button

@@ -17,7 +17,7 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
 import toast from "react-hot-toast";
 import { resetPassword } from "@/lib/api/auth";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -39,8 +39,8 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const onSubmit = async (data: ResetPasswordFormData) => {
     setLoading(true);
-    // console.log("Reset password data:", data);
-    const token = searchParams.get("token"); // from URL
+
+    const token = searchParams.get("token");
 
     if (!token) {
       toast.error("Invalid reset link");

@@ -11,7 +11,6 @@ import {
   GraduationCap,
 } from "lucide-react";
 
-// ── Sidebar Nav Item ──
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
@@ -100,7 +99,6 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </span>
         </button>
 
-        {/* Logo Container */}
         <div
           className={`flex items-center gap-[11px] transition-all duration-300 ${
             collapsed ? "w-full justify-center mt-16" : ""

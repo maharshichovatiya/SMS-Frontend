@@ -4,111 +4,114 @@ import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
-
-export interface Teacher {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  gender: string;
-  dob: string;
-  schoolId: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  dateOfJoining: string;
-  salaryPackage: number;
-  highestQualification: string;
-  experienceYears: number;
-  profilePhoto?: string;
-}
+import { GetTeachers } from "@/lib/types/teacher";
+import toast from "react-hot-toast";
+import { deleteTeacher } from "@/lib/api/teacher";
 
 interface Props {
-  teacher: Teacher;
+  teacher: GetTeachers;
+  onSuccess: () => void;
 }
 
-export default function TeacherCard({ teacher }: Props) {
-  const fullName = `${teacher.firstName} ${teacher.lastName}`;
+export default function TeacherCard({ teacher, onSuccess }: Props) {
+  const fullName = `${teacher.user.firstName} ${teacher.user.lastName}`;
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const initials = teacher.firstName.charAt(0) + teacher.lastName.charAt(0);
+  const [deleting, setDeleting] = useState(false);
+  const initials =
+    teacher?.user.firstName?.charAt(0) + teacher?.user.lastName?.charAt(0);
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
+    const res = await deleteTeacher(id);
+    setDeleting(false);
+    if (res.success) {
+      toast.success("Teacher deleted successfully");
+      setOpenDelete(false);
+      onSuccess();
+    } else {
+      toast.error(res.message || "Failed to delete teacher");
+    }
+  };
 
   return (
-    <div className="mt-5 bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-6 hover:shadow-[var(--shadow)] transition">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-lg font-semibold text-[var(--text)]">
+    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-4 sm:p-6 hover:shadow-[var(--shadow)] transition">
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] truncate">
             {fullName}
           </h2>
-          <p className="text-sm text-[var(--text-2)]">{teacher.designation}</p>
+          <p className="text-xs sm:text-sm text-[var(--text-2)] truncate">
+            {teacher.designation}
+          </p>
         </div>
-        <span className="text-xs bg-[var(--blue-light)] text-[var(--blue)] px-3 py-1 rounded-full font-medium">
+        <span className="shrink-0 text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2 sm:px-3 py-1 rounded-full font-medium">
           {teacher.staffCategory}
         </span>
       </div>
 
-      <div className="flex items-start gap-4 mt-5">
-        {teacher.profilePhoto ? (
+      <div className="flex items-start gap-3 sm:gap-4 mt-4">
+        {teacher.user.profilePhoto ? (
           <img
-            src={teacher.profilePhoto}
+            src={teacher.user.profilePhoto}
             alt={fullName}
-            className="w-16 h-16 rounded-[var(--radius-md)] object-cover"
+            className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[var(--radius-md)] object-cover"
           />
         ) : (
           <div
-            className="w-16 h-16 rounded-[var(--radius-md)] text-[var(--text-inverse)] flex items-center justify-center font-semibold text-lg"
+            className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[var(--radius-md)] text-[var(--text-inverse)] flex items-center justify-center font-semibold text-lg"
             style={{ background: "var(--grad-primary)" }}
           >
             {initials}
           </div>
         )}
 
-        <div className="text-sm text-[var(--text-2)] space-y-1">
-          <p className="font-medium text-[var(--text)]">{teacher.department}</p>
-          <p>{teacher.highestQualification}</p>
-          <p>{teacher.experienceYears} years experience</p>
-          <p className="flex items-center gap-1">
-            <Mail size={14} /> {teacher.email}
+        <div className="text-xs sm:text-sm text-[var(--text-2)] space-y-1 min-w-0 flex-1">
+          <p className="font-medium text-[var(--text)] truncate">
+            {teacher.department}
+          </p>
+          <p className="truncate">{teacher.highestQualification}</p>
+          <p>{teacher.totalExpMonths} months experience</p>
+          <p className="flex items-center gap-1 truncate">
+            <Mail size={12} className="shrink-0" />
+            <span className="truncate">{teacher.user.email}</span>
           </p>
           <p className="flex items-center gap-1">
-            <Phone size={14} /> {teacher.phone}
+            <Phone size={12} className="shrink-0" />
+            {teacher.user.phone}
           </p>
         </div>
       </div>
 
-      <div className="border-t border-[var(--border)] my-5" />
+      <div className="border-t border-[var(--border)] my-4" />
 
-      <div className="text-sm text-[var(--text-2)] space-y-2">
-        <p className="flex items-center gap-2">
-          <Calendar size={14} />
-          DOB: {teacher.dob}
+      {/* Details */}
+      <div className="text-xs sm:text-sm text-[var(--text-2)] grid grid-cols-1 xs:grid-cols-2 gap-x-4 gap-y-1.5">
+        <p className="flex items-center gap-1.5">
+          <Calendar size={12} className="shrink-0" />
+          DOB: {teacher.user.dob}
         </p>
         <p>Joined: {teacher.dateOfJoining}</p>
-        <p>Employee Code: {teacher.employeeCode}</p>
-        <p>Salary: ₹{teacher.salaryPackage.toLocaleString()}/month</p>
+        <p className="truncate">Code: {teacher.employeeCode}</p>
+        <p>₹{teacher.salaryPackage.toLocaleString()}/mo</p>
       </div>
 
-      <div className="flex gap-3 mt-6">
+      {/* Actions */}
+      <div className="flex gap-2 sm:gap-3 mt-5">
         <button
           onClick={() => setOpenEdit(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs sm:text-sm rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
         >
-          <Pencil size={16} />
-          Edit
+          <Pencil size={14} /> Edit
         </button>
-
         <button
           onClick={() => setOpenDelete(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs sm:text-sm rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
         >
-          <Trash2 size={16} />
-          Delete
+          <Trash2 size={14} /> Delete
         </button>
       </div>
 
-      {/* update teacher  */}
       <Modal
         isOpen={openEdit}
         onClose={() => setOpenEdit(false)}
@@ -117,12 +120,32 @@ export default function TeacherCard({ teacher }: Props) {
       >
         <TeacherForm
           mode="edit"
+          teacherId={teacher.id}
           onCancel={() => setOpenEdit(false)}
-          defaultValues={teacher}
+          onSuccess={() => {
+            setOpenEdit(false);
+            onSuccess();
+          }}
+          defaultValues={{
+            email: teacher.user.email,
+            firstName: teacher.user.firstName,
+            lastName: teacher.user.lastName,
+            phone: teacher.user.phone,
+            gender: teacher.user.gender,
+            dob: teacher.user.dob,
+            employeeCode: teacher.employeeCode,
+            staffCategory: teacher.staffCategory,
+            department: teacher.department,
+            designation: teacher.designation,
+            dateOfJoining: teacher.dateOfJoining,
+            salaryPackage: Number(teacher.salaryPackage),
+            highestQualification: teacher.highestQualification,
+            experienceYears: Math.floor(teacher.totalExpMonths / 12),
+            profilePhoto: null,
+          }}
         />
       </Modal>
 
-      {/* delete teacher */}
       <Modal
         isOpen={openDelete}
         onClose={() => setOpenDelete(false)}
@@ -136,8 +159,12 @@ export default function TeacherCard({ teacher }: Props) {
             >
               Cancel
             </button>
-            <button className="flex-1 py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold">
-              Delete
+            <button
+              onClick={() => handleDelete(teacher.id)}
+              disabled={deleting}
+              className="flex-1 py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold disabled:opacity-60"
+            >
+              {deleting ? "Deleting..." : "Delete"}
             </button>
           </>
         }

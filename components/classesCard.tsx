@@ -1,110 +1,220 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  BookOpen,
+  User,
+  GraduationCap,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
+import Modal from "./ui/Modal";
+import ClassForm from "./forms/ClassForm";
+
+import toast from "react-hot-toast";
+import { deleteClass } from "@/lib/api/classes";
+
+export interface ClassTeacher {
+  id: string;
+  status: string;
+  userId: string;
+  employeeCode: string;
+  staffCategory: string;
+  department: string;
+  designation: string;
+  highestQualification: string;
+  totalExpMonths: number;
+  salaryPackage: string;
+  dateOfJoining: string;
+
+  user?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+}
 
 export interface ClassItem {
   id: string;
-  class_name: string;
+  classNo: string;
   section: string;
-  class_teacher_id: string;
-  student_capacity: number;
+  classTeacherId: string;
+  studentCapacity: number;
   status: string;
-  teacher: string;
-  subjects: { label: string; color: string }[];
-  students: number;
-  subjects_count: number;
-  teachers: number;
+  createdAt: string;
+  updatedAt: string;
+  classTeacher: ClassTeacher;
 }
 
-const STAT_COLORS = [
-  "text-[var(--blue)]",
-  "text-[var(--green)]",
-  "text-[var(--amber)]",
-];
-
-interface ClassCardProps {
+interface Props {
   cls: ClassItem;
-  onEdit?: (cls: ClassItem) => void;
-  onDelete?: (cls: ClassItem) => void;
+  onSuccess?: () => void;
 }
 
-export default function ClassCard({ cls, onEdit, onDelete }: ClassCardProps) {
-  const stats = [
-    { value: cls.students, label: "STUDENTS" },
-    { value: cls.subjects_count, label: "SUBJECTS" },
-    { value: cls.teachers, label: "TEACHERS" },
-  ];
+export default function ClassCard({ cls, onSuccess }: Props) {
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const teacherName = cls.classTeacher?.user
+    ? `${cls.classTeacher.user.firstName} ${cls.classTeacher.user.lastName}`
+    : (cls.classTeacher?.employeeCode ?? "Not assigned");
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await deleteClass(cls.id);
+      if (res.success) {
+        toast.success("Class deleted successfully");
+        setOpenDelete(false);
+        onSuccess?.();
+      } else {
+        toast.error(res.message || "Failed to delete class");
+      }
+    } catch {
+      toast.error("Failed to delete class");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
-    <div
-      className="bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] p-5 flex flex-col gap-4"
-      style={{ boxShadow: "var(--shadow-sm)" }}
-    >
-      <div className="flex items-start justify-between">
-        <h2 className="text-3xl font-black leading-none text-[var(--blue)]">
-          {cls.class_name}
-        </h2>
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--indigo-light)] text-[var(--indigo)]">
+    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-4 sm:p-5 hover:shadow-[var(--shadow)] transition">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 shrink-0 rounded-[var(--radius-md)] bg-[var(--cyan-light)] flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-[var(--cyan)]" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-[var(--text)] truncate">
+              Class {cls.classNo} — {cls.section}
+            </h2>
+            <p className="text-xs text-[var(--text-2)]">
+              Section {cls.section}
+            </p>
+          </div>
+        </div>
+        <span
+          className={`shrink-0 text-xs px-2 py-1 rounded-full font-medium ${
+            cls.status === "active"
+              ? "bg-[var(--green-light)] text-[var(--green)]"
+              : "bg-[var(--border)] text-[var(--text-3)]"
+          }`}
+        >
           {cls.status}
         </span>
       </div>
 
-      <div>
-        <p className="text-sm font-bold text-[var(--text)]">
-          Section {cls.section}
-        </p>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-base">🏫</span>
-          <p className="text-sm text-[var(--text-2)]">{cls.teacher}</p>
-        </div>
-      </div>
+      <div className="border-t border-[var(--border)] my-3" />
 
-      <div className="flex items-center gap-2 flex-wrap">
-        {cls.subjects.map(s => (
-          <span
-            key={s.label}
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${s.color}`}
-          >
-            {s.label}
+      {/* Details */}
+      <div className="space-y-2 text-xs text-[var(--text-2)]">
+        <p className="flex items-center gap-1.5">
+          <User size={12} className="shrink-0 text-[var(--text-3)]" />
+          <span className="text-[var(--text-3)]">Teacher:</span>
+          <span className="text-[var(--text)] font-medium truncate">
+            {teacherName}
           </span>
-        ))}
+        </p>
+
+        <p className="flex items-center gap-1.5">
+          <GraduationCap size={12} className="shrink-0 text-[var(--text-3)]" />
+          <span className="text-[var(--text-3)]">Designation:</span>
+          <span className="text-[var(--text)] font-medium">
+            {cls.classTeacher?.designation ?? "—"}
+          </span>
+        </p>
+
+        <p className="flex items-center gap-1.5">
+          <Users size={12} className="shrink-0 text-[var(--text-3)]" />
+          <span className="text-[var(--text-3)]">Capacity:</span>
+          <span className="text-[var(--text)] font-medium">
+            {cls.studentCapacity} seats
+          </span>
+        </p>
+
+        <p className="flex items-center gap-1.5">
+          <span className="text-[var(--text-3)]">Department:</span>
+          <span className="text-[var(--text)] font-medium capitalize">
+            {cls.classTeacher?.department ?? "—"}
+          </span>
+        </p>
       </div>
 
-      <div className="border-t border-[var(--border)]" />
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-5">
-          {stats.map((stat, i) => (
-            <div key={stat.label}>
-              <p
-                className={`text-xl font-black leading-none ${STAT_COLORS[i]}`}
-              >
-                {stat.value}
-              </p>
-              <p className="text-[10px] font-bold tracking-widest text-[var(--text-3)] mt-0.5">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit?.(cls)}
-            className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-xs)] text-[var(--text-3)] hover:text-[var(--blue)] hover:bg-[var(--blue-light)] transition-colors duration-[var(--duration)]"
-            title="Edit"
-          >
-            <Pencil size={15} />
-          </button>
-          <button
-            onClick={() => onDelete?.(cls)}
-            className="w-8 h-8 flex items-center justify-center rounded-[var(--radius-xs)] text-[var(--text-3)] hover:text-[var(--rose)] hover:bg-[var(--rose-light)] transition-colors duration-[var(--duration)]"
-            title="Delete"
-          >
-            <Trash2 size={15} />
-          </button>
-        </div>
+      {/* Actions */}
+      <div className="flex gap-2 mt-4">
+        <button
+          onClick={() => setOpenEdit(true)}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+        >
+          <Pencil size={13} /> Edit
+        </button>
+        <button
+          onClick={() => setOpenDelete(true)}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+        >
+          <Trash2 size={13} /> Delete
+        </button>
       </div>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={openEdit}
+        onClose={() => setOpenEdit(false)}
+        title="Edit Class"
+        description="Update the class details."
+      >
+        <ClassForm
+          mode="edit"
+          classId={cls.id}
+          onCancel={() => setOpenEdit(false)}
+          onSuccess={() => {
+            setOpenEdit(false);
+            onSuccess?.();
+          }}
+          defaultValues={{
+            classNo: cls.classNo,
+            section: cls.section,
+            studentCapacity: cls.studentCapacity,
+            classTeacherId: cls.classTeacherId,
+          }}
+        />
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        isOpen={openDelete}
+        onClose={() => setOpenDelete(false)}
+        title="Delete Class"
+        description="This action cannot be undone."
+        footer={
+          <>
+            <button
+              onClick={() => setOpenDelete(false)}
+              className="flex-1 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)] transition text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex-1 py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold text-sm disabled:opacity-60"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-[var(--text-2)]">
+          Are you sure you want to delete{" "}
+          <strong className="text-[var(--text)]">
+            Class {cls.classNo} — Section {cls.section}
+          </strong>
+          ?
+        </p>
+      </Modal>
     </div>
   );
 }
