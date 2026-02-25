@@ -10,8 +10,8 @@ import {
   GraduationCap,
   PartyPopper,
 } from "lucide-react";
-import { verifyOtp } from "@/lib/api/auth";
-import { showToast } from "@/lib/utils/toast";
+import { verifyOtp } from "@/lib/api/Auth";
+import { showToast } from "@/lib/utils/Toast";
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", ""]);

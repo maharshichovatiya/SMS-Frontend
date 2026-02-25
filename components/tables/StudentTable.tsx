@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
-import StudentForm from "@/components/forms/studentForm";
+import StudentForm from "@/components/forms/StudentForm";
 
 type Status = "Active" | "Pending" | "Inactive";
 

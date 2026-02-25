@@ -10,7 +10,7 @@ const GRADE_TABS = [
   { key: "senior", label: "Senior (11–12)" },
 ];
 
-import ClassCard, { ClassItem } from "@/components/classesCard";
+import ClassCard, { ClassItem } from "@/components/ClassesCard";
 
 const SAMPLE_CLASSES: ClassItem[] = [
   {

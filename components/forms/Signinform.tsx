@@ -8,10 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   signInSchema,
   type SignInFormValues,
-} from "@/lib/validations/signinSchema";
+} from "@/lib/validations/SignInSchema";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/api/auth";
-import { showToast } from "@/lib/utils/toast";
+import { login } from "@/lib/api/Auth";
+import { showToast } from "@/lib/utils/Toast";
 
 export default function SignInForm() {
   const [showPass, setShowPass] = useState(false);

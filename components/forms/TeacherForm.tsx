@@ -1,6 +1,6 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TeacherFormData, teacherSchema } from "@/lib/validations/teacherForm";
+import { TeacherFormData, teacherSchema } from "@/lib/validations/TeacherForm";
 
 interface TeacherFormProps {
   onCancel: () => void;
@@ -25,7 +25,6 @@ export default function TeacherForm({
   });
 
   const onSubmit: SubmitHandler<TeacherFormData> = _data => {
-    // Submit logic here
     return _data;
   };
 

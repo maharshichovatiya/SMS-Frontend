@@ -3,7 +3,7 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Lock, Eye, EyeOff } from "lucide-react";
-import { ResetPasswordFormData } from "@/lib/validations/resetPasswordSchema";
+import { ResetPasswordFormData } from "@/lib/validations/ResetPasswordSchema";
 
 const baseInput =
   "w-full h-12 bg-[var(--color-surface-2)] border rounded-xl text-base text-[var(--color-text)] placeholder:text-[var(--color-text-3)] outline-none transition-all focus:bg-white focus:ring-3 focus:ring-[var(--color-blue)]/10 pl-10 pr-12";

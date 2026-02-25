@@ -1,6 +1,6 @@
 "use client";
 import TeacherForm from "@/components/forms/TeacherForm";
-import TeacherCard, { Teacher } from "@/components/teachersCard";
+import TeacherCard, { Teacher } from "@/components/TeachersCard";
 import Modal from "@/components/ui/Modal";
 import { Plus, Users } from "lucide-react";
 import { useState } from "react";
