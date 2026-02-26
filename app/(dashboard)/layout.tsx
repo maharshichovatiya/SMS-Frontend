@@ -12,20 +12,21 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
-      {/* Sidebar */}
+      {}
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      {/* Main Content Area */}
+      {}
       <main
         className="min-h-screen pb-16 transition-all duration-300 ease-[var(--ease)]"
         style={{
           marginLeft: collapsed
-            ? "calc(var(--sidebar-closed) + 28px)"
-            : "calc(var(--sidebar-open) + 28px)",
-          padding: "28px 28px 60px",
+            ? "calc(var(--sidebar-closed) + 20px)"
+            : "calc(var(--sidebar-open) + 20px)",
+          marginTop: "20px",
+          padding: "10px 10px 68px",
         }}
       >
         {children}

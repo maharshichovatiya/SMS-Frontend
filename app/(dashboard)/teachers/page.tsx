@@ -1,7 +1,8 @@
 "use client";
 import TeacherForm from "@/components/forms/TeacherForm";
-import TeacherCard, { Teacher } from "@/components/teachersCard";
+import TeacherCard, { Teacher } from "@/components/TeacherCard";
 import Modal from "@/components/ui/Modal";
+import PageHeader from "@/components/layout/PageHeader";
 import { Plus, Users } from "lucide-react";
 import { useState } from "react";
 
@@ -68,27 +69,17 @@ export default function TeachersPage() {
   ];
 
   return (
-    <div className="min-h-screen p-8 ">
-      <div className="w-full bg-[var(--surface)] rounded-[var(--radius-lg)] px-8 py-6 flex items-center justify-between border border-[var(--border)] shadow-[var(--shadow-sm)]">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-[var(--radius-md)] bg-[var(--green-light)] flex items-center justify-center">
-            <Users className="w-6 h-6 text-[var(--green)]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-[var(--text)]">
-              Teachers
-            </h1>
-            <p className="text-sm text-[var(--text-2)] mt-1">
-              {teachers.length} staff members across all departments
-            </p>
-          </div>
-        </div>
-
-        <button className="btn-primary" onClick={() => setOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Add Teacher
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        title="Teachers"
+        description={`${teachers.length} staff members across all departments`}
+        icon={Users}
+        iconBgColor="--green-light"
+        iconColor="--green"
+        buttonText="Add Teacher"
+        onButtonClick={() => setOpen(true)}
+        buttonIcon={Plus}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {teachers.map(teacher => (

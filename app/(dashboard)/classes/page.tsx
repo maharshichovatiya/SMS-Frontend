@@ -1,6 +1,7 @@
 "use client";
-import { Building2 } from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 import React, { useState } from "react";
+import PageHeader from "@/components/layout/PageHeader";
 
 const GRADE_TABS = [
   { key: "all", label: "All Grades" },
@@ -10,7 +11,7 @@ const GRADE_TABS = [
   { key: "senior", label: "Senior (11–12)" },
 ];
 
-import ClassCard, { ClassItem } from "@/components/classesCard";
+import ClassCard, { ClassItem } from "@/components/ClassCard";
 
 const SAMPLE_CLASSES: ClassItem[] = [
   {
@@ -153,32 +154,15 @@ function Page() {
 
   return (
     <div>
-      <div
-        className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] px-6 py-4 flex items-center justify-between"
-        style={{ boxShadow: "var(--shadow-sm)" }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-[var(--cyan-light)] flex items-center justify-center">
-            <Building2
-              className="w-5 h-5 text-[var(--cyan)]"
-              strokeWidth={1.8}
-            />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text)] leading-tight">
-              Classes
-            </h1>
-            <p className="text-sm text-[var(--text-3)] mt-0.5">
-              40 sections · Academic Year 2026
-            </p>
-          </div>
-        </div>
-
-        <button className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10">
-          <span className="text-lg leading-none">+</span>
-          Create Class
-        </button>
-      </div>
+      <PageHeader
+        title="Classes"
+        description={`${SAMPLE_CLASSES.length} classes across all grades`}
+        icon={Building2}
+        iconBgColor="--cyan-light"
+        iconColor="--cyan"
+        buttonText="Add Class"
+        buttonIcon={Plus}
+      />
 
       <div className="flex mt-3 items-center gap-2 flex-wrap">
         {GRADE_TABS.map(tab => (
@@ -198,7 +182,7 @@ function Page() {
         ))}
       </div>
 
-      <div className="grid mt-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid mt-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {SAMPLE_CLASSES.map(cls => (
           <ClassCard key={cls.id} cls={cls} />
         ))}

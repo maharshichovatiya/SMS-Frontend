@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { PersonalDetails, SchoolDetails } from "@/lib/validations/signupSchema";
+import { PersonalDetails, SchoolDetails } from "@/lib/validations/SignupSchema";
 export function useFormCompletion(
   personalForm: UseFormReturn<PersonalDetails>,
   schoolForm: UseFormReturn<SchoolDetails>,

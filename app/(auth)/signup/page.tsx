@@ -8,16 +8,16 @@ import {
   schoolDetailsSchema,
   PersonalDetails,
   SchoolDetails,
-} from "@/lib/validations/signupSchema";
+} from "@/lib/validations/SignupSchema";
 import { StepProgress } from "@/components/forms/StepProgress";
 import { FormNavigation } from "@/components/forms/FormNavigation";
-import { useFormCompletion } from "@/lib/hooks/useFormCompletion";
+import { useFormCompletion } from "@/lib/hooks/UseFormCompletion";
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
-import { PW_COLORS, PW_LABELS } from "@/lib/utils/signupConstants";
-import { authApi, Role } from "@/lib/api/auth";
+import { PW_COLORS, PW_LABELS } from "@/lib/utils/SignupConstants";
+import { authApi, Role } from "@/lib/api/Auth";
 import toast from "react-hot-toast";
-import { showToast } from "@/lib/utils/toast";
+import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
   const router = useRouter();
@@ -88,6 +88,16 @@ export default function SignUpPage() {
           !controller.signal.aborted
         ) {
           setRoles(response.data);
+
+          // Find admin role and store in localStorage
+          const adminRole = response.data.find(
+            (role: Role) => role.roleName.toLowerCase() === "admin",
+          );
+          if (adminRole) {
+            localStorage.setItem("adminRoleId", adminRole.id);
+            // Set the roleId in the form automatically
+            personalForm.setValue("roleId", adminRole.id);
+          }
         }
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -101,7 +111,7 @@ export default function SignUpPage() {
     };
     fetchRoles();
     return () => controller.abort();
-  }, []);
+  }, [personalForm]);
 
   const nextStep = async () => {
     const isValid = await personalForm.trigger();
@@ -142,14 +152,7 @@ export default function SignUpPage() {
         websiteUrl: schoolData.websiteUrl || undefined,
       };
 
-      const schoolResponse = await toast.promise(
-        authApi.createSchool(mappedSchoolData),
-        {
-          loading: "Creating your school...",
-          success: "School created!",
-          error: "Failed to create school",
-        },
-      );
+      const schoolResponse = await authApi.createSchool(mappedSchoolData);
 
       await toast.promise(
         authApi.signup({
@@ -158,11 +161,11 @@ export default function SignUpPage() {
         }),
         {
           loading: "Creating your account...",
-          success: "Account created successfully!",
+          success: "Sign up successfully",
           error: "Signup failed",
         },
       );
-
+      localStorage.setItem("schoolId", schoolResponse.data?.id || "");
       router.replace("/dashboard");
     } catch (error: unknown) {
       showToast.apiError(error);

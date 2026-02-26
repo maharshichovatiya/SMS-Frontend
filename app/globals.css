@@ -195,7 +195,7 @@
   --color-text-3: #9aa5c4;
 
   /* ── Font Families ── */
-  --font-sans: "Outfit", sans-serif;
+  --font-sans: var(--font-josefin-sans), sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   /* ── Border Radius ── */

@@ -1,5 +1,5 @@
 import { GraduationCap, ShieldCheck, Clock, KeyRound } from "lucide-react";
-import ForgotPasswordForm from "@/components/forms/Forgotpasswordform";
+import ForgotPasswordForm from "@/components/forms/ForgotPasswordForm";
 
 const tips = [
   {
@@ -13,7 +13,7 @@ const tips = [
   {
     icon: <KeyRound className="w-4 h-4 text-white/80" />,
     label: "You'll be prompted to set a new password",
-  }, // <-- FIX THIS TOO
+  },
 ];
 
 export default function Page() {

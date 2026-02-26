@@ -111,7 +111,7 @@ export default function TeacherCard({ teacher }: Props) {
         </button>
       </div>
 
-      {/* update teacher  */}
+      {}
       <Modal
         isOpen={openEdit}
         onClose={() => setOpenEdit(false)}
@@ -125,7 +125,7 @@ export default function TeacherCard({ teacher }: Props) {
         />
       </Modal>
 
-      {/* delete teacher */}
+      {}
       <Modal
         isOpen={openDelete}
         onClose={() => setOpenDelete(false)}
