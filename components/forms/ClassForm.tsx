@@ -2,12 +2,12 @@
 
 import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ClassFormData, classSchema } from "@/lib/validations/classForm";
+import { ClassFormData, classSchema } from "@/lib/validations/ClassSchema";
 import { useEffect, useState } from "react";
-import { getAllTeachers } from "@/lib/api/teacher";
-import { GetTeachers } from "@/lib/types/teacher";
+import { getAllTeachers } from "@/lib/api/Teacher";
+import { GetTeachers } from "@/lib/types/Teacher";
 import toast from "react-hot-toast";
-import { createClass, updateClass } from "@/lib/api/classes";
+import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
 
 interface ClassFormProps {

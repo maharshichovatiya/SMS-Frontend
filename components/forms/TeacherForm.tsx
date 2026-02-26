@@ -3,12 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createTeacherSchema,
   TeacherFormData,
-} from "@/lib/validations/teacherForm";
+} from "@/lib/validations/TeacherSchema";
 import toast from "react-hot-toast";
-import { createTeacher, updateTeacher } from "@/lib/api/teacher";
-import { Teacher } from "@/lib/types/teacher";
+import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
+import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
-import { getRoles, Role } from "@/lib/api/role";
+import { getRoles, Role } from "@/lib/api/Role";
 import {
   Award,
   BadgeCheck,

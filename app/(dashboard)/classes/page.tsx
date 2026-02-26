@@ -1,11 +1,11 @@
 "use client";
 import { Building2, Plus, Search } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import ClassCard from "@/components/classesCard";
+import ClassCard from "@/components/ClassesCard";
 import ClassForm from "@/components/forms/ClassForm";
 import Modal from "@/components/ui/Modal";
-import { getAllClasses } from "@/lib/api/classes";
-import { ClassItem } from "@/lib/types/class";
+import { getAllClasses } from "@/lib/api/Classes";
+import { ClassItem } from "@/lib/types/Class";
 import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 
 const GRADE_TABS = [

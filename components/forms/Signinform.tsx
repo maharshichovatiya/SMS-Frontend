@@ -10,7 +10,7 @@ import {
   type SignInFormValues,
 } from "@/lib/validations/SignInSchema";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/api/auth";
+import { login } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import toast from "react-hot-toast";
 

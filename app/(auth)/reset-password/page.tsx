@@ -17,9 +17,9 @@ import {
   resetPasswordSchema,
   ResetPasswordFormData,
 } from "@/lib/validations/ResetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 import toast from "react-hot-toast";
-import { resetPassword } from "@/lib/api/auth";
+import { resetPassword } from "@/lib/api/Auth";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPasswordPage() {

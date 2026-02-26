@@ -11,7 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { showToast } from "@/lib/utils/Toast";
-import { logout } from "@/lib/api/auth";
+import { logout } from "@/lib/api/Auth";
 
 interface NavItemProps {
   icon: React.ReactNode;

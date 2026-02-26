@@ -9,7 +9,7 @@ import {
   GraduationCap,
   ArrowLeft,
 } from "lucide-react";
-import { resendOtp, verifyOtp } from "@/lib/api/auth";
+import { resendOtp, verifyOtp } from "@/lib/api/Auth";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 

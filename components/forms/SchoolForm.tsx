@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getSchoolById, updateSchool, SchoolData } from "@/lib/api/school";
+import { getSchoolById, updateSchool } from "@/lib/api/School";
 import toast from "react-hot-toast";
 
 const initialState = {

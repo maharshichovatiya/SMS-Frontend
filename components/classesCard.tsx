@@ -5,8 +5,8 @@ import { useState } from "react";
 import Modal from "./ui/Modal";
 import ClassForm from "./forms/ClassForm";
 import toast from "react-hot-toast";
-import { deleteClass } from "@/lib/api/classes";
-import { ClassItem } from "@/lib/types/class";
+import { deleteClass } from "@/lib/api/Classes";
+import { ClassItem } from "@/lib/types/Class";
 
 interface Props {
   cls: ClassItem;

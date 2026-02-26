@@ -1,5 +1,5 @@
-import { Role } from "./role";
-import { School } from "./school";
+import { Role } from "./Role";
+import { School } from "./School";
 
 export type User = {
   id: string;

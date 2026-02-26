@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getProfile, updateProfile } from "@/lib/api/profile";
+import { getProfile, updateProfile } from "@/lib/api/Profile";
 import toast from "react-hot-toast";
 
 const initialState = {

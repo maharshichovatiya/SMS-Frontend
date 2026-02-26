@@ -10,7 +10,7 @@ import {
   type ForgotPasswordFormValues,
 } from "@/lib/validations/ForgotPasswordSchema";
 import toast from "react-hot-toast";
-import { forgotPassword } from "@/lib/api/auth";
+import { forgotPassword } from "@/lib/api/Auth";
 
 export default function ForgotPasswordForm() {
   const [submitted, setSubmitted] = useState(false);

@@ -11,9 +11,9 @@ import {
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
-import { GetTeachers } from "@/lib/types/teacher";
+import { GetTeachers } from "@/lib/types/Teacher";
 import toast from "react-hot-toast";
-import { deleteTeacher } from "@/lib/api/teacher";
+import { deleteTeacher } from "@/lib/api/Teacher";
 
 interface Props {
   teacher: GetTeachers;

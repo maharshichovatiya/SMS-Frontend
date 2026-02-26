@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 import api from "@/lib/axios";
-import { GetTeachers, Teacher } from "../types/teacher";
+import { GetTeachers, Teacher } from "../types/Teacher";
 
 type ApiSuccess<T> = {
   success: true;

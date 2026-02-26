@@ -1,11 +1,11 @@
 import { AxiosError } from "axios";
-import { ClassFormData } from "@/lib/validations/classForm";
+import { ClassFormData } from "@/lib/validations/ClassSchema";
 import {
   GetClassesResponse,
   CreateClassResponse,
   UpdateClassResponse,
   DeleteClassResponse,
-} from "@/lib/types/class";
+} from "@/lib/types/Class";
 import api from "../axios";
 
 export const getAllClasses = async (): Promise<GetClassesResponse> => {

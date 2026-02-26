@@ -1,10 +1,10 @@
 "use client";
 import TeacherForm from "@/components/forms/TeacherForm";
 import TeacherCardSkeleton from "@/components/skeletons/TeacherCardSkeleton";
-import TeacherCard from "@/components/teachersCard";
+import TeacherCard from "@/components/TeachersCard";
 import Modal from "@/components/ui/Modal";
-import { getAllTeachers } from "@/lib/api/teacher";
-import { GetTeachers } from "@/lib/types/teacher";
+import { getAllTeachers } from "@/lib/api/Teacher";
+import { GetTeachers } from "@/lib/types/Teacher";
 import { Plus, Search, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 

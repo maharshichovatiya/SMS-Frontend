@@ -3,8 +3,8 @@
 import ProfileForm from "@/components/forms/ProfileForm";
 import SchoolForm from "@/components/forms/SchoolForm";
 import Modal from "@/components/ui/Modal";
-import { deleteSchool } from "@/lib/api/school";
-import { deleteUser } from "@/lib/api/profile";
+import { deleteSchool } from "@/lib/api/School";
+import { deleteUser } from "@/lib/api/Profile";
 import { Settings, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";

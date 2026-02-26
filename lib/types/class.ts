@@ -1,5 +1,3 @@
-import { ClassFormData } from "@/lib/validations/classForm";
-
 export interface ClassTeacherUser {
   firstName: string;
   lastName: string;
