@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import {
   MailCheck,
-  ShieldCheck,
   Clock,
   RefreshCw,
   GraduationCap,
+  ArrowLeft,
 } from "lucide-react";
 import { resendOtp, verifyOtp } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
@@ -133,10 +133,6 @@ export default function VerifyOTPPage() {
     {
       icon: <Clock className="w-4 h-4" />,
       text: "Code expires in 01:30 minutes",
-    },
-    {
-      icon: <ShieldCheck className="w-4 h-4" />,
-      text: "256-bit encrypted & secure",
     },
     {
       icon: <RefreshCw className="w-4 h-4" />,
@@ -308,7 +304,7 @@ export default function VerifyOTPPage() {
                       {email}
                     </span>
                   </div>
-                  {/* <button
+                  <button
                     onClick={() => router.replace("/signin")}
                     className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold rounded-full px-3.5 py-1.5 border transition-opacity hover:opacity-70"
                     style={{
@@ -319,7 +315,7 @@ export default function VerifyOTPPage() {
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Back to Signin
-                  </button> */}
+                  </button>
                 </div>
               </div>
 

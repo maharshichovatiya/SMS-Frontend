@@ -1,5 +1,5 @@
 import { GraduationCap } from "lucide-react";
-import SignInForm from "@/components/forms/SignInform";
+import SignInForm from "@/components/forms/SignInForm";
 import { ShieldCheck, BarChart2, Zap } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
