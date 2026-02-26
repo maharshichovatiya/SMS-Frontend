@@ -124,21 +124,6 @@ export default function ProfileForm() {
               </p>
             </div>
           </div>
-
-          <button
-            className="
-              px-4 py-2
-              rounded-[var(--radius-sm)]
-              border border-[var(--border)]
-              bg-[var(--surface)]
-              text-sm font-medium
-              text-[var(--text-2)]
-              hover:bg-[var(--blue-light)]
-              transition
-            "
-          >
-            Edit Photo
-          </button>
         </div>
 
         <div className="flex items-center gap-3">

@@ -16,7 +16,6 @@ import {
   Building2,
   Calendar,
   CalendarCheck,
-  Camera,
   ChevronDown,
   Clock,
   GraduationCap,
@@ -295,7 +294,7 @@ export default function TeacherForm({
             )}
           </div>
 
-          <div className="flex mt-3 flex-col gap-1">
+          {/* <div className="flex mt-3 flex-col gap-1">
             <label className="label-base">Profile Photo</label>
             <div className="relative">
               <Camera
@@ -309,7 +308,7 @@ export default function TeacherForm({
                 className="input-base pl-9 pt-3"
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
