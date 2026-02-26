@@ -280,7 +280,6 @@ export default function StudentsTable() {
 
   return (
     <>
-      {/* ── Edit Modal ── */}
       <Modal
         isOpen={!!editingStudent}
         onClose={() => setEditingStudent(null)}
@@ -307,7 +306,6 @@ export default function StudentsTable() {
         </div>
       </Modal>
 
-      {/* ── Delete Modal ── */}
       <Modal
         isOpen={!!deletingStudent}
         onClose={() => setDeletingStudent(null)}
@@ -348,7 +346,6 @@ export default function StudentsTable() {
         </div>
       </Modal>
 
-      {/* ── Table ── */}
       <div
         className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] overflow-hidden"
         style={{ boxShadow: "var(--shadow-sm)" }}

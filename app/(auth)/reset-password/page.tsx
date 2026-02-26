@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -18,6 +18,9 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/ResetPasswordSchema";
 import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
+import { showToast } from "@/lib/utils/Toast";
+import { resetPassword } from "@/lib/api/Auth";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false);
@@ -32,11 +35,36 @@ export default function ResetPasswordPage() {
       confirmPassword: "",
     },
   });
-
-  const onSubmit = async (_data: ResetPasswordFormData) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const onSubmit = async (data: ResetPasswordFormData) => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
-    setLoading(false);
+
+    const token = searchParams.get("token");
+
+    if (!token) {
+      showToast.error("Invalid reset link");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await resetPassword({
+        token,
+        newPassword: data.password,
+      });
+
+      if (result.statusCode === 200) {
+        showToast.success("Password reset successfully");
+        router.push("/signin");
+      } else {
+        showToast.error(result.message);
+      }
+    } catch {
+      showToast.error("Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const password = form.watch("password");
@@ -149,7 +177,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !isComplete}
-                  className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
+                  className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/35 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
                   {loading ? (

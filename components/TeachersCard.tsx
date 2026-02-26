@@ -1,117 +1,154 @@
 "use client";
 
-import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Mail,
+  Phone,
+  Calendar,
+  BadgeCheck,
+} from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
-
-export interface Teacher {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  gender: string;
-  dob: string;
-  schoolId: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  dateOfJoining: string;
-  salaryPackage: number;
-  highestQualification: string;
-  experienceYears: number;
-  profilePhoto?: string;
-}
+import { GetTeachers } from "@/lib/types/Teacher";
+import { showToast } from "@/lib/utils/Toast";
+import { deleteTeacher } from "@/lib/api/Teacher";
 
 interface Props {
-  teacher: Teacher;
+  teacher: GetTeachers;
+  onSuccess: () => void;
 }
 
-export default function TeacherCard({ teacher }: Props) {
-  const fullName = `${teacher.firstName} ${teacher.lastName}`;
+export default function TeacherCard({ teacher, onSuccess }: Props) {
+  const fullName = `${teacher.user.firstName} ${teacher.user.lastName}`;
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const initials = teacher.firstName.charAt(0) + teacher.lastName.charAt(0);
+  const [deleting, setDeleting] = useState(false);
+  const initials =
+    teacher?.user.firstName?.charAt(0) + teacher?.user.lastName?.charAt(0);
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true);
+    const res = await deleteTeacher(id);
+    setDeleting(false);
+    if (res.success) {
+      showToast.success("Teacher deleted successfully");
+      setOpenDelete(false);
+      onSuccess();
+    } else {
+      showToast.error(res.message || "Failed to delete teacher");
+    }
+  };
+
+  const experienceYears = Math.floor(teacher.totalExpMonths / 12);
 
   return (
-    <div className="mt-5 bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-6 hover:shadow-[var(--shadow)] transition">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-lg font-semibold text-[var(--text)]">
-            {fullName}
-          </h2>
-          <p className="text-sm text-[var(--text-2)]">{teacher.designation}</p>
-        </div>
-        <span className="text-xs bg-[var(--blue-light)] text-[var(--blue)] px-3 py-1 rounded-full font-medium">
-          {teacher.staffCategory}
-        </span>
-      </div>
+    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-center gap-4 mb-4">
+          {teacher.user.profilePhoto ? (
+            <img
+              src={teacher.user.profilePhoto}
+              alt={fullName}
+              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] object-cover"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] flex items-center justify-center font-bold text-lg text-[var(--text-inverse)]"
+              style={{ background: "var(--grad-primary)" }}
+            >
+              {initials}
+            </div>
+          )}
 
-      <div className="flex items-start gap-4 mt-5">
-        {teacher.profilePhoto ? (
-          <Image
-            src={teacher.profilePhoto}
-            alt={fullName}
-            width={64}
-            height={64}
-            className="w-16 h-16 rounded-[var(--radius-md)] object-cover"
-          />
-        ) : (
-          <div
-            className="w-16 h-16 rounded-[var(--radius-md)] text-[var(--text-inverse)] flex items-center justify-center font-semibold text-lg"
-            style={{ background: "var(--grad-primary)" }}
-          >
-            {initials}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-[var(--text)] truncate leading-tight">
+                  {fullName}
+                </h2>
+                <p className="text-xs text-[var(--text-2)] truncate mt-0.5">
+                  {teacher.designation}
+                </p>
+              </div>
+              <span className="shrink-0 text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2.5 py-1 rounded-full font-semibold capitalize">
+                {teacher.department}
+              </span>
+            </div>
+
+            <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
+              {teacher.highestQualification} · {teacher.designation}
+            </p>
           </div>
-        )}
+        </div>
 
-        <div className="text-sm text-[var(--text-2)] space-y-1">
-          <p className="font-medium text-[var(--text)]">{teacher.department}</p>
-          <p>{teacher.highestQualification}</p>
-          <p>{teacher.experienceYears} years experience</p>
-          <p className="flex items-center gap-1">
-            <Mail size={14} /> {teacher.email}
-          </p>
-          <p className="flex items-center gap-1">
-            <Phone size={14} /> {teacher.phone}
-          </p>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--blue)] leading-none">
+              {teacher.salaryPackage
+                ? `₹${(Number(teacher.salaryPackage) / 1000).toFixed(0)}k`
+                : "—"}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Salary
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--green)] leading-none">
+              {teacher.totalExpMonths ?? "—"}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Months Exp
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--amber)] leading-none">
+              {experienceYears}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Years
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-1.5 mb-4">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Mail size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span className="truncate">{teacher.user.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Phone size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>{teacher.user.phone}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Calendar size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>DOB: {teacher.user.dob}</span>
+            <span className="text-[var(--border)]">·</span>
+            <span>Joined: {teacher.dateOfJoining}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <BadgeCheck size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>{teacher.employeeCode}</span>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
+          <button
+            onClick={() => setOpenEdit(true)}
+            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+          >
+            <Pencil size={13} /> Edit
+          </button>
+          <button
+            onClick={() => setOpenDelete(true)}
+            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+          >
+            <Trash2 size={13} /> Delete
+          </button>
         </div>
       </div>
 
-      <div className="border-t border-[var(--border)] my-5" />
-
-      <div className="text-sm text-[var(--text-2)] space-y-2">
-        <p className="flex items-center gap-2">
-          <Calendar size={14} />
-          DOB: {teacher.dob}
-        </p>
-        <p>Joined: {teacher.dateOfJoining}</p>
-        <p>Employee Code: {teacher.employeeCode}</p>
-        <p>Salary: ₹{teacher.salaryPackage.toLocaleString()}/month</p>
-      </div>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={() => setOpenEdit(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
-        >
-          <Pencil size={16} />
-          Edit
-        </button>
-
-        <button
-          onClick={() => setOpenDelete(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
-        >
-          <Trash2 size={16} />
-          Delete
-        </button>
-      </div>
-
-      {/* update teacher  */}
       <Modal
         isOpen={openEdit}
         onClose={() => setOpenEdit(false)}
@@ -120,12 +157,32 @@ export default function TeacherCard({ teacher }: Props) {
       >
         <TeacherForm
           mode="edit"
+          teacherId={teacher.id}
           onCancel={() => setOpenEdit(false)}
-          defaultValues={teacher}
+          onSuccess={() => {
+            setOpenEdit(false);
+            onSuccess();
+          }}
+          defaultValues={{
+            email: teacher.user.email,
+            firstName: teacher.user.firstName,
+            lastName: teacher.user.lastName,
+            phone: teacher.user.phone,
+            gender: teacher.user.gender,
+            dob: teacher.user.dob,
+            employeeCode: teacher.employeeCode,
+            staffCategory: teacher.staffCategory,
+            department: teacher.department,
+            designation: teacher.designation,
+            dateOfJoining: teacher.dateOfJoining,
+            salaryPackage: Number(teacher.salaryPackage),
+            highestQualification: teacher.highestQualification,
+            experienceYears: Math.floor(teacher.totalExpMonths / 12),
+            profilePhoto: null,
+          }}
         />
       </Modal>
 
-      {/* delete teacher */}
       <Modal
         isOpen={openDelete}
         onClose={() => setOpenDelete(false)}
@@ -135,12 +192,16 @@ export default function TeacherCard({ teacher }: Props) {
           <>
             <button
               onClick={() => setOpenDelete(false)}
-              className="flex-1 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)] transition"
+              className="flex-1 cursor-pointer py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)] transition"
             >
               Cancel
             </button>
-            <button className="flex-1 py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold">
-              Delete
+            <button
+              onClick={() => handleDelete(teacher.id)}
+              disabled={deleting}
+              className="flex-1 cursor-pointer py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold disabled:opacity-60"
+            >
+              {deleting ? "Deleting..." : "Delete"}
             </button>
           </>
         }

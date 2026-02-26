@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  Users,
-  BookOpen,
-  Building,
-  Search,
-  Bell,
-  Plus,
-  Edit,
-} from "lucide-react";
+import { Users, BookOpen, Building, Edit } from "lucide-react";
 
-// ── Stat Card ──
 interface StatCardProps {
   icon: React.ReactNode;
   iconBg: string;
@@ -59,7 +50,6 @@ function StatCard({
   );
 }
 
-// ── Badge ──
 type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
 
 interface BadgeProps {
@@ -85,7 +75,6 @@ function Badge({ children, variant = "blue" }: BadgeProps) {
   );
 }
 
-// ── Recent Admissions Data ──
 const admissions = [
   {
     initials: "AK",
@@ -149,7 +138,6 @@ const admissions = [
   },
 ];
 
-// ── Role Bar ──
 interface RoleBarProps {
   label: string;
   count: string;
@@ -157,7 +145,6 @@ interface RoleBarProps {
   color: string;
 }
 
-// ── Quick Access Item ──
 interface QuickItemProps {
   icon: React.ReactNode;
   iconBg: string;
@@ -187,7 +174,6 @@ function QuickItem({ icon, iconBg, iconColor, label, sub }: QuickItemProps) {
 export default function DashboardContent() {
   return (
     <>
-      {/* ── TOPBAR ── */}
       <div className="flex items-center justify-between mb-7 flex-wrap gap-[14px]">
         <div>
           <div className="text-[11px] font-bold tracking-[0.8px] uppercase text-[var(--blue)] mb-[3px]">
@@ -197,31 +183,8 @@ export default function DashboardContent() {
             Good morning, Admin 👋
           </div>
         </div>
-        <div className="flex items-center gap-[10px]">
-          {/* Search */}
-          <div className="flex items-center gap-2 bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-[11px] px-[14px] py-[9px] w-[220px] focus-within:border-[var(--border-focus)] focus-within:shadow-[0_0_0_3px_var(--blue-muted)] transition-all duration-200">
-            <Search className="w-[14px] h-[14px] text-[var(--text-3)] flex-shrink-0" />
-            <input
-              placeholder="Search..."
-              className="bg-transparent border-none outline-none text-[13.5px] text-[var(--text)] w-full placeholder-[var(--text-3)]"
-            />
-          </div>
-          {/* Bell */}
-          <div className="relative w-10 h-10 bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-[11px] flex items-center justify-center cursor-pointer text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--blue)] hover:bg-[var(--blue-light)] transition-all duration-[180ms]">
-            <Bell className="w-[17px] h-[17px]" />
-            <span className="absolute top-2 right-2 w-[7px] h-[7px] bg-[var(--rose)] rounded-full border-[1.5px] border-white" />
-          </div>
-          {/* CTA */}
-          <button className="flex items-center gap-[7px] px-5 py-[10px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-[11px] text-[13.5px] font-semibold shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-[180ms] whitespace-nowrap relative overflow-hidden">
-            <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-            <span className="relative z-10 flex items-center gap-[7px]">
-              <Plus className="w-[14px] h-[14px]" /> Add Record
-            </span>
-          </button>
-        </div>
       </div>
 
-      {/* ── STAT CARDS ── */}
       <div className="grid grid-cols-4 gap-4 mb-[22px] max-xl:grid-cols-2">
         <StatCard
           icon={<Users className="w-[18px] h-[18px]" />}
@@ -265,9 +228,7 @@ export default function DashboardContent() {
         />
       </div>
 
-      {/* ── SPLIT ROW ── */}
       <div className="grid grid-cols-[1fr_300px] gap-5 mb-[22px] max-lg:grid-cols-1">
-        {/* Recent Admissions Table */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
           <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[var(--border)] flex-wrap gap-2">
             <div>
@@ -353,9 +314,7 @@ export default function DashboardContent() {
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="flex flex-col gap-[18px]">
-          {/* Quick Access */}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
             <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
               <div className="text-[15px] font-bold text-[var(--text)]">
@@ -392,7 +351,6 @@ export default function DashboardContent() {
             />
           </div>
 
-          {/* Activity Feed */}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
             <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
               <div className="text-[15px] font-bold text-[var(--text)]">

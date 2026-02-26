@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
-import api from "./Client";
 import { PersonalDetails } from "@/lib/validations/SignUpSchema";
+import api from "../Axios";
 
 type ApiSuccess<T> = {
   success: true;
@@ -26,14 +26,18 @@ type ErrorResponse = {
 type LoginResponse = {
   statusCode: number;
   data?: {
-    userId?: string;
+    email?: string;
   };
 };
 
 type VerifyOtpResponse = {
-  statusCode: number;
-  accessToken: string;
-  refreshToken: string;
+  data: {
+    statusCode: number;
+    accessToken: string;
+    refreshToken: string;
+    userId: string;
+    schoolId: string;
+  };
 };
 
 type ForgotPasswordResponse = {
@@ -42,6 +46,11 @@ type ForgotPasswordResponse = {
 };
 
 type ResetPasswordResponse = {
+  statusCode: number;
+  message: string;
+};
+
+type ResendOtpResponse = {
   statusCode: number;
   message: string;
 };
@@ -75,21 +84,19 @@ export const login = async (data: {
 };
 
 export const verifyOtp = async (data: {
-  userId: string;
+  email: string;
   otp: string;
 }): Promise<ApiResponse<VerifyOtpResponse>> => {
   try {
     const res = await api.post<VerifyOtpResponse>("/auth/verify-otp", data);
 
-    if (res.data.statusCode === 200) {
-      Cookies.set("accessToken", res.data.accessToken, {
-        expires: 1,
-      });
+    Cookies.set("accessToken", res.data.data.accessToken, {
+      expires: 1,
+    });
 
-      Cookies.set("refreshToken", res.data.refreshToken, {
-        expires: 7,
-      });
-    }
+    Cookies.set("refreshToken", res.data.data.refreshToken, {
+      expires: 7,
+    });
 
     return {
       success: true,
@@ -105,6 +112,32 @@ export const verifyOtp = async (data: {
       statusCode: 400,
       message:
         err.response?.data?.message || err.message || "Verification failed",
+      data: null,
+    };
+  }
+};
+
+export const resendOtp = async (data: {
+  email: string;
+}): Promise<ApiResponse<ResendOtpResponse>> => {
+  try {
+    const res = await api.post<ResendOtpResponse>("/auth/resend-otp", data);
+
+    return {
+      success: true,
+      statusCode: res.data.statusCode,
+      message: res.data.message,
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      success: false,
+      statusCode: err.response?.status ?? 500,
+      message:
+        err.response?.data?.message ||
+        "Failed to resend OTP. Please try again.",
       data: null,
     };
   }
@@ -135,6 +168,36 @@ export const forgotPassword = async (email: {
         err.response?.data?.message ||
         err.message ||
         "Failed to send reset link. Please try again.",
+      data: null,
+    };
+  }
+};
+
+export const logout = async (): Promise<ApiResponse<null>> => {
+  try {
+    const refreshToken = Cookies.get("refreshToken");
+
+    await api.post("/auth/logout", { refreshToken });
+
+    Cookies.remove("refreshToken");
+    Cookies.remove("accessToken");
+
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Logged out successfully",
+      data: null,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      success: false,
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to logout. Please try again.",
       data: null,
     };
   }

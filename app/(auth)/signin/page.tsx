@@ -1,13 +1,21 @@
 import { GraduationCap } from "lucide-react";
-import SignInForm from "@/components/forms/SignInform";
+import SignInForm from "@/components/forms/SignInForm";
 import { ShieldCheck, BarChart2, Zap } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const features = [
   { icon: ShieldCheck, label: "Role-based secure access" },
   { icon: BarChart2, label: "Real-time performance reports" },
   { icon: Zap, label: "Fast daily operations" },
 ];
-export default function SignInPage() {
+export default async function SignInPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken");
+
+  if (token) {
+    redirect("/dashboard");
+  }
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col font-[var(--font-sans)]">
       <main className="flex-1 flex items-center justify-center">
