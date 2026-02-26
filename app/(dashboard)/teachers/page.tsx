@@ -116,7 +116,6 @@ export default function TeachersPage() {
         </div>
       </div>
 
-      {/* Content */}
       {loading ? (
         <TeacherCardSkeleton />
       ) : filtered.length === 0 ? (

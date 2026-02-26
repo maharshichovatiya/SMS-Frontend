@@ -8,7 +8,7 @@ import { deleteUser } from "@/lib/api/Profile";
 import { Settings, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 
 export default function SettingsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function SettingsPage() {
       router.replace("/signin");
     } catch (error) {
       const err = error as Error;
-      toast.error(err.message);
+      showToast.error(err.message);
     } finally {
       setDeleting(false);
     }

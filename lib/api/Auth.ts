@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { PersonalDetails } from "@/lib/validations/SignUpSchema";
-import api from "../axios";
+import api from "../Axios";
 
 type ApiSuccess<T> = {
   success: true;

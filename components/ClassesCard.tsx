@@ -4,7 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import ClassForm from "./forms/ClassForm";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { deleteClass } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 
@@ -42,14 +42,14 @@ export default function ClassCard({ cls, onSuccess }: Props) {
     try {
       const res = await deleteClass(cls.id);
       if (res.success) {
-        toast.success("Class deleted successfully");
+        showToast.success("Class deleted successfully");
         setOpenDelete(false);
         onSuccess?.();
       } else {
-        toast.error(res.message || "Failed to delete class");
+        showToast.error(res.message || "Failed to delete class");
       }
     } catch {
-      toast.error("Failed to delete class");
+      showToast.error("Failed to delete class");
     } finally {
       setDeleting(false);
     }

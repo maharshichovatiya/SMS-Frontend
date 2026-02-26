@@ -12,7 +12,7 @@ import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
 import { GetTeachers } from "@/lib/types/Teacher";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { deleteTeacher } from "@/lib/api/Teacher";
 
 interface Props {
@@ -33,11 +33,11 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     const res = await deleteTeacher(id);
     setDeleting(false);
     if (res.success) {
-      toast.success("Teacher deleted successfully");
+      showToast.success("Teacher deleted successfully");
       setOpenDelete(false);
       onSuccess();
     } else {
-      toast.error(res.message || "Failed to delete teacher");
+      showToast.error(res.message || "Failed to delete teacher");
     }
   };
 

@@ -9,7 +9,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from "@/lib/validations/ForgotPasswordSchema";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { forgotPassword } from "@/lib/api/Auth";
 
 export default function ForgotPasswordForm() {
@@ -30,9 +30,9 @@ export default function ForgotPasswordForm() {
     const result = await forgotPassword(data);
 
     if (result.success) {
-      toast.success("Reset link sent to your email");
+      showToast.success("Reset link sent to your email");
     } else {
-      toast.error(result.message);
+      showToast.error(result.message);
     }
     setSubmitted(true);
   };

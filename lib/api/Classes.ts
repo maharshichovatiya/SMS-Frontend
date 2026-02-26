@@ -6,7 +6,7 @@ import {
   UpdateClassResponse,
   DeleteClassResponse,
 } from "@/lib/types/Class";
-import api from "../axios";
+import api from "../Axios";
 
 export const getAllClasses = async (): Promise<GetClassesResponse> => {
   try {

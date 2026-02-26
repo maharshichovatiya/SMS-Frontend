@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { getSchoolById, updateSchool } from "@/lib/api/School";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 
 const initialState = {
   name: "",
@@ -49,7 +49,7 @@ export default function SchoolForm() {
         setSavedForm(fetched);
       } catch (error) {
         const err = error as Error;
-        toast.error(err.message);
+        showToast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -85,7 +85,7 @@ export default function SchoolForm() {
       setSavedForm(form);
     } catch (error) {
       const err = error as Error;
-      toast.error(err.message);
+      showToast.error(err.message);
     }
   };
 

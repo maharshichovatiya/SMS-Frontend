@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { getProfile, updateProfile } from "@/lib/api/Profile";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 
 const initialState = {
   id: "",
@@ -39,7 +39,7 @@ export default function ProfileForm() {
         setEmail(data.email ?? "");
       } catch (error) {
         const err = error as Error;
-        toast.error(err.message);
+        showToast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -60,10 +60,10 @@ export default function ProfileForm() {
         lastName: form.lastName,
         newPassword: form.newPassword,
       });
-      toast.success("Profile updated successfully");
+      showToast.success("Profile updated successfully");
       setSavedForm(form);
     } catch (error) {
-      toast.error("Profile not updated");
+      showToast.error("Profile not updated");
     }
   };
 

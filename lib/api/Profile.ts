@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import api from "@/lib/axios";
+import api from "@/lib/Axios";
 
 export interface ProfileData {
   id: string;

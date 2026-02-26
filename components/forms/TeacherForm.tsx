@@ -4,7 +4,7 @@ import {
   createTeacherSchema,
   TeacherFormData,
 } from "@/lib/validations/TeacherSchema";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
@@ -95,7 +95,7 @@ export default function TeacherForm({
       }
 
       if (res.success) {
-        toast.success(
+        showToast.success(
           mode === "edit"
             ? "Teacher updated successfully "
             : "Teacher created successfully ",
@@ -104,10 +104,10 @@ export default function TeacherForm({
         reset();
         onSuccess?.();
       } else {
-        toast.error(res.message || "Something went wrong ");
+        showToast.error(res.message || "Something went wrong ");
       }
     } catch (error) {
-      toast.error("Something went wrong ");
+      showToast.error("Something went wrong ");
     }
   };
 

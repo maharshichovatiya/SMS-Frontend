@@ -6,7 +6,7 @@ import { ClassFormData, classSchema } from "@/lib/validations/ClassSchema";
 import { useEffect, useState } from "react";
 import { getAllTeachers } from "@/lib/api/Teacher";
 import { GetTeachers } from "@/lib/types/Teacher";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
 
@@ -47,10 +47,10 @@ export default function ClassForm({
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
-          toast.error(res.message || "Failed to load teachers");
+          showToast.error(res.message || "Failed to load teachers");
         }
       } catch {
-        toast.error("Failed to load teachers");
+        showToast.error("Failed to load teachers");
       } finally {
         setLoadingTeachers(false);
       }
@@ -71,7 +71,7 @@ export default function ClassForm({
           : await createClass(payload);
 
       if (res.success) {
-        toast.success(
+        showToast.success(
           mode === "edit"
             ? "Class updated successfully"
             : "Class created successfully",
@@ -79,10 +79,10 @@ export default function ClassForm({
         reset();
         onSuccess?.();
       } else {
-        toast.error(res.message || "Something went wrong");
+        showToast.error(res.message || "Something went wrong");
       }
     } catch {
-      toast.error("Something went wrong");
+      showToast.error("Something went wrong");
     } finally {
       setSubmitting(false);
     }

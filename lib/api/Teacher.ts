@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import api from "@/lib/axios";
+import api from "@/lib/Axios";
 import { GetTeachers, Teacher } from "../types/Teacher";
 
 type ApiSuccess<T> = {
@@ -14,8 +14,6 @@ type ApiError = {
 
 type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
-// Matches actual API response shape:
-// { statusCode, message, data: { data: [...], Total_Records: number } }
 export type GetTeachersResponse = {
   statusCode: number;
   message: string;

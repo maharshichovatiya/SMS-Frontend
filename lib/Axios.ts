@@ -14,6 +14,15 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+const AUTH_ROUTES = [
+  "/auth/verify-otp",
+  "/auth/login",
+  "/auth/signup",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/resend-otp",
+];
+
 api.interceptors.response.use(
   res => res,
   async error => {
@@ -21,11 +30,15 @@ api.interceptors.response.use(
     const isRefreshRequest = originalRequest.url?.includes(
       "/auth/refresh-token",
     );
+    const isAuthRoute = AUTH_ROUTES.some(route =>
+      originalRequest.url?.includes(route),
+    );
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isRefreshRequest
+      !isRefreshRequest &&
+      !isAuthRoute
     ) {
       originalRequest._retry = true;
 

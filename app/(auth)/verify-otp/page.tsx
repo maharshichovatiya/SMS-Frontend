@@ -7,10 +7,9 @@ import {
   Clock,
   RefreshCw,
   GraduationCap,
-  ArrowLeft,
 } from "lucide-react";
 import { resendOtp, verifyOtp } from "@/lib/api/Auth";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
 
 export default function VerifyOTPPage() {
@@ -28,7 +27,7 @@ export default function VerifyOTPPage() {
   const inputs = useRef<HTMLInputElement[]>([]);
 
   const code = otp.join("");
-  const filled = code.length === 4;
+  const filled = code.length === 4 && otp.every(d => d !== "");
 
   useEffect(() => {
     inputs.current[0]?.focus();
@@ -45,6 +44,7 @@ export default function VerifyOTPPage() {
   }
 
   const router = useRouter();
+
   function handleChange(i: number, val: string) {
     if (!/^\d?$/.test(val)) return;
     const next = [...otp];
@@ -79,24 +79,28 @@ export default function VerifyOTPPage() {
       return;
     }
 
-    const result = await verifyOtp({
-      email,
-      otp: code,
-    });
+    try {
+      const result = await verifyOtp({
+        email,
+        otp: code,
+      });
 
-    if (result.success) {
-      localStorage.removeItem("email");
-      localStorage.setItem("userId", result.data.data.userId);
-      localStorage.setItem("schoolId", result.data.data.schoolId);
-      toast.success("Email verified successfully");
-      router.replace("dashboard");
-    } else {
-      setError(result.message || "Incorrect code. Please try again.");
-      setOtp(["", "", "", ""]);
-      focus(0);
+      if (result.success) {
+        localStorage.removeItem("email");
+        localStorage.setItem("userId", result.data.data.userId);
+        localStorage.setItem("schoolId", result.data.data.schoolId);
+        showToast.success("Email verified successfully");
+        router.replace("/dashboard");
+      } else {
+        setError(result.message || "Incorrect code. Please try again.");
+        setOtp(["", "", "", ""]);
+        focus(0);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   const handleResend = async () => {
@@ -115,12 +119,12 @@ export default function VerifyOTPPage() {
         setError("");
         setTimer(90);
         focus(0);
-        toast.success("OTP Resend");
+        showToast.success("OTP Resend");
       } else {
         setError(res.message);
-        toast.error(res.message);
+        showToast.error(res.message);
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong");
     }
   };
@@ -304,7 +308,7 @@ export default function VerifyOTPPage() {
                       {email}
                     </span>
                   </div>
-                  <button
+                  {/* <button
                     onClick={() => router.replace("/signin")}
                     className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold rounded-full px-3.5 py-1.5 border transition-opacity hover:opacity-70"
                     style={{
@@ -315,7 +319,7 @@ export default function VerifyOTPPage() {
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Back to Signin
-                  </button>
+                  </button> */}
                 </div>
               </div>
 

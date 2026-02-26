@@ -18,7 +18,7 @@ import {
   ResetPasswordFormData,
 } from "@/lib/validations/ResetPasswordSchema";
 import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { resetPassword } from "@/lib/api/Auth";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
     const token = searchParams.get("token");
 
     if (!token) {
-      toast.error("Invalid reset link");
+      showToast.error("Invalid reset link");
       return;
     }
 
@@ -55,13 +55,13 @@ export default function ResetPasswordPage() {
       });
 
       if (result.statusCode === 200) {
-        toast.success("Password reset successfully");
+        showToast.success("Password reset successfully");
         router.push("/signin");
       } else {
-        toast.error(result.message);
+        showToast.error(result.message);
       }
     } catch {
-      toast.error("Failed to reset password. Please try again.");
+      showToast.error("Failed to reset password. Please try again.");
     } finally {
       setLoading(false);
     }

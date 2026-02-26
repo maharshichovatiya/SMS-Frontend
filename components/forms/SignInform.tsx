@@ -12,7 +12,6 @@ import {
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
-import toast from "react-hot-toast";
 
 export default function SignInForm() {
   const [showPass, setShowPass] = useState(false);
@@ -39,10 +38,10 @@ export default function SignInForm() {
 
         router.push("/verify-otp");
       } else {
-        toast.error(result.message || "Login failed");
+        showToast.error(result.message || "Login failed");
       }
     } catch (error) {
-      toast.error("sign in failed");
+      showToast.error("sign in failed");
     }
   };
 
