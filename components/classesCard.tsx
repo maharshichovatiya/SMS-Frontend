@@ -1,57 +1,26 @@
 "use client";
 
-import {
-  Pencil,
-  Trash2,
-  BookOpen,
-  User,
-  GraduationCap,
-  Users,
-} from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import ClassForm from "./forms/ClassForm";
-
 import toast from "react-hot-toast";
 import { deleteClass } from "@/lib/api/classes";
-
-export interface ClassTeacher {
-  id: string;
-  status: string;
-  userId: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  highestQualification: string;
-  totalExpMonths: number;
-  salaryPackage: string;
-  dateOfJoining: string;
-
-  user?: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
-}
-
-export interface ClassItem {
-  id: string;
-  classNo: string;
-  section: string;
-  classTeacherId: string;
-  studentCapacity: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  classTeacher: ClassTeacher;
-}
+import { ClassItem } from "@/lib/types/class";
 
 interface Props {
   cls: ClassItem;
   onSuccess?: () => void;
 }
+
+const getClassLevel = (classNo: string) => {
+  const num = parseInt(classNo);
+  if (num >= 1 && num <= 5) return "Junior";
+  if (num >= 6 && num <= 8) return "Middle";
+  if (num >= 9 && num <= 10) return "Secondary";
+  if (num >= 11 && num <= 12) return "Senior";
+  return "Unknown";
+};
 
 export default function ClassCard({ cls, onSuccess }: Props) {
   const [openEdit, setOpenEdit] = useState(false);
@@ -61,6 +30,12 @@ export default function ClassCard({ cls, onSuccess }: Props) {
   const teacherName = cls.classTeacher?.user
     ? `${cls.classTeacher.user.firstName} ${cls.classTeacher.user.lastName}`
     : (cls.classTeacher?.employeeCode ?? "Not assigned");
+
+  const teacherInitials = cls.classTeacher?.user
+    ? `${cls.classTeacher.user.firstName?.charAt(0)}${cls.classTeacher.user.lastName?.charAt(0)}`
+    : "?";
+
+  const level = getClassLevel(cls.classNo);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -80,81 +55,71 @@ export default function ClassCard({ cls, onSuccess }: Props) {
     }
   };
 
+  const createdYear = new Date(cls.createdAt).getFullYear();
+  const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
+
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-4 sm:p-5 hover:shadow-[var(--shadow)] transition">
-      <div className="flex justify-between items-start gap-2">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 shrink-0 rounded-[var(--radius-md)] bg-[var(--cyan-light)] flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-[var(--cyan)]" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-[var(--text)] truncate">
-              Class {cls.classNo} — {cls.section}
-            </h2>
-            <p className="text-xs text-[var(--text-2)]">
-              Section {cls.section}
-            </p>
-          </div>
+    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-5 hover:shadow-[var(--shadow)] transition">
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <div>
+          <h2
+            className="text-3xl font-extrabold leading-none"
+            style={{ color: "var(--blue)" }}
+          >
+            {cls.classNo}
+            <span className="text-2xl">-{cls.section}</span>
+          </h2>
+          <p className="text-xs text-[var(--text-3)] mt-1">{academicYear}</p>
         </div>
-        <span
-          className={`shrink-0 text-xs px-2 py-1 rounded-full font-medium ${
-            cls.status === "active"
-              ? "bg-[var(--green-light)] text-[var(--green)]"
-              : "bg-[var(--border)] text-[var(--text-3)]"
-          }`}
-        >
-          {cls.status}
+        <span className="text-xs px-3 py-1 rounded-full font-medium border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)]">
+          {level}
         </span>
       </div>
 
       <div className="border-t border-[var(--border)] my-3" />
 
-      <div className="space-y-2 text-xs text-[var(--text-2)]">
-        <p className="flex items-center gap-1.5">
-          <User size={12} className="shrink-0 text-[var(--text-3)]" />
-          <span className="text-[var(--text-3)]">Teacher:</span>
-          <span className="text-[var(--text)] font-medium truncate">
-            {teacherName}
-          </span>
-        </p>
+      <p className="text-sm font-bold text-[var(--text)] mb-2">
+        Grade {cls.classNo} · Section {cls.section}
+      </p>
 
-        <p className="flex items-center gap-1.5">
-          <GraduationCap size={12} className="shrink-0 text-[var(--text-3)]" />
-          <span className="text-[var(--text-3)]">Designation:</span>
-          <span className="text-[var(--text)] font-medium">
-            {cls.classTeacher?.designation ?? "—"}
-          </span>
-        </p>
-
-        <p className="flex items-center gap-1.5">
-          <Users size={12} className="shrink-0 text-[var(--text-3)]" />
-          <span className="text-[var(--text-3)]">Capacity:</span>
-          <span className="text-[var(--text)] font-medium">
-            {cls.studentCapacity} seats
-          </span>
-        </p>
-
-        <p className="flex items-center gap-1.5">
-          <span className="text-[var(--text-3)]">Department:</span>
-          <span className="text-[var(--text)] font-medium capitalize">
-            {cls.classTeacher?.department ?? "—"}
-          </span>
-        </p>
+      <div className="flex items-center gap-2 mb-4">
+        <div
+          className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[8px] font-bold text-[var(--text-inverse)]"
+          style={{ background: "var(--grad-primary)" }}
+        >
+          {teacherInitials}
+        </div>
+        <span className="text-xs text-[var(--text-2)] truncate">
+          {teacherName}
+        </span>
       </div>
 
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => setOpenEdit(true)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
-        >
-          <Pencil size={13} /> Edit
-        </button>
-        <button
-          onClick={() => setOpenDelete(true)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
-        >
-          <Trash2 size={13} /> Delete
-        </button>
+      <div className="border-t border-[var(--border)] my-3" />
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-lg font-extrabold text-[var(--blue)] leading-none">
+            {cls.studentCapacity}
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+            Capacity
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setOpenEdit(true)}
+            className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+          >
+            <Pencil size={12} /> Edit
+          </button>
+          <button
+            onClick={() => setOpenDelete(true)}
+            className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        </div>
       </div>
 
       <Modal

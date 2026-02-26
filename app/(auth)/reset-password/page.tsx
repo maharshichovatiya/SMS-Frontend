@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
-} from "@/lib/validations/resetPasswordSchema";
+} from "@/lib/validations/ResetPasswordSchema";
 import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
 import toast from "react-hot-toast";
 import { resetPassword } from "@/lib/api/auth";

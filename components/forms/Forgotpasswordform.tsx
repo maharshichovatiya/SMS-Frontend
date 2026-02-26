@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
-} from "@/lib/validations/Forgotpasswordschema";
+} from "@/lib/validations/ForgotPasswordSchema";
 import toast from "react-hot-toast";
 import { forgotPassword } from "@/lib/api/auth";
 
@@ -30,7 +30,7 @@ export default function ForgotPasswordForm() {
     const result = await forgotPassword(data);
 
     if (result.success) {
-      toast.success(result.data?.message || "Reset link sent to your email");
+      toast.success("Reset link sent to your email");
     } else {
       toast.error(result.message);
     }

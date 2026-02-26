@@ -8,6 +8,7 @@ import { getAllTeachers } from "@/lib/api/teacher";
 import { GetTeachers } from "@/lib/types/teacher";
 import toast from "react-hot-toast";
 import { createClass, updateClass } from "@/lib/api/classes";
+import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
 
 interface ClassFormProps {
   onCancel: () => void;
@@ -36,13 +37,13 @@ export default function ClassForm({
   } = useForm<ClassFormData>({
     resolver: zodResolver(classSchema) as Resolver<ClassFormData>,
     defaultValues,
+    mode: "onChange",
   });
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await getAllTeachers();
-
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
@@ -56,14 +57,18 @@ export default function ClassForm({
     };
     load();
   }, []);
-
   const onSubmit: SubmitHandler<ClassFormData> = async data => {
     setSubmitting(true);
     try {
+      const payload = {
+        ...data,
+        classTeacherId: data.classTeacherId || null, // convert empty string to null
+      };
+
       const res =
         mode === "edit" && classId
-          ? await updateClass(classId, data)
-          : await createClass(data);
+          ? await updateClass(classId, payload)
+          : await createClass(payload);
 
       if (res.success) {
         toast.success(
@@ -86,112 +91,154 @@ export default function ClassForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-6 w-full sm:w-[480px]"
+      className="flex flex-col gap-3 w-full sm:w-[480px]"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="label-base">Class No</label>
-          <input
-            {...register("classNo")}
-            placeholder="e.g. 10"
-            className={`input-base pl-4 ${errors.classNo ? "error" : ""}`}
-          />
-          {errors.classNo && (
-            <span className="text-xs text-[var(--rose)]">
-              {errors.classNo.message}
-            </span>
-          )}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="section-label">Class Info</span>
+          <div className="flex-1 h-px bg-[var(--border)]" />
         </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="label-base">Section</label>
-          <input
-            {...register("section")}
-            placeholder="e.g. A"
-            className={`input-base pl-4 ${errors.section ? "error" : ""}`}
-          />
-          {errors.section && (
-            <span className="text-xs text-[var(--rose)]">
-              {errors.section.message}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="label-base">
+              Class No <span className="text-red-500 text-lg">*</span>
+            </label>
+            <div className="relative">
+              <Hash
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: "var(--text-3)" }}
+              />
+              <input
+                {...register("classNo")}
+                placeholder="e.g. 10"
+                className={`input-base pl-9 ${errors.classNo ? "error" : ""}`}
+              />
+            </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.classNo?.message}
             </span>
-          )}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="label-base">
+              Section <span className="text-red-500 text-lg">*</span>
+            </label>
+            <div className="relative">
+              <GraduationCap
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: "var(--text-3)" }}
+              />
+              <input
+                {...register("section")}
+                placeholder="e.g. A"
+                onChange={e => {
+                  e.target.value = e.target.value.toUpperCase();
+                  register("section").onChange(e);
+                }}
+                className={`input-base pl-9 ${errors.section ? "error" : ""}`}
+              />
+            </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.section?.message}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="label-base">Student Capacity</label>
-        <input
-          {...register("studentCapacity")}
-          type="number"
-          placeholder="e.g. 60"
-          className={`input-base pl-4 ${errors.studentCapacity ? "error" : ""}`}
-        />
-        {errors.studentCapacity && (
-          <span className="text-xs text-[var(--rose)]">
-            {errors.studentCapacity.message}
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="label-base">Class Teacher</label>
-
-        {loadingTeachers ? (
-          <div className="input-base pl-4 flex items-center gap-2 text-[var(--text-3)] animate-pulse">
-            <svg
-              className="w-4 h-4 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="section-label">Capacity & Teacher</span>
+          <div className="flex-1 h-px bg-[var(--border)]" />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="label-base">
+              Student Capacity <span className="text-red-500 text-lg">*</span>
+            </label>
+            <div className="relative">
+              <Users
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: "var(--text-3)" }}
               />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8z"
+              <input
+                {...register("studentCapacity")}
+                type="number"
+                placeholder="e.g. 60"
+                className={`input-base pl-9 ${errors.studentCapacity ? "error" : ""}`}
               />
-            </svg>
-            Loading teachers...
+            </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.studentCapacity?.message}
+            </span>
           </div>
-        ) : teachers.length === 0 ? (
-          <div
-            className={`input-base pl-4 flex items-center text-[var(--text-3)] text-sm`}
-          >
-            No teachers found
-          </div>
-        ) : (
-          <select
-            {...register("classTeacherId")}
-            className={`input-base pl-4 appearance-none ${errors.classTeacherId ? "error" : ""}`}
-          >
-            <option value="">Select a teacher</option>
-            {teachers.map(teacher => (
-              <option key={teacher.id} value={teacher.id}>
-                {teacher.user.firstName} {teacher.user.lastName} —{" "}
-                {teacher.designation}
-              </option>
-            ))}
-          </select>
-        )}
 
-        {errors.classTeacherId && (
-          <span className="text-xs text-[var(--rose)]">
-            {errors.classTeacherId.message}
-          </span>
-        )}
+          <div className="flex flex-col gap-1">
+            <label className="label-base">Class Teacher</label>
+
+            {loadingTeachers ? (
+              <div className="input-base pl-9 flex items-center gap-2 text-[var(--text-3)] animate-pulse">
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Loading teachers...
+              </div>
+            ) : teachers.length === 0 ? (
+              <div className="input-base pl-9 flex items-center text-[var(--text-3)] text-sm">
+                No teachers found
+              </div>
+            ) : (
+              <div className="relative">
+                <GraduationCap
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                  style={{ color: "var(--text-3)" }}
+                />
+                <select
+                  {...register("classTeacherId")}
+                  className={`input-base pl-9 pr-9 appearance-none ${errors.classTeacherId ? "error" : ""}`}
+                >
+                  <option value="">Select a teacher</option>
+                  {teachers.map(teacher => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                      {teacher.designation}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                  style={{ color: "var(--text-3)" }}
+                />
+              </div>
+            )}
+
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.classTeacherId?.message}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-2 border-t border-[var(--border)]">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
+          className="px-6 py-2.5 cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
         >
           Cancel
         </button>

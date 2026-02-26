@@ -70,7 +70,7 @@ export default function Modal({
 
               <button
                 onClick={onClose}
-                className="flex items-center justify-center w-8 h-8 ml-4 shrink-0 rounded-[var(--radius-xs)] text-[var(--text-3)] hover:bg-[var(--bg-2)] transition"
+                className="flex cursor-pointer items-center justify-center w-8 h-8 ml-4 shrink-0 rounded-[var(--radius-xs)] text-[var(--text-3)] hover:bg-[var(--bg-2)] transition"
               >
                 <X size={18} />
               </button>

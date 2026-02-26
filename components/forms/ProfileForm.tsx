@@ -28,15 +28,15 @@ export default function ProfileForm() {
       try {
         const data = await getProfile();
         const fetched = {
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: data.role,
+          id: data.id ?? "",
+          firstName: data.firstName ?? "",
+          lastName: data.lastName ?? "",
+          role: data.role ?? "",
           newPassword: "",
         };
         setForm(fetched);
         setSavedForm(fetched);
-        setEmail(data.email);
+        setEmail(data.email ?? "");
       } catch (error) {
         const err = error as Error;
         toast.error(err.message);
@@ -60,10 +60,10 @@ export default function ProfileForm() {
         lastName: form.lastName,
         newPassword: form.newPassword,
       });
-      toast.success("Profile Update successfully");
+      toast.success("Profile updated successfully");
       setSavedForm(form);
     } catch (error) {
-      toast.success("Profile not update");
+      toast.error("Profile not updated");
     }
   };
 
@@ -147,7 +147,7 @@ export default function ProfileForm() {
             <input
               type="text"
               name="firstName"
-              value={form.firstName}
+              value={form.firstName ?? ""}
               onChange={handleChange}
               className="input-base pl-4"
             />
@@ -158,7 +158,7 @@ export default function ProfileForm() {
             <input
               type="text"
               name="lastName"
-              value={form.lastName}
+              value={form.lastName ?? ""}
               onChange={handleChange}
               className="input-base pl-4"
             />
@@ -170,7 +170,7 @@ export default function ProfileForm() {
           <input
             type="text"
             name="role"
-            value={form.role}
+            value={"admin"}
             disabled
             className="
               input-base pl-4
@@ -186,7 +186,7 @@ export default function ProfileForm() {
           <input
             type="password"
             name="newPassword"
-            value={form.newPassword}
+            value={form.newPassword ?? ""}
             onChange={handleChange}
             className="input-base pl-4"
           />

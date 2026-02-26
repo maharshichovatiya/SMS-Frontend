@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { AxiosError } from "axios";
-import api from "./client";
-import { PersonalDetails } from "@/lib/validations/signupSchema";
+import { PersonalDetails } from "@/lib/validations/SignUpSchema";
+import api from "../axios";
 
 type ApiSuccess<T> = {
   success: true;
@@ -168,6 +168,36 @@ export const forgotPassword = async (email: {
         err.response?.data?.message ||
         err.message ||
         "Failed to send reset link. Please try again.",
+      data: null,
+    };
+  }
+};
+
+export const logout = async (): Promise<ApiResponse<null>> => {
+  try {
+    const refreshToken = Cookies.get("refreshToken");
+
+    await api.post("/auth/logout", { refreshToken });
+
+    Cookies.remove("refreshToken");
+    Cookies.remove("accessToken");
+
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Logged out successfully",
+      data: null,
+    };
+  } catch (error) {
+    const err = error as AxiosError<ErrorResponse>;
+
+    return {
+      success: false,
+      statusCode: 400,
+      message:
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to logout. Please try again.",
       data: null,
     };
   }

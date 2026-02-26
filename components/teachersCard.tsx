@@ -1,6 +1,13 @@
 "use client";
 
-import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Mail,
+  Phone,
+  Calendar,
+  BadgeCheck,
+} from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
@@ -34,80 +41,112 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     }
   };
 
+  const experienceYears = Math.floor(teacher.totalExpMonths / 12);
+
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-4 sm:p-6 hover:shadow-[var(--shadow)] transition">
-      <div className="flex justify-between items-start gap-2">
-        <div className="min-w-0">
-          <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] truncate">
-            {fullName}
-          </h2>
-          <p className="text-xs sm:text-sm text-[var(--text-2)] truncate">
-            {teacher.designation}
-          </p>
-        </div>
-        <span className="shrink-0 text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2 sm:px-3 py-1 rounded-full font-medium">
-          {teacher.staffCategory}
-        </span>
-      </div>
+    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-center gap-4 mb-4">
+          {teacher.user.profilePhoto ? (
+            <img
+              src={teacher.user.profilePhoto}
+              alt={fullName}
+              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] object-cover"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] flex items-center justify-center font-bold text-lg text-[var(--text-inverse)]"
+              style={{ background: "var(--grad-primary)" }}
+            >
+              {initials}
+            </div>
+          )}
 
-      <div className="flex items-start gap-3 sm:gap-4 mt-4">
-        {teacher.user.profilePhoto ? (
-          <img
-            src={teacher.user.profilePhoto}
-            alt={fullName}
-            className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[var(--radius-md)] object-cover"
-          />
-        ) : (
-          <div
-            className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[var(--radius-md)] text-[var(--text-inverse)] flex items-center justify-center font-semibold text-lg"
-            style={{ background: "var(--grad-primary)" }}
-          >
-            {initials}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-[var(--text)] truncate leading-tight">
+                  {fullName}
+                </h2>
+                <p className="text-xs text-[var(--text-2)] truncate mt-0.5">
+                  {teacher.designation}
+                </p>
+              </div>
+              <span className="shrink-0 text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2.5 py-1 rounded-full font-semibold capitalize">
+                {teacher.department}
+              </span>
+            </div>
+
+            <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
+              {teacher.highestQualification} · {teacher.designation}
+            </p>
           </div>
-        )}
-
-        <div className="text-xs sm:text-sm text-[var(--text-2)] space-y-1 min-w-0 flex-1">
-          <p className="font-medium text-[var(--text)] truncate">
-            {teacher.department}
-          </p>
-          <p className="truncate">{teacher.highestQualification}</p>
-          <p>{teacher.totalExpMonths} months experience</p>
-          <p className="flex items-center gap-1 truncate">
-            <Mail size={12} className="shrink-0" />
-            <span className="truncate">{teacher.user.email}</span>
-          </p>
-          <p className="flex items-center gap-1">
-            <Phone size={12} className="shrink-0" />
-            {teacher.user.phone}
-          </p>
         </div>
-      </div>
 
-      <div className="border-t border-[var(--border)] my-4" />
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--blue)] leading-none">
+              {teacher.salaryPackage
+                ? `₹${(Number(teacher.salaryPackage) / 1000).toFixed(0)}k`
+                : "—"}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Salary
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--green)] leading-none">
+              {teacher.totalExpMonths ?? "—"}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Months Exp
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+            <span className="text-lg font-extrabold text-[var(--amber)] leading-none">
+              {experienceYears}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Years
+            </span>
+          </div>
+        </div>
 
-      <div className="text-xs sm:text-sm text-[var(--text-2)] grid grid-cols-1 xs:grid-cols-2 gap-x-4 gap-y-1.5">
-        <p className="flex items-center gap-1.5">
-          <Calendar size={12} className="shrink-0" />
-          DOB: {teacher.user.dob}
-        </p>
-        <p>Joined: {teacher.dateOfJoining}</p>
-        <p className="truncate">Code: {teacher.employeeCode}</p>
-        <p>₹{teacher.salaryPackage.toLocaleString()}/mo</p>
-      </div>
+        <div className="space-y-1.5 mb-4">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Mail size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span className="truncate">{teacher.user.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Phone size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>{teacher.user.phone}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <Calendar size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>DOB: {teacher.user.dob}</span>
+            <span className="text-[var(--border)]">·</span>
+            <span>Joined: {teacher.dateOfJoining}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+            <BadgeCheck size={12} className="shrink-0 text-[var(--text-3)]" />
+            <span>{teacher.employeeCode}</span>
+          </div>
+        </div>
 
-      <div className="flex gap-2 sm:gap-3 mt-5">
-        <button
-          onClick={() => setOpenEdit(true)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs sm:text-sm rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
-        >
-          <Pencil size={14} /> Edit
-        </button>
-        <button
-          onClick={() => setOpenDelete(true)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs sm:text-sm rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
-        >
-          <Trash2 size={14} /> Delete
-        </button>
+        <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
+          <button
+            onClick={() => setOpenEdit(true)}
+            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+          >
+            <Pencil size={13} /> Edit
+          </button>
+          <button
+            onClick={() => setOpenDelete(true)}
+            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+          >
+            <Trash2 size={13} /> Delete
+          </button>
+        </div>
       </div>
 
       <Modal
@@ -153,14 +192,14 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
           <>
             <button
               onClick={() => setOpenDelete(false)}
-              className="flex-1 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)] transition"
+              className="flex-1 cursor-pointer py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)] transition"
             >
               Cancel
             </button>
             <button
               onClick={() => handleDelete(teacher.id)}
               disabled={deleting}
-              className="flex-1 py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold disabled:opacity-60"
+              className="flex-1 cursor-pointer py-2 rounded-[var(--radius-sm)] bg-[var(--rose)] text-[var(--text-inverse)] hover:bg-[var(--rose-dark)] transition font-semibold disabled:opacity-60"
             >
               {deleting ? "Deleting..." : "Delete"}
             </button>

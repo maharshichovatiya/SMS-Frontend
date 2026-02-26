@@ -8,10 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   signInSchema,
   type SignInFormValues,
-} from "@/lib/validations/signinSchema";
+} from "@/lib/validations/SignInSchema";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api/auth";
-import { showToast } from "@/lib/utils/toast";
+import { showToast } from "@/lib/utils/Toast";
 import toast from "react-hot-toast";
 
 export default function SignInForm() {
@@ -63,7 +63,7 @@ export default function SignInForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-[var(--color-text)] mb-2">
-            Email Address <span className="text-red-500">*</span>
+            Email Address <span className="text-red-500  text-lg">*</span>
           </label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none" />
@@ -84,7 +84,7 @@ export default function SignInForm() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-[var(--color-text)] mb-2">
-              Password <span className="text-red-500">*</span>
+              Password <span className="text-red-500  text-lg">*</span>
             </label>
             <button
               onClick={() => router.push("forgot-password")}

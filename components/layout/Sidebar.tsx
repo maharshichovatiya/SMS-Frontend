@@ -8,7 +8,10 @@ import {
   ChevronLeft,
   GraduationCap,
   UserCircle,
+  LogOut,
 } from "lucide-react";
+import { showToast } from "@/lib/utils/Toast";
+import { logout } from "@/lib/api/auth";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -29,19 +32,29 @@ function NavItem({
   collapsed = false,
   onClick,
 }: NavItemProps) {
+  const router = useRouter();
+
   return (
     <div
       onClick={onClick}
       className={`relative flex items-center gap-[11px] px-[10px] py-[10px] rounded-[10px] cursor-pointer text-sm font-medium transition-all duration-[180ms] mb-[3px] whitespace-nowrap overflow-hidden select-none group
-        ${
-          active
-            ? "bg-[var(--blue-light)] text-[var(--blue)] font-semibold"
-            : "text-[var(--text-2)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
-        }`}
+    ${
+      label == "Logout"
+        ? "text-red-400 hover:bg-red-50 hover:text-red-500"
+        : active
+          ? "bg-[var(--blue-light)] text-[var(--blue)] font-semibold"
+          : "text-[var(--text-2)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
+    }`}
     >
       <div
         className={`w-9 h-9 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms]
-        ${active ? "bg-[var(--blue-muted)]" : "group-hover:bg-[var(--bg-2)]"}`}
+    ${
+      label == "Logout"
+        ? "group-hover:bg-red-100"
+        : active
+          ? "bg-[var(--blue-muted)]"
+          : "group-hover:bg-[var(--bg-2)]"
+    }`}
       >
         {icon}
       </div>
@@ -69,6 +82,15 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res.success) {
+      showToast.success("Logged out successfully");
+      router.push("/signin");
+    } else {
+      showToast.error(res.message || "Failed to logout");
+    }
+  };
   const isActive = (path: string) => {
     if (path === "/dashboard" && pathname === "/") return true;
     return pathname === path || pathname.startsWith(path + "/");
@@ -188,21 +210,13 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           collapsed={collapsed}
           onClick={() => router.push("/profile")}
         />
-      </div>
 
-      <div className="px-[10px] py-3 border-t border-[var(--border)] flex-shrink-0">
-        <div className="flex items-center gap-[10px] px-[10px] py-[9px] rounded-[10px] cursor-pointer hover:bg-[var(--bg)] transition-colors duration-150 overflow-hidden">
-          <div className="w-[34px] h-[34px] rounded-full bg-[var(--blue)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            AD
-          </div>
-          <div
-            className={`overflow-hidden transition-opacity duration-200 ${collapsed ? "opacity-0 w-0" : "opacity-100"}`}
-          >
-            <div className="text-[13px] font-semibold text-[var(--text)] whitespace-nowrap">
-              Admin User
-            </div>
-          </div>
-        </div>
+        <NavItem
+          icon={<LogOut className="w-6 h-6" />}
+          label="Logout"
+          collapsed={collapsed}
+          onClick={handleLogout}
+        />
       </div>
     </aside>
   );

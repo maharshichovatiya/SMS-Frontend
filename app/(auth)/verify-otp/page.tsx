@@ -1,24 +1,30 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import {
   MailCheck,
   ShieldCheck,
   Clock,
   RefreshCw,
   GraduationCap,
-  PartyPopper,
+  ArrowLeft,
 } from "lucide-react";
 import { resendOtp, verifyOtp } from "@/lib/api/auth";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(90);
-  const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
+  const [email, setEmail] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("email") ?? "";
+    }
+    return "";
+  });
+
   const inputs = useRef<HTMLInputElement[]>([]);
 
   const code = otp.join("");
@@ -38,6 +44,7 @@ export default function VerifyOTPPage() {
     inputs.current[i]?.focus();
   }
 
+  const router = useRouter();
   function handleChange(i: number, val: string) {
     if (!/^\d?$/.test(val)) return;
     const next = [...otp];
@@ -66,8 +73,6 @@ export default function VerifyOTPPage() {
     setLoading(true);
     setError("");
 
-    const email = localStorage.getItem("email");
-
     if (!email) {
       setError("Email Not found.");
       setLoading(false);
@@ -80,10 +85,11 @@ export default function VerifyOTPPage() {
     });
 
     if (result.success) {
-      setVerified(true);
       localStorage.removeItem("email");
       localStorage.setItem("userId", result.data.data.userId);
       localStorage.setItem("schoolId", result.data.data.schoolId);
+      toast.success("Email verified successfully");
+      router.replace("dashboard");
     } else {
       setError(result.message || "Incorrect code. Please try again.");
       setOtp(["", "", "", ""]);
@@ -109,7 +115,6 @@ export default function VerifyOTPPage() {
         setError("");
         setTimer(90);
         focus(0);
-        localStorage.removeItem("email");
         toast.success("OTP Resend");
       } else {
         setError(res.message);
@@ -121,95 +126,19 @@ export default function VerifyOTPPage() {
   };
 
   const features = [
-    { icon: <Clock className="w-4 h-4" />, text: "Code expires in 10 minutes" },
+    {
+      icon: <Clock className="w-4 h-4" />,
+      text: "Code expires in 01:30 minutes",
+    },
     {
       icon: <ShieldCheck className="w-4 h-4" />,
       text: "256-bit encrypted & secure",
     },
     {
       icon: <RefreshCw className="w-4 h-4" />,
-      text: "Resend after 30 seconds",
+      text: "Resend after 1:30 minutes",
     },
   ];
-
-  if (verified) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg)" }}
-      >
-        <div
-          className="w-full max-w-sm rounded-[var(--radius-xl)] overflow-hidden"
-          style={{
-            background: "var(--surface)",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          <div className="px-10 py-12 flex flex-col items-center text-center">
-            <div className="relative flex items-center justify-center mb-8">
-              <div
-                className="absolute w-28 h-28 rounded-full animate-ping opacity-30"
-                style={{ background: "var(--green-muted)" }}
-              />
-              <div
-                className="absolute w-20 h-20 rounded-full"
-                style={{ background: "var(--green-light)" }}
-              />
-              <div
-                className="relative text-white w-18 h-18 rounded-full flex items-center justify-center"
-                style={{
-                  background: "var(--grad-success)",
-                  boxShadow: "var(--shadow-green)",
-                }}
-              >
-                <MailCheck />
-              </div>
-            </div>
-
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 mb-4 border"
-              style={{
-                background: "var(--green-light)",
-                borderColor: "var(--green-muted)",
-                color: "var(--green)",
-              }}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Identity Verified
-              </span>
-            </span>
-
-            <h2
-              className="text-2xl font-extrabold tracking-tight mb-2"
-              style={{ color: "var(--text)" }}
-            >
-              You&apos;re all set! <PartyPopper size={16} className="inline" />
-            </h2>
-            <p
-              className="text-sm leading-relaxed mb-8 max-w-xs"
-              style={{ color: "var(--text-2)" }}
-            >
-              Email verified. Your school admin account is now fully active and
-              ready to use.
-            </p>
-
-            <Link
-              href="/dashboard"
-              className="flex w-full h-12 items-center justify-center font-bold text-sm rounded-[var(--radius-sm)] transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                background: "var(--grad-success)",
-                color: "var(--text-inverse)",
-                boxShadow: "var(--shadow-green)",
-              }}
-            >
-              Go to Dashboard →
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -345,10 +274,6 @@ export default function VerifyOTPPage() {
                   className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4"
                   style={{ color: "var(--blue)" }}
                 >
-                  <span
-                    className="w-5 h-0.5 rounded-full"
-                    style={{ background: "var(--grad-primary)" }}
-                  />
                   Email Verification
                 </span>
                 <h1
@@ -360,22 +285,42 @@ export default function VerifyOTPPage() {
                 <p className="text-sm mb-3" style={{ color: "var(--text-2)" }}>
                   We sent a code to your mail
                 </p>
-                <div
-                  className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 border"
-                  style={{
-                    background: "var(--blue-light)",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <MailCheck
-                    className="w-3.5 h-3.5 flex-shrink-0"
-                    style={{ color: "var(--blue)" }}
-                  />
+                <div className="flex items-center gap-3">
+                  <div
+                    className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 border"
+                    style={{
+                      background: "var(--blue-light)",
+                      borderColor: "var(--border)",
+                    }}
+                  >
+                    <MailCheck
+                      className="w-3.5 h-3.5 flex-shrink-0"
+                      style={{ color: "var(--blue)" }}
+                    />
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {email}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => router.replace("/signin")}
+                    className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-semibold rounded-full px-3.5 py-1.5 border transition-opacity hover:opacity-70"
+                    style={{
+                      background: "var(--surface)",
+                      borderColor: "var(--border)",
+                      color: "var(--text-2)",
+                    }}
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Back to Signin
+                  </button>
                 </div>
               </div>
 
               <form onSubmit={handleVerify}>
-                <div className="flex gap-4 mb-3">
+                <div className="flex gap-4 mb-7">
                   {otp.map((digit, i) => (
                     <input
                       key={i}
@@ -422,10 +367,6 @@ export default function VerifyOTPPage() {
                     />
                   ))}
                 </div>
-
-                <p className="text-xs mb-6" style={{ color: "var(--text-3)" }}>
-                  You can paste the code directly into the first box.
-                </p>
 
                 {error && (
                   <div
@@ -474,7 +415,8 @@ export default function VerifyOTPPage() {
                       }}
                     >
                       <Clock className="w-3 h-3" />
-                      {String(timer).padStart(2)}
+                      {String(Math.floor(timer / 60)).padStart(2, "0")}:
+                      {String(timer % 60).padStart(2, "0")}
                     </span>
                   ) : (
                     <button

@@ -7,7 +7,7 @@ import {
   createStudentSchema,
   CreateStudentFormValues,
   STUDENT_FIELDS,
-} from "@/lib/validations/studentSchema";
+} from "@/lib/validations/StudentSchema";
 
 interface StudentFormProps {
   initialData?: Partial<CreateStudentFormValues>;
