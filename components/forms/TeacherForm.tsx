@@ -1,6 +1,9 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TeacherFormData, teacherSchema } from "@/lib/validations/TeacherForm";
+import {
+  TeacherFormData,
+  teacherSchema,
+} from "@/lib/validations/TeacherSchema";
 
 interface TeacherFormProps {
   onCancel: () => void;

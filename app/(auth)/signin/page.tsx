@@ -1,5 +1,5 @@
 import { GraduationCap } from "lucide-react";
-import SignInForm from "@/components/forms/SignInForm";
+import SignInForm from "@/components/forms/SignInform";
 import { ShieldCheck, BarChart2, Zap } from "lucide-react";
 
 const features = [
