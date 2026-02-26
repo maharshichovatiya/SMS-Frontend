@@ -16,8 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
-} from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+} from "@/lib/validations/ResetPasswordSchema";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 
 export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false);

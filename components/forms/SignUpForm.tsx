@@ -12,7 +12,7 @@ import {
   EyeOff,
   Users,
 } from "lucide-react";
-import { PersonalDetails, SchoolDetails } from "@/lib/validations/signupSchema";
+import { PersonalDetails, SchoolDetails } from "@/lib/validations/SignUpSchema";
 
 const baseInput =
   "w-full h-12 bg-[var(--color-surface-2)] border rounded-xl text-base text-[var(--color-text)] placeholder:text-[var(--color-text-3)] outline-none transition-all focus:bg-white focus:ring-3 focus:ring-[var(--color-blue)]/10";

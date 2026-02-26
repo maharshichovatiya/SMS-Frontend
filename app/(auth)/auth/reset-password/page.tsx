@@ -16,10 +16,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   resetPasswordSchema,
   ResetPasswordFormData,
-} from "@/lib/validations/resetPasswordSchema";
-import { ResetPasswordForm } from "@/components/forms/resetPasswordForm";
+} from "@/lib/validations/ResetPasswordSchema";
+import { ResetPasswordForm } from "@/components/forms/ResetPasswordForm";
 import toast from "react-hot-toast";
-import { resetPassword } from "@/lib/api/auth";
+import { resetPassword } from "@/lib/api/Auth";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPasswordPage() {
@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const onSubmit = async (data: ResetPasswordFormData) => {
-    const token = searchParams.get("token"); // from URL
+    const token = searchParams.get("token");
 
     if (!token) {
       toast.error("Invalid reset link");

@@ -8,16 +8,16 @@ import {
   schoolDetailsSchema,
   PersonalDetails,
   SchoolDetails,
-} from "@/lib/validations/signupSchema";
+} from "@/lib/validations/SignUpSchema";
 import { StepProgress } from "@/components/forms/StepProgress";
 import { FormNavigation } from "@/components/forms/FormNavigation";
-import { useFormCompletion } from "@/lib/hooks/useFormCompletion";
+import { useFormCompletion } from "@/lib/hooks/UseFormCompletion";
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
-import { PW_COLORS, PW_LABELS } from "@/lib/utils/signupConstants";
-import { authApi, Role } from "@/lib/api/auth";
+import { PW_COLORS, PW_LABELS } from "@/lib/utils/SignUpConstants";
+import { authApi, Role } from "@/lib/api/Auth";
 import toast from "react-hot-toast";
-import { showToast } from "@/lib/utils/toast";
+import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
   const router = useRouter();
