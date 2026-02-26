@@ -8,10 +8,11 @@ import {
   schoolDetailsSchema,
   PersonalDetails,
   SchoolDetails,
-} from "@/lib/validations/SignupSchema";
+} from "@/lib/validations/SignUpSchema";
 import { StepProgress } from "@/components/forms/StepProgress";
 import { FormNavigation } from "@/components/forms/FormNavigation";
 import { useFormCompletion } from "@/lib/hooks/UseFormCompletion";
+
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
 import { PW_COLORS, PW_LABELS } from "@/lib/utils/SignupConstants";

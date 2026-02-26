@@ -123,7 +123,7 @@ export default function Subjects() {
         iconBgColor="--amber-light"
         iconColor="--amber"
         buttonText="Add Subject"
-        onButtonClick={() => setEditingSubject(null)}
+        onButtonClick={() => setEditingSubject({} as SubjectWithClasses)}
         buttonIcon={Plus}
         secondaryButton={{
           text: "Assign Class",

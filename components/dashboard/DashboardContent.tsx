@@ -466,7 +466,7 @@ export default function DashboardContent() {
             {recentTeachers.length > 0 ? (
               recentTeachers.map((teacher, index) => {
                 const initials =
-                  `${teacher.user_first_name.charAt(0)}${teacher.user_last_name.charAt(0)}`.toUpperCase();
+                  `${teacher.user_first_name?.charAt(0)}${teacher.user_last_name?.charAt(0)}`.toUpperCase();
                 const gradients: Record<string, string> = {
                   "0": "from-[#3d6cf4] to-[#6c47f5]",
                   "1": "from-[#0ea5c9] to-[#3d6cf4]",
@@ -474,8 +474,7 @@ export default function DashboardContent() {
                   "3": "from-[#6c47f5] to-[#3d6cf4]",
                   "4": "from-[#12a47e] to-[#0ea5c9]",
                 };
-                const gradientIndex = teacher.teacher_id.slice(-1) || "0";
-
+                const gradientIndex = teacher.teacher_id?.slice(-1) || "0";
                 return (
                   <div
                     key={`${teacher.teacher_id}-${index}`}

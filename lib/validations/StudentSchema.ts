@@ -91,7 +91,6 @@ export const STUDENT_FIELDS: {
     placeholder: "e.g. Kumar",
     optional: true,
   },
-
   {
     name: "lastName",
     label: "Last Name",

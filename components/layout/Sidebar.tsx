@@ -5,10 +5,13 @@ import {
   Users,
   BookOpen,
   Building,
-  Settings,
   ChevronLeft,
   GraduationCap,
+  UserCircle,
+  LogOut,
 } from "lucide-react";
+import { showToast } from "@/lib/utils/Toast";
+import { logout } from "@/lib/api/Auth";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -29,19 +32,29 @@ function NavItem({
   collapsed = false,
   onClick,
 }: NavItemProps) {
+  const router = useRouter();
+
   return (
     <div
       onClick={onClick}
       className={`relative flex items-center gap-[11px] px-[10px] py-[10px] rounded-[10px] cursor-pointer text-sm font-medium transition-all duration-[180ms] mb-[3px] whitespace-nowrap overflow-hidden select-none group
-        ${
-          active
-            ? "bg-[var(--blue-light)] text-[var(--blue)] font-semibold"
-            : "text-[var(--text-2)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
-        }`}
+    ${
+      label == "Logout"
+        ? "text-red-400 hover:bg-red-50 hover:text-red-500"
+        : active
+          ? "bg-[var(--blue-light)] text-[var(--blue)] font-semibold"
+          : "text-[var(--text-2)] hover:bg-[var(--bg)] hover:text-[var(--text)]"
+    }`}
     >
       <div
         className={`w-9 h-9 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms]
-        ${active ? "bg-[var(--blue-muted)]" : "group-hover:bg-[var(--bg-2)]"}`}
+    ${
+      label == "Logout"
+        ? "group-hover:bg-red-100"
+        : active
+          ? "bg-[var(--blue-muted)]"
+          : "group-hover:bg-[var(--bg-2)]"
+    }`}
       >
         {icon}
       </div>
@@ -50,14 +63,7 @@ function NavItem({
       >
         {label}
       </span>
-      {badge && (
-        <span
-          className={`ml-auto text-white text-[10px] font-bold px-[7px] py-[2px] rounded-full whitespace-nowrap transition-opacity duration-200 ${badgeColor} ${collapsed ? "opacity-0" : "opacity-100"}`}
-        >
-          {badge}
-        </span>
-      )}
-      {}
+
       {collapsed && (
         <span className="absolute left-[calc(100%+14px)] bg-[var(--text)] text-white text-xs font-medium px-3 py-[6px] rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50">
           {label}
@@ -76,6 +82,15 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res.success) {
+      showToast.success("Logged out successfully");
+      router.push("/signin");
+    } else {
+      showToast.error(res.message || "Failed to logout");
+    }
+  };
   const isActive = (path: string) => {
     if (path === "/dashboard" && pathname === "/") return true;
     return pathname === path || pathname.startsWith(path + "/");
@@ -164,7 +179,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {}
         <NavItem
-          icon={<Users className="w-[18px] h-[18px]" />}
+          icon={<GraduationCap className="w-6 h-6" />}
           label="Students"
           active={isActive("/students")}
           collapsed={collapsed}
@@ -191,11 +206,18 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           General
         </div>
         <NavItem
-          icon={<Settings className="w-[18px] h-[18px]" />}
-          label="Settings"
-          active={isActive("/settings")}
+          icon={<UserCircle className="w-6 h-6" />}
+          label="Profile"
+          active={isActive("/profile")}
           collapsed={collapsed}
-          onClick={() => router.push("/settings")}
+          onClick={() => router.push("/profile")}
+        />
+
+        <NavItem
+          icon={<LogOut className="w-6 h-6" />}
+          label="Logout"
+          collapsed={collapsed}
+          onClick={handleLogout}
         />
       </div>
 

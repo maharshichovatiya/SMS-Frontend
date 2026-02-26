@@ -20,7 +20,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {}
       <main
-        className="min-h-screen pb-16 transition-all duration-300 ease-[var(--ease)]"
+        className="min-h-screen  transition-all duration-300 ease-[var(--ease)]"
         style={{
           marginLeft: collapsed
             ? "calc(var(--sidebar-closed) + 20px)"

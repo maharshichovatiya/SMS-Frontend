@@ -9,7 +9,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from "@/lib/validations/ForgotPasswordSchema";
-import toast from "react-hot-toast";
+import { showToast } from "@/lib/utils/Toast";
 import { forgotPassword } from "@/lib/api/Auth";
 
 export default function ForgotPasswordForm() {
@@ -30,9 +30,9 @@ export default function ForgotPasswordForm() {
     const result = await forgotPassword(data);
 
     if (result.success) {
-      toast.success(result.data?.message || "Reset link sent to your email");
+      showToast.success("Reset link sent to your email");
     } else {
-      toast.error(result.message);
+      showToast.error(result.message);
     }
     setSubmitted(true);
   };
@@ -49,7 +49,7 @@ export default function ForgotPasswordForm() {
 
         <div className="inline-flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--blue)] mb-3">
           <span className="inline-block w-5 h-0.5 rounded-full bg-[var(--grad-primary)]" />
-          Email Sent
+          Email Sent Successfully
           <span className="inline-block w-5 h-0.5 rounded-full bg-[var(--grad-primary)]" />
         </div>
 
