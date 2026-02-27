@@ -208,7 +208,7 @@ export default function Subjects() {
                           e.stopPropagation();
                           setDeletingId(cls.classSubjectId);
                         }}
-                        className="w-6 h-6 rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)]"
+                        className="w-6 h-6 rounded-[var(--radius-sm)] cursor-pointer bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)]"
                         title="Remove Assignment"
                       >
                         <Trash2 size={12} strokeWidth={1.8} />
@@ -244,7 +244,7 @@ export default function Subjects() {
                     e.stopPropagation();
                     setEditingSubject(subject);
                   }}
-                  className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
+                  className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
                   title="Edit Subject"
                 >
                   <Pencil size={14} strokeWidth={1.8} />

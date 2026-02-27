@@ -9,6 +9,7 @@ import ClassFilters from "@/components/ClassFilters";
 import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
+import PageHeader from "@/components/layout/PageHeader";
 
 const getGradeKey = (classNo: string | number) => {
   const num = parseInt(String(classNo));
@@ -56,36 +57,20 @@ function Page() {
 
   return (
     <div className="space-y-4">
-      <div
-        className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] px-6 py-4 flex items-center justify-between"
-        style={{ boxShadow: "var(--shadow-sm)" }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-[var(--cyan-light)] flex items-center justify-center">
-            <Building2
-              className="w-5 h-5 text-[var(--cyan)]"
-              strokeWidth={1.8}
-            />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text)] leading-tight">
-              Classes
-            </h1>
-            <p className="text-sm text-[var(--text-3)] mt-0.5">
-              {loading
-                ? "Loading..."
-                : `${filtered.length} of ${classes.length} sections · Academic Year 2026`}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setOpen(true)}
-          className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10"
-        >
-          <Plus className="w-4 h-4" />
-          Create Class
-        </button>
-      </div>
+      <PageHeader
+        title="Classes"
+        description={
+          loading
+            ? "Loading..."
+            : `${filtered.length} of ${classes.length} sections · Academic Year 2026`
+        }
+        icon={Building2}
+        iconBgColor="--cyan-light"
+        iconColor="--cyan"
+        buttonText="Create Class"
+        onButtonClick={() => setOpen(true)}
+        buttonIcon={Plus}
+      />
 
       <ClassFilters
         active={active}

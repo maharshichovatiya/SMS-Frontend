@@ -57,7 +57,7 @@ export default function TeacherFilters({
           placeholder="Search teachers..."
           value={search}
           onChange={e => onSearchChange(e.target.value)}
-          className="input-base pl-9 w-64"
+          className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
         />
       </div>
     </div>

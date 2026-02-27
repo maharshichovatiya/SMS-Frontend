@@ -452,7 +452,7 @@ export default function StudentsTable({
                           {student.class === "Unassigned" && (
                             <button
                               onClick={() => handleAssignClass(student)}
-                              className="w-6 h-6 rounded-full bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] flex items-center justify-center transition-colors duration-[var(--duration)]"
+                              className="w-6 cursor-pointer h-6 rounded-full bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] flex items-center justify-center transition-colors duration-[var(--duration)]"
                               title="Assign Class"
                             >
                               <Users size={11} />
@@ -494,14 +494,14 @@ export default function StudentsTable({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(student)}
-                            className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
+                            className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
                             title="Edit"
                           >
                             <Pencil size={14} strokeWidth={1.8} />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(student)}
-                            className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
+                            className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
                             title="Delete"
                           >
                             <Trash2 size={14} strokeWidth={1.8} />
