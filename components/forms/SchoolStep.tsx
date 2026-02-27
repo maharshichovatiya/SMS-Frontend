@@ -1,6 +1,6 @@
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import { SchoolDetails } from "@/lib/validations/SignUpSchema";
+import { SchoolDetails } from "@/lib/validations/SignupSchema";
 import { SchoolDetailsForm } from "@/components/forms/SignUpForm";
 
 interface SchoolStepProps {

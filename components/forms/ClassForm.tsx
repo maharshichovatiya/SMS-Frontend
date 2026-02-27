@@ -47,7 +47,10 @@ export default function ClassForm({
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
-          showToast.error(res.message || "Failed to load teachers");
+          const message = Array.isArray(res.message)
+            ? res.message[0]
+            : res.message;
+          showToast.error(message || "Something went wrong");
         }
       } catch {
         showToast.error("Failed to load teachers");

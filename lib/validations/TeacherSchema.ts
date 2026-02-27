@@ -71,12 +71,7 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .min(2, "Designation is required")
       .max(30, "Designation is too long")
       .regex(/^[a-zA-Z\s'-]+$/, "Designation can only contain letters"),
-    dateOfJoining: z
-      .string()
-      .min(1, "Date of joining is required")
-      .refine(val => {
-        return val <= new Date().toLocaleDateString("en-CA");
-      }, "Date of joining cannot be in the future"),
+    dateOfJoining: z.string().min(1, "Date of joining is required"),
     salaryPackage: z.coerce
       .number()
       .min(60000, "Minimum salary is ₹60,000/year")

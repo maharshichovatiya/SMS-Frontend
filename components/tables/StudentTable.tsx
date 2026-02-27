@@ -1,29 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Pencil, Trash2, Users } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import StudentForm from "@/components/forms/StudentForm";
-
-type Status = "Active" | "Pending" | "Inactive";
+import ClassAssignmentForm from "@/components/forms/ClassAssignmentForm";
+import {
+  studentApis,
+  Student as ApiStudent,
+  RecordStatus,
+} from "@/lib/api/Student";
+import { showToast } from "@/lib/utils/Toast";
 
 interface Student {
   id: string;
   firstName: string;
-  middleName: string;
+  middleName: string | null;
   lastName: string;
   email: string;
-  password: string;
-  roleId: string;
-  schoolId: string;
-  phone: number;
-  admissionNo: number;
-  rollNo: number;
+  phone: string | null;
+  admissionNo: string;
+  rollNo: string;
   admissionDate: string;
   class: string;
-  dob: string;
+  classId?: string;
+  academicYear?: string;
+  academicYearId?: string;
+  dob: string | null;
   guardian: string;
-  status: Status;
+  status: string;
+
+  fatherName: string;
+  fatherPhone: string;
+  motherName: string;
+  guardianName: string;
+  familyAnnualIncome: string;
+  medicalConditions: string;
 }
 
 function getInitials(firstName: string, lastName: string) {
@@ -49,230 +61,184 @@ function formatAdmissionDate(iso: string) {
   return `${months[parseInt(m) - 1]} ${parseInt(d)}, ${y}`;
 }
 
-function formatPhone(phone: number) {
-  const s = phone.toString();
-  return `+91  ${s.slice(0, 5)}  ${s.slice(5)}`;
+function formatPhone(phone: string | undefined | null) {
+  if (!phone) return "N/A";
+  return `+91  ${phone.slice(0, 5)}  ${phone.slice(5)}`;
 }
 
-const INITIAL_STUDENTS: Student[] = [
-  {
-    id: "1",
-    firstName: "Man",
-    middleName: "kumar",
-    lastName: "Lakhani",
-    email: "mohdkadiwal786@gmail.com",
-    password: "man123",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9099330195,
-    admissionNo: 440,
-    rollNo: 1,
-    admissionDate: "2026-01-01",
-    class: "10-A",
-    dob: "12 Mar 2010",
-    guardian: "Ramesh Kumar",
-    status: "Active",
-  },
-  {
-    id: "2",
-    firstName: "Priya",
-    middleName: "",
-    lastName: "Shah",
-    email: "priya.shah@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9123456789,
-    admissionNo: 441,
-    rollNo: 2,
-    admissionDate: "2026-02-14",
-    class: "9-B",
-    dob: "05 Jul 2011",
-    guardian: "Neha Shah",
-    status: "Active",
-  },
-  {
-    id: "3",
-    firstName: "Mihir",
-    middleName: "",
-    lastName: "Rao",
-    email: "mihir.rao@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9765432189,
-    admissionNo: 442,
-    rollNo: 3,
-    admissionDate: "2026-02-16",
-    class: "11-C",
-    dob: "20 Sep 2009",
-    guardian: "Sunita Rao",
-    status: "Pending",
-  },
-  {
-    id: "4",
-    firstName: "Divya",
-    middleName: "",
-    lastName: "Mehta",
-    email: "divya.mehta@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9345678901,
-    admissionNo: 443,
-    rollNo: 4,
-    admissionDate: "2026-02-17",
-    class: "8-A",
-    dob: "17 Jan 2012",
-    guardian: "Vijay Mehta",
-    status: "Active",
-  },
-  {
-    id: "5",
-    firstName: "Rohit",
-    middleName: "",
-    lastName: "Joshi",
-    email: "rohit.joshi@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9988776654,
-    admissionNo: 444,
-    rollNo: 5,
-    admissionDate: "2026-02-18",
-    class: "12-B",
-    dob: "03 Nov 2008",
-    guardian: "Kamla Joshi",
-    status: "Inactive",
-  },
-  {
-    id: "6",
-    firstName: "Kavya",
-    middleName: "",
-    lastName: "Patel",
-    email: "kavya.patel@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 8876554321,
-    admissionNo: 445,
-    rollNo: 6,
-    admissionDate: "2026-02-19",
-    class: "7-A",
-    dob: "29 Apr 2013",
-    guardian: "Ritu Patel",
-    status: "Active",
-  },
-  {
-    id: "7",
-    firstName: "Aditya",
-    middleName: "",
-    lastName: "Sharma",
-    email: "aditya.sharma@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9800111234,
-    admissionNo: 446,
-    rollNo: 7,
-    admissionDate: "2026-02-20",
-    class: "10-B",
-    dob: "11 Jun 2010",
-    guardian: "Suresh Sharma",
-    status: "Active",
-  },
-  {
-    id: "8",
-    firstName: "Neha",
-    middleName: "",
-    lastName: "Gupta",
-    email: "neha.gupta@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 8765432100,
-    admissionNo: 447,
-    rollNo: 8,
-    admissionDate: "2026-02-20",
-    class: "9-A",
-    dob: "22 Feb 2011",
-    guardian: "Amit Gupta",
-    status: "Pending",
-  },
-  {
-    id: "9",
-    firstName: "Vikram",
-    middleName: "",
-    lastName: "Singh",
-    email: "vikram.singh@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9512345678,
-    admissionNo: 448,
-    rollNo: 9,
-    admissionDate: "2026-02-21",
-    class: "11-C",
-    dob: "14 Aug 2009",
-    guardian: "Rajesh Singh",
-    status: "Active",
-  },
-  {
-    id: "10",
-    firstName: "Sneha",
-    middleName: "",
-    lastName: "Desai",
-    email: "sneha.desai@school.com",
-    password: "",
-    roleId: "df69bae9-3782-4e09-be65-ab8f2160e729",
-    schoolId: "3a3c6eab-76ef-4a9f-ac8b-dd162acf98a5",
-    phone: 9876501234,
-    admissionNo: 449,
-    rollNo: 10,
-    admissionDate: "2026-02-22",
-    class: "12-B",
-    dob: "30 Oct 2008",
-    guardian: "Hema Desai",
-    status: "Inactive",
-  },
-];
-
 const PAGE_SIZE = 6;
-const TOTAL_STUDENTS = 1284;
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-export default function StudentsTable() {
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+export default function StudentsTable({
+  roleId,
+  onRefresh,
+  searchParams,
+  onTotalCountChange,
+}: {
+  roleId: string;
+  onRefresh?: () => void;
+  searchParams?: {
+    search?: string;
+    status?: RecordStatus;
+    classId?: string;
+    sectionId?: string;
+  };
+  onTotalCountChange?: (count: number) => void;
+}) {
+  const [students, setStudents] = useState<Student[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ── Edit modal state ──
+  const isSearching = searchParams?.search && searchParams.search.trim() !== "";
+
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
-  // ── Delete modal state ──
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // ── Pagination ──
-  const totalPages = Math.ceil(students.length / PAGE_SIZE);
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const paginatedStudents = students.slice(start, start + PAGE_SIZE);
+  const [assigningClassStudent, setAssigningClassStudent] =
+    useState<Student | null>(null);
+
+  const fetchStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const page = Math.max(1, Number(currentPage) || 1);
+      const limit = Math.max(1, Number(PAGE_SIZE) || 10);
+
+      const response = await studentApis.getAll({
+        page,
+        limit,
+        search: searchParams?.status
+          ? searchParams.status
+          : searchParams?.search || "",
+        classId: searchParams?.classId,
+        sectionId: searchParams?.sectionId,
+      });
+
+      if (response.data && response.data.data) {
+        const transformedStudents = response.data.data
+          .filter(
+            (apiStudent: ApiStudent) =>
+              apiStudent.status.toLowerCase() !== "deleted",
+          )
+          .map((apiStudent: ApiStudent) => {
+            // Check if student has any academic records (class assignments)
+            const hasClassAssignment =
+              apiStudent.academics && apiStudent.academics.length > 0;
+            const currentAcademic = hasClassAssignment
+              ? apiStudent.academics[0]
+              : null;
+
+            return {
+              id: apiStudent.id,
+              firstName: apiStudent.user.firstName,
+              middleName: apiStudent.user.middleName,
+              lastName: apiStudent.user.lastName,
+              email: apiStudent.user.email,
+              phone: apiStudent.user.phone,
+              admissionNo: apiStudent.admissionNo,
+              rollNo: apiStudent.rollNo,
+              admissionDate: apiStudent.admissionDate,
+              class: currentAcademic
+                ? `${currentAcademic.class.classNo}-${currentAcademic.class.section}`
+                : "Unassigned",
+              classId: currentAcademic?.class.id,
+              academicYear: currentAcademic?.academicYear.yearName,
+              academicYearId: currentAcademic?.academicYear.id,
+              dob: apiStudent.user.dob || "N/A",
+              guardian: apiStudent.guardianName || "N/A",
+              status: apiStudent.status
+                ? apiStudent.status.charAt(0).toUpperCase() +
+                  apiStudent.status.slice(1)
+                : "Unknown",
+              fatherName: apiStudent.fatherName || "",
+              fatherPhone: apiStudent.fatherPhone || "",
+              motherName: apiStudent.motherName || "",
+              guardianName: apiStudent.guardianName || "",
+              familyAnnualIncome: apiStudent.familyAnnualIncome || "",
+              medicalConditions: apiStudent.medicalConditions || "",
+            };
+          });
+
+        setStudents(transformedStudents);
+        setTotalStudents(response.data.meta.total);
+        onTotalCountChange?.(response.data.meta.total);
+      } else {
+        setError("Error");
+      }
+    } catch (err) {
+      const error = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch students";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    currentPage,
+    searchParams?.search,
+    searchParams?.status,
+    searchParams?.classId,
+    searchParams?.sectionId,
+  ]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [currentPage, fetchStudents]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchParams?.search, searchParams?.status]);
+
+  const totalPages = Math.ceil(totalStudents / PAGE_SIZE);
+  const paginatedStudents = students;
 
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
   const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
 
   const handleEdit = (student: Student) => setEditingStudent(student);
-  const handleEditSuccess = () => setEditingStudent(null);
+  const handleEditSuccess = () => {
+    setEditingStudent(null);
+    fetchStudents();
+    onRefresh?.();
+  };
 
   const handleDeleteClick = (student: Student) => setDeletingStudent(student);
+
+  const handleAssignClass = (student: Student) =>
+    setAssigningClassStudent(student);
+
+  const handleClassAssignmentSuccess = () => {
+    setAssigningClassStudent(null);
+    fetchStudents();
+    onRefresh?.();
+  };
 
   const handleDeleteConfirm = async () => {
     if (!deletingStudent) return;
     setIsDeleting(true);
     try {
+      await studentApis.deleteStudent(deletingStudent.id);
       setStudents(prev => prev.filter(s => s.id !== deletingStudent.id));
-      // TODO: await fetch(`/api/students/${deletingStudent.id}`, { method: "DELETE" })
       setDeletingStudent(null);
+      showToast.apiSuccess("Deleted successfully");
+    } catch (error) {
+      const errorObj = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const errorMessage =
+        errorObj.response?.data?.message ||
+        errorObj.message ||
+        "Failed to delete student";
+      showToast.error(errorMessage);
     } finally {
       setIsDeleting(false);
     }
@@ -290,17 +256,25 @@ export default function StudentsTable() {
           {editingStudent && (
             <StudentForm
               initialData={{
+                id: editingStudent.id,
                 firstName: editingStudent.firstName,
-                middleName: editingStudent.middleName,
+                middleName: editingStudent.middleName || "",
                 lastName: editingStudent.lastName,
                 email: editingStudent.email,
-                phone: String(editingStudent.phone),
-                admissionNo: String(editingStudent.admissionNo),
-                rollNo: String(editingStudent.rollNo),
+                phone: editingStudent.phone || "",
+                admissionNo: editingStudent.admissionNo,
+                rollNo: editingStudent.rollNo,
                 admissionDate: editingStudent.admissionDate,
+                fatherName: editingStudent.fatherName,
+                fatherPhone: editingStudent.fatherPhone,
+                motherName: editingStudent.motherName,
+                guardianName: editingStudent.guardianName,
+                familyAnnualIncome: editingStudent.familyAnnualIncome,
+                medicalConditions: editingStudent.medicalConditions,
               }}
               onSubmitSuccess={handleEditSuccess}
-              onclose={() => setEditingStudent(null)}
+              onClose={() => setEditingStudent(null)}
+              roleId={roleId}
             />
           )}
         </div>
@@ -346,143 +320,229 @@ export default function StudentsTable() {
         </div>
       </Modal>
 
-      <div
-        className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] overflow-hidden"
-        style={{ boxShadow: "var(--shadow-sm)" }}
+      <Modal
+        isOpen={!!assigningClassStudent}
+        onClose={() => setAssigningClassStudent(null)}
+        title="Assign Class"
+        description="Select a class and academic year for this student."
       >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[var(--border)]">
-                {[
-                  "Student",
-                  "Class",
-                  "DOB",
-                  "Guardian",
-                  "Contact",
-                  "Admitted",
-                  "Status",
-                  "",
-                ].map(col => (
-                  <th
-                    key={col}
-                    className="px-5 py-3 text-left text-[11px] font-bold tracking-widest text-[var(--text-3)] uppercase whitespace-nowrap"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+        <div className="w-[500px]">
+          {assigningClassStudent && (
+            <div className="mb-4 p-3 bg-[var(--surface-2)] rounded-[var(--radius-sm)] border border-[var(--border)]">
+              <p className="text-sm font-semibold text-[var(--text)]">
+                {assigningClassStudent.firstName}{" "}
+                {assigningClassStudent.lastName}
+              </p>
+              <p className="text-xs text-[var(--text-3)]">
+                Admission No: {assigningClassStudent.admissionNo}
+              </p>
+            </div>
+          )}
+          {assigningClassStudent && (
+            <ClassAssignmentForm
+              studentId={assigningClassStudent.id}
+              currentClassId={assigningClassStudent.classId}
+              currentAcademicYearId={assigningClassStudent.academicYearId}
+              onSubmitSuccess={handleClassAssignmentSuccess}
+              onCancel={() => setAssigningClassStudent(null)}
+            />
+          )}
+        </div>
+      </Modal>
 
-            <tbody>
-              {paginatedStudents.map(student => {
-                const fullName = `${student.firstName} ${student.lastName}`;
-                const initials = getInitials(
-                  student.firstName,
-                  student.lastName,
-                );
-                const studentCode = `ST-2026-${String(student.admissionNo).padStart(3, "0")}`;
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-[var(--text-3)]">
+            Loading students...
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-[var(--rose)]">{error}</div>
+        </div>
+      ) : students.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4">
+            <div className="text-2xl text-[var(--text-3)]">
+              {isSearching ? "🔍" : "📚"}
+            </div>
+          </div>
+          <p className="text-sm text-[var(--text-3)] text-center">
+            {isSearching
+              ? `No students found for "${searchParams?.search}"`
+              : "No students found"}
+          </p>
+          <p className="text-xs text-[var(--text-4)] mt-1">
+            {isSearching
+              ? "Try different search terms or clear the search to see all students"
+              : "Try adjusting your search or add new students to get started"}
+          </p>
+        </div>
+      ) : (
+        <div
+          className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] overflow-hidden"
+          style={{ boxShadow: "var(--shadow-sm)" }}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  {[
+                    "Student",
+                    "Class",
+                    "Academic Year",
+                    "DOB",
+                    "Guardian",
+                    "Contact",
+                    "Admitted",
+                    "Status",
+                    "",
+                  ].map(col => (
+                    <th
+                      key={col}
+                      className="px-5 py-3 text-left text-[11px] font-bold tracking-widest text-[var(--text-3)] uppercase whitespace-nowrap"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                return (
-                  <tr
-                    key={student.id}
-                    className="border-b border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors duration-[var(--duration-fast)]"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-inverse)] text-sm font-bold flex-shrink-0 bg-[var(--blue)]">
-                          {initials}
+              <tbody>
+                {paginatedStudents.map(student => {
+                  const fullName = `${student.firstName} ${student.lastName}`;
+                  const initials = getInitials(
+                    student.firstName,
+                    student.lastName,
+                  );
+                  const studentCode = `ST-2026-${String(student.admissionNo).padStart(3, "0")}`;
+
+                  return (
+                    <tr
+                      key={student.id}
+                      className="border-b border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors duration-[var(--duration-fast)]"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-inverse)] text-sm font-bold flex-shrink-0 bg-[var(--blue)]">
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[var(--text)] whitespace-nowrap">
+                              {fullName}
+                            </p>
+                            <p className="text-xs text-[var(--text-3)]">
+                              {studentCode}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-[var(--text)] whitespace-nowrap">
-                            {fullName}
-                          </p>
-                          <p className="text-xs text-[var(--text-3)]">
-                            {studentCode}
-                          </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                              student.class === "Unassigned"
+                                ? "bg-[var(--amber-light)] text-[var(--amber)]"
+                                : "bg-[var(--blue-light)] text-[var(--blue)]"
+                            }`}
+                          >
+                            {student.class}
+                          </span>
+                          {student.class === "Unassigned" && (
+                            <button
+                              onClick={() => handleAssignClass(student)}
+                              className="w-6 h-6 rounded-full bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] flex items-center justify-center transition-colors duration-[var(--duration)]"
+                              title="Assign Class"
+                            >
+                              <Users size={11} />
+                            </button>
+                          )}
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[var(--blue-light)] text-[var(--blue)]">
-                        {student.class}
-                      </span>
-                    </td>
+                      <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
+                        {student.academicYear || "N/A"}
+                      </td>
 
-                    <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
-                      {student.dob}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
-                      {student.guardian}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
-                      {formatPhone(student.phone)}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
-                      {formatAdmissionDate(student.admissionDate)}
-                    </td>
+                      <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
+                        {student.dob}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
+                        {student.guardian}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
+                        {formatPhone(student.phone)}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
+                        {formatAdmissionDate(student.admissionDate)}
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
+                      <td className="px-5 py-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
                           ${student.status === "Active" ? "bg-[var(--green-light)] text-[var(--green)]" : ""}
                           ${student.status === "Pending" ? "bg-[var(--amber-light)] text-[var(--amber)]" : ""}
                           ${student.status === "Inactive" ? "bg-[var(--rose-light)]  text-[var(--rose)]" : ""}
                         `}
-                      >
-                        {student.status}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleEdit(student)}
-                          className="text-[var(--text-3)] hover:text-[var(--blue)] transition-colors"
-                          title="Edit"
                         >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(student)}
-                          className="text-[var(--text-3)] hover:text-[var(--rose)] transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                          {student.status}
+                        </span>
+                      </td>
 
-        <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--border)]">
-          <p className="text-sm text-[var(--text-3)]">
-            Showing {start + 1}–{Math.min(start + PAGE_SIZE, students.length)}{" "}
-            of {TOTAL_STUDENTS.toLocaleString()} students
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              ← Prev
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Next →
-            </button>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(student)}
+                            className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
+                            title="Edit"
+                          >
+                            <Pencil size={14} strokeWidth={1.8} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(student)}
+                            className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} strokeWidth={1.8} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--border)]">
+            <p className="text-sm text-[var(--text-3)]">
+              Showing{" "}
+              {students.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–
+              {students.length > 0
+                ? Math.min(currentPage * PAGE_SIZE, totalStudents)
+                : 0}{" "}
+              of {totalStudents.toLocaleString()} students
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next →
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

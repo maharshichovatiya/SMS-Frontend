@@ -8,7 +8,8 @@ import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
-import { getRoles, Role } from "@/lib/api/Role";
+import { getRoles } from "@/lib/api/Role";
+
 import {
   Award,
   BadgeCheck,
@@ -26,6 +27,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { Role } from "@/lib/types/Role";
 
 interface TeacherFormProps {
   onCancel: () => void;
@@ -103,7 +105,10 @@ export default function TeacherForm({
         reset();
         onSuccess?.();
       } else {
-        showToast.error(res.message || "Something went wrong ");
+        const message = Array.isArray(res.message)
+          ? res.message[0]
+          : res.message;
+        showToast.error(message || "Something went wrong");
       }
     } catch (error) {
       showToast.error("Something went wrong ");
@@ -252,7 +257,9 @@ export default function TeacherForm({
               />
               <select
                 {...register("gender")}
-                className={`input-base pl-9 appearance-none ${errors.gender ? "error" : ""}`}
+                className={`input-base pl-9 appearance-none ${
+                  errors.gender ? "error" : ""
+                }`}
               >
                 <option value="">Select gender</option>
                 <option value="male">Male</option>
@@ -330,7 +337,9 @@ export default function TeacherForm({
               <input
                 {...register("employeeCode")}
                 placeholder="EMP-2024-001"
-                className={`input-base pl-9 ${errors.employeeCode ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.employeeCode ? "error" : ""
+                }`}
               />
             </div>
             {errors.employeeCode && (
@@ -351,7 +360,9 @@ export default function TeacherForm({
               />
               <select
                 {...register("staffCategory")}
-                className={`input-base pl-9 pr-9 appearance-none ${errors.staffCategory ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${
+                  errors.staffCategory ? "error" : ""
+                }`}
               >
                 <option value="">Select category</option>
                 <option value="teaching">Teaching</option>
@@ -381,7 +392,9 @@ export default function TeacherForm({
               />
               <select
                 {...register("department")}
-                className={`input-base pl-9 appearance-none ${errors.department ? "error" : ""}`}
+                className={`input-base pl-9 appearance-none ${
+                  errors.department ? "error" : ""
+                }`}
               >
                 <option value="">Select department</option>
                 <option value="academic">Academic</option>
@@ -413,7 +426,9 @@ export default function TeacherForm({
               <input
                 {...register("designation")}
                 placeholder="Senior Teacher"
-                className={`input-base pl-9 ${errors.designation ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.designation ? "error" : ""
+                }`}
               />
             </div>
             {errors.designation && (
@@ -435,8 +450,9 @@ export default function TeacherForm({
               <input
                 {...register("dateOfJoining")}
                 type="date"
-                max={new Date().toLocaleDateString("en-CA")}
-                className={`input-base pl-9 ${errors.dateOfJoining ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.dateOfJoining ? "error" : ""
+                }`}
               />
             </div>
             {errors.dateOfJoining && (
@@ -460,7 +476,9 @@ export default function TeacherForm({
                 {...register("salaryPackage")}
                 type="number"
                 placeholder="50000"
-                className={`input-base pl-9 ${errors.salaryPackage ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.salaryPackage ? "error" : ""
+                }`}
               />
             </div>
             {errors.salaryPackage && (
@@ -491,7 +509,9 @@ export default function TeacherForm({
               <input
                 {...register("highestQualification")}
                 placeholder="B.Ed / M.Sc / Ph.D"
-                className={`input-base pl-9 ${errors.highestQualification ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.highestQualification ? "error" : ""
+                }`}
               />
             </div>
             {errors.highestQualification && (
@@ -512,7 +532,9 @@ export default function TeacherForm({
                 {...register("experienceYears")}
                 type="number"
                 placeholder="5"
-                className={`input-base pl-9 ${errors.experienceYears ? "error" : ""}`}
+                className={`input-base pl-9 ${
+                  errors.experienceYears ? "error" : ""
+                }`}
               />
             </div>
             {errors.experienceYears && (
