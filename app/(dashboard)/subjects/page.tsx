@@ -13,11 +13,11 @@ import {
   Chapter,
 } from "@/lib/api/Subject";
 import { classApis, Class } from "@/lib/api/Class";
+import { getAllTeachers } from "@/lib/api/Teacher";
+import { GetTeachers } from "@/lib/types/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 
 export default function Subjects() {
-  /* ================= STATE ================= */
-
   const [subjects, setSubjects] = useState<SubjectWithClasses[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -29,15 +29,14 @@ export default function Subjects() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // assignment modal
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
   const [allClasses, setAllClasses] = useState<Class[]>([]);
+  const [allTeachers, setAllTeachers] = useState<GetTeachers[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
-
-  /* ================= FETCH ================= */
 
   const fetchSubjects = async () => {
     try {
@@ -55,17 +54,19 @@ export default function Subjects() {
     fetchSubjects();
   }, []);
 
-  /* ================= ASSIGNMENT ================= */
-
   const fetchAssignmentData = async () => {
     try {
       setModalLoading(true);
-      const [subjectsData, classesData] = await Promise.all([
+      const [subjectsData, classesData, teachersData] = await Promise.all([
         subjectApis.getAll(),
         classApis.getAll(),
+        getAllTeachers(),
       ]);
       setAllSubjects(subjectsData);
-      setAllClasses(classesData.data);
+      setAllClasses(classesData);
+      if (teachersData.success && teachersData.data) {
+        setAllTeachers(teachersData.data);
+      }
     } catch (error) {
       showToast.apiError(error);
     } finally {
@@ -83,19 +84,19 @@ export default function Subjects() {
       const payload: AssignClassData = {
         subjectId: selectedSubjectId,
         classId: selectedClassId,
+        teacherId: selectedTeacherId,
       };
       await subjectApis.assignClassToSubject(payload);
       showToast.success("Assigned subject to class successfully!");
       setIsAssignModalOpen(false);
       setSelectedSubjectId("");
       setSelectedClassId("");
+      setSelectedTeacherId("");
       fetchSubjects();
     } catch (error) {
       showToast.apiError(error);
     }
   };
-
-  /* ================= DELETE ================= */
 
   const handleDelete = async () => {
     if (!deletingId) return;
@@ -111,8 +112,6 @@ export default function Subjects() {
       setIsDeleting(false);
     }
   };
-
-  /* ================= UI ================= */
 
   return (
     <section className="animate-fade-up">
@@ -130,8 +129,6 @@ export default function Subjects() {
           onClick: handleAssignModalOpen,
         }}
       />
-
-      {/* ================= SUBJECT GRID ================= */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {loading ? (
@@ -167,12 +164,10 @@ export default function Subjects() {
               style={{ animationDelay: `${idx * 0.08}s` }}
               onClick={() => setSelectedSubject(subject)}
             >
-              {/* SUBJECT ICON */}
               <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center mb-4 bg-blue-light text-blue">
                 <Book className="w-6 h-6" />
               </div>
 
-              {/* SUBJECT NAME + BADGE */}
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-[17px] font-bold text-[var(--text)] mb-1">
@@ -190,7 +185,6 @@ export default function Subjects() {
                 </div>
               </div>
 
-              {/* CLASSES LIST */}
               <div
                 className="space-y-2 mb-1"
                 onClick={e => e.stopPropagation()}
@@ -200,11 +194,15 @@ export default function Subjects() {
                     key={cls.classSubjectId}
                     className="bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] p-3"
                   >
-                    {/* Class row */}
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-[var(--text)]">
                         Class {cls.classInfo.classNo}-{cls.classInfo.section}
                       </span>
+                      {cls.teacher && (
+                        <span className="text-[11px] font-medium text-[var(--blue)] px-2 py-0.5 bg-[var(--blue-light)] rounded-full">
+                          {cls.teacher.firstName} {cls.teacher.lastName}
+                        </span>
+                      )}
                       <button
                         onClick={e => {
                           e.stopPropagation();
@@ -217,7 +215,6 @@ export default function Subjects() {
                       </button>
                     </div>
 
-                    {/* Chapters */}
                     {cls.chapters.length > 0 && (
                       <div className="mt-1 space-y-0.5">
                         {cls.chapters.map((ch: Chapter, i: number) => (
@@ -235,7 +232,6 @@ export default function Subjects() {
                 ))}
               </div>
 
-              {/* CARD FOOTER */}
               <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between">
                 <button
                   onClick={() => setSelectedSubject(subject)}
@@ -259,8 +255,6 @@ export default function Subjects() {
         )}
       </div>
 
-      {/* ================= SUBJECT DETAIL MODAL ================= */}
-
       <Modal
         isOpen={!!selectedSubject}
         onClose={() => setSelectedSubject(null)}
@@ -268,7 +262,7 @@ export default function Subjects() {
         description={`Curriculum details for ${selectedSubject?.subjectName}`}
       >
         {selectedSubject && (
-          <div className="w-full max-w-5xl max-h-[85vh] overflow-y-auto">
+          <div className="w-[900px] max-h-[80vh] overflow-y-auto pr-1">
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-[48px] h-[48px] rounded-[12px] flex items-center justify-center bg-blue-light text-blue">
@@ -307,7 +301,6 @@ export default function Subjects() {
                       key={cls.classSubjectId}
                       className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden"
                     >
-                      {/* Class Header */}
                       <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -319,10 +312,21 @@ export default function Subjects() {
                                 Class {cls.classInfo.classNo}-
                                 {cls.classInfo.section}
                               </h3>
-                              <p className="text-xs text-[var(--text-3)]">
-                                {cls.chapters.length} chapter
-                                {cls.chapters.length !== 1 ? "s" : ""}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs text-[var(--text-3)]">
+                                  {cls.chapters.length} chapter
+                                  {cls.chapters.length !== 1 ? "s" : ""}
+                                </p>
+                                {cls.teacher && (
+                                  <>
+                                    <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
+                                    <p className="text-xs font-medium text-[var(--blue)]">
+                                      Teacher: {cls.teacher.firstName}{" "}
+                                      {cls.teacher.lastName}
+                                    </p>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <span className="text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2 py-1 rounded-full font-medium">
@@ -331,14 +335,13 @@ export default function Subjects() {
                         </div>
                       </div>
 
-                      {/* Chapters List */}
                       <div className="p-5">
                         {cls.chapters.length > 0 ? (
                           <div className="space-y-3">
                             <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
                               Curriculum Chapters
                             </p>
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                               {cls.chapters.map(
                                 (chapter: Chapter, i: number) => (
                                   <div
@@ -384,7 +387,6 @@ export default function Subjects() {
         )}
       </Modal>
 
-      {/* ================= ADD / EDIT MODAL ================= */}
       <Modal
         isOpen={!!editingSubject}
         onClose={() => setEditingSubject(null)}
@@ -406,8 +408,6 @@ export default function Subjects() {
           />
         </div>
       </Modal>
-
-      {/* ================= DELETE MODAL ================= */}
 
       <Modal
         isOpen={!!deletingId}
@@ -448,8 +448,6 @@ export default function Subjects() {
         </div>
       </Modal>
 
-      {/* ================= ASSIGN CLASS MODAL ================= */}
-
       <Modal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
@@ -466,7 +464,6 @@ export default function Subjects() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Subject Dropdown */}
               <div>
                 <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
                   Select Subject
@@ -486,7 +483,6 @@ export default function Subjects() {
                 </select>
               </div>
 
-              {/* Class Dropdown */}
               <div>
                 <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
                   Select Class
@@ -506,7 +502,26 @@ export default function Subjects() {
                 </select>
               </div>
 
-              {/* Buttons */}
+              <div>
+                <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+                  Select Teacher
+                  <span className="text-[var(--rose)] ml-0.5">*</span>
+                </label>
+                <select
+                  value={selectedTeacherId}
+                  onChange={e => setSelectedTeacherId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)]"
+                >
+                  <option value="">Choose a teacher...</option>
+                  {allTeachers.map(teacher => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.user.firstName} {teacher.user.lastName} (
+                      {teacher.employeeCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)]">
                 <button
                   type="button"
@@ -518,7 +533,9 @@ export default function Subjects() {
                 <button
                   type="button"
                   onClick={handleAssign}
-                  disabled={!selectedSubjectId || !selectedClassId}
+                  disabled={
+                    !selectedSubjectId || !selectedClassId || !selectedTeacherId
+                  }
                   className="btn-primary px-5 py-2 text-sm rounded-[var(--radius-sm)] h-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Assign

@@ -182,8 +182,14 @@ export default function DashboardContent() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (
+    firstName: string | undefined,
+    lastName: string | undefined,
+  ) => {
+    if (!firstName && !lastName) return "??";
+    const f = firstName?.charAt(0) || "";
+    const l = lastName?.charAt(0) || "";
+    return (f + l).toUpperCase() || "??";
   };
 
   const getBadgeVariant = (section: string): BadgeVariant => {
@@ -198,19 +204,16 @@ export default function DashboardContent() {
   };
 
   const handleEdit = async (student: RecentAdmission) => {
-    setLoadingStudentId(student.student_id);
+    setLoadingStudentId(student.id);
     try {
-      // Fetch complete student details using the student ID
       const studentsResponse = await studentApis.getAll();
       const fullStudent = studentsResponse.data?.data.find(
-        s => s.id === student.student_id,
+        s => s.id === student.id,
       );
 
       if (fullStudent) {
         setEditingStudent(fullStudent);
       } else {
-        // Show a message that complete student data is not available
-        // and redirect to the full students page for editing
         alert(
           "Complete student details not available. Redirecting to Students page for full editing...",
         );
@@ -343,71 +346,107 @@ export default function DashboardContent() {
                 </tr>
               </thead>
               <tbody>
-                {recentAdmissions.map(student => {
-                  const initials = getInitials(
-                    student.user_first_name,
-                    student.user_last_name,
-                  );
-                  const classStr = `${student.class_class_no}-${student.class_section}`;
-                  const badgeVariant = getBadgeVariant(student.class_section);
-                  const gradients: Record<string, string> = {
-                    blue: "from-[#3d6cf4] to-[#6c47f5]",
-                    indigo: "from-[#0ea5c9] to-[#3d6cf4]",
-                    amber: "from-[#e08c17] to-[#e83b6a]",
-                    rose: "from-[#6c47f5] to-[#3d6cf4]",
-                    cyan: "from-[#12a47e] to-[#0ea5c9]",
-                  };
-
-                  return (
-                    <tr
-                      key={student.student_id}
-                      className="border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--surface-2)] transition-colors duration-[120ms]"
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-[18px] py-16 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="w-6 h-6 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-[var(--text-3)] font-medium">
+                          Loading admissions...
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : recentAdmissions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-[18px] py-12 text-center text-sm text-[var(--text-3)]"
                     >
-                      <td className="px-[18px] py-[13px]">
-                        <div className="flex items-center gap-[10px]">
-                          <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-gradient-to-br ${gradients[badgeVariant]}`}
-                          >
-                            {initials}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-[13.5px]">
-                              {student.user_first_name} {student.user_last_name}
+                      No recent admissions found
+                    </td>
+                  </tr>
+                ) : (
+                  recentAdmissions.map(student => {
+                    const initials = getInitials(
+                      student.user.firstName,
+                      student.user.lastName,
+                    );
+
+                    const academic = student.academics?.[0];
+                    const classNo = academic?.class?.classNo || "-";
+                    const section = academic?.class?.section || "-";
+                    const classStr = `${classNo}-${section}`;
+                    const badgeVariant = getBadgeVariant(section);
+                    const gradients: Record<string, string> = {
+                      blue: "from-[#3d6cf4] to-[#6c47f5]",
+                      indigo: "from-[#0ea5c9] to-[#3d6cf4]",
+                      amber: "from-[#e08c17] to-[#e83b6a]",
+                      rose: "from-[#6c47f5] to-[#3d6cf4]",
+                      cyan: "from-[#12a47e] to-[#0ea5c9]",
+                    };
+
+                    return (
+                      <tr
+                        key={student.id}
+                        className="border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--surface-2)] transition-colors duration-[120ms]"
+                      >
+                        <td className="px-[18px] py-[13px]">
+                          <div className="flex items-center gap-[10px]">
+                            <div
+                              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-gradient-to-br ${gradients[badgeVariant]}`}
+                            >
+                              {initials}
                             </div>
-                            <div className="text-[11px] text-[var(--text-2)]">
-                              {student.student_admission_no}
+                            <div>
+                              <div className="font-semibold text-[13.5px]">
+                                {student.user.firstName} {student.user.lastName}
+                              </div>
+                              <div className="text-[11px] text-[var(--text-2)]">
+                                {student.admissionNo}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-[18px] py-[13px]">
-                        <Badge variant={badgeVariant}>{classStr}</Badge>
-                      </td>
-                      <td className="px-[18px] py-[13px] text-[var(--text-2)] text-[13.5px]">
-                        -
-                      </td>
-                      <td className="px-[18px] py-[13px]">
-                        <Badge variant="green">Active</Badge>
-                      </td>
-                      <td className="px-[18px] py-[13px] text-[var(--text-2)] text-[12.5px]">
-                        {formatDate(student.student_admission_date)}
-                      </td>
-                      <td className="px-[18px] py-[13px]">
-                        <button
-                          onClick={() => handleEdit(student)}
-                          disabled={loadingStudentId === student.student_id}
-                          className="w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--blue-light)] hover:text-[var(--blue)] transition-all duration-150 border-none bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {loadingStudentId === student.student_id ? (
-                            <div className="w-[15px] h-[15px] border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+                        </td>
+                        <td className="px-[18px] py-[13px]">
+                          <Badge variant={badgeVariant}>
+                            {classStr == "---" ? "N/A" : classStr}
+                          </Badge>
+                        </td>
+                        <td className="px-[18px] py-[13px] text-[var(--text-2)] text-[13.5px]">
+                          {student.guardianName === null ? (
+                            <Badge variant="amber">N/A</Badge>
                           ) : (
-                            <Edit className="w-[15px] h-[15px]" />
+                            <Badge variant="green">
+                              {student.guardianName}
+                            </Badge>
                           )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="px-[18px] py-[13px]">
+                          <Badge variant="green">
+                            {student.status || "Active"}
+                          </Badge>
+                        </td>
+                        <td className="px-[18px] py-[13px] text-[var(--text-2)] text-[12.5px]">
+                          {formatDate(student.admissionDate)}
+                        </td>
+                        <td className="px-[18px] py-[13px]">
+                          <button
+                            onClick={() => handleEdit(student)}
+                            disabled={loadingStudentId === student.id}
+                            className="w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--blue-light)] hover:text-[var(--blue)] transition-all duration-150 border-none bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {loadingStudentId === student.id ? (
+                              <div className="w-[15px] h-[15px] border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Edit className="w-[15px] h-[15px]" />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -458,43 +497,90 @@ export default function DashboardContent() {
 
           {}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
-            <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
-              <div className="text-[15px] font-bold text-[var(--text)]">
-                Recent Teachers
+            <div className="px-[22px] py-[18px] border-b border-[var(--border)] flex items-center justify-between">
+              <div>
+                <div className="text-[16px] font-bold text-[var(--text)] tracking-tight">
+                  Recent Teachers
+                </div>
+                <div className="text-[11px] text-[var(--text-3)] font-medium uppercase tracking-wider mt-0.5">
+                  Latest Staff Additions
+                </div>
+              </div>
+              <div className="bg-[var(--blue-light)] text-[var(--blue)] px-2 py-0.5 rounded-md text-[10px] font-bold">
+                {recentTeachers.length}
               </div>
             </div>
             {recentTeachers.length > 0 ? (
               recentTeachers.map((teacher, index) => {
-                const initials =
-                  `${teacher.user_first_name?.charAt(0)}${teacher.user_last_name?.charAt(0)}`.toUpperCase();
+                const initials = getInitials(
+                  teacher.user?.firstName,
+                  teacher.user?.lastName,
+                );
                 const gradients: Record<string, string> = {
                   "0": "from-[#3d6cf4] to-[#6c47f5]",
                   "1": "from-[#0ea5c9] to-[#3d6cf4]",
                   "2": "from-[#e08c17] to-[#e83b6a]",
                   "3": "from-[#6c47f5] to-[#3d6cf4]",
                   "4": "from-[#12a47e] to-[#0ea5c9]",
+                  "5": "from-[#3d6cf4] to-[#0ea5c9]",
+                  "6": "from-[#6c47f5] to-[#e83b6a]",
+                  "7": "from-[#e08c17] to-[#12a47e]",
+                  "8": "from-[#0ea5c9] to-[#6c47f5]",
+                  "9": "from-[#e83b6a] to-[#3d6cf4]",
                 };
-                const gradientIndex = teacher.teacher_id?.slice(-1) || "0";
+                const lastChar = teacher.id?.slice(-1) || "0";
+                const gradientKey = /[0-9]/.test(lastChar)
+                  ? lastChar
+                  : String(index % 10);
+                const gradientClass = gradients[gradientKey] || gradients["0"];
+                const expYears = teacher.totalExpMonths
+                  ? Math.floor(teacher.totalExpMonths / 12)
+                  : 0;
+
                 return (
                   <div
-                    key={`${teacher.teacher_id}-${index}`}
-                    className="flex gap-3 px-[18px] py-3 border-b border-[var(--border)] last:border-b-0 items-start"
+                    key={`${teacher.id}-${index}`}
+                    onClick={() => router.push("/teachers")}
+                    className="group flex gap-3.5 px-[22px] py-[15px] border-b border-[var(--border)] last:border-b-0 items-center hover:bg-[var(--surface-2)] transition-all duration-[200ms] cursor-pointer"
                   >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 bg-gradient-to-br ${gradients[gradientIndex]}`}
-                    >
-                      {initials}
+                    <div className="relative">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0 bg-gradient-to-br shadow-inner ${gradientClass} transition-transform duration-300 group-hover:scale-105`}
+                      >
+                        {initials}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-[13px] text-[var(--text)] font-semibold">
-                        {teacher.user_first_name} {teacher.user_last_name}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[14px] text-[var(--text)] font-bold truncate group-hover:text-[var(--blue)] transition-colors">
+                          {teacher.user?.firstName} {teacher.user?.lastName}
+                        </div>
+                        <div className="text-[10px] font-bold text-[var(--text-3)] whitespace-nowrap bg-[var(--surface-3)] px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                          {teacher.employeeCode || "STAFF"}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-[var(--text-2)] mt-[1px]">
-                        {teacher.teacher_specialization}
+
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--blue-light)] text-[var(--blue)] leading-none border border-[var(--blue)]/5">
+                          {teacher.specialization ||
+                            teacher.designation ||
+                            "Staff"}
+                        </span>
                       </div>
-                      <div className="text-[11px] text-[var(--text-3)] mt-[2px]">
-                        {teacher.teacher_qualification} •{" "}
-                        {teacher.teacher_experience} years exp
+
+                      <div className="flex items-center gap-2 mt-2 text-[11px] text-[var(--text-3)] font-medium">
+                        <div className="flex items-center gap-1 truncate max-w-[120px]">
+                          <span className="w-1 h-1 rounded-full bg-[var(--text-3)] opacity-40" />
+                          {teacher.highestQualification || "Qualified"}
+                        </div>
+                        <span className="text-[var(--border)]">|</span>
+                        <div className="flex items-center gap-1 text-[var(--text-2)]">
+                          <span className="font-bold text-[var(--blue)]">
+                            {expYears > 0 ? `${expYears}y` : "Fresh"}
+                          </span>{" "}
+                          Exp
+                        </div>
                       </div>
                     </div>
                   </div>

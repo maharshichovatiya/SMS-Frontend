@@ -1,4 +1,5 @@
-import api from "./Client";
+import api from "../Axios";
+import { Student } from "./Student";
 
 export interface DashboardSummary {
   students: number;
@@ -7,32 +8,29 @@ export interface DashboardSummary {
   subjects: number;
 }
 
-export interface RecentAdmission {
-  student_id: string;
-  student_admission_no: string;
-  student_admission_date: string;
-  user_first_name: string;
-  user_last_name: string;
-  academicYear_year_name: string;
-  class_class_no: number;
-  class_section: string;
-}
+// RecentAdmission is now the same as Student
+export type RecentAdmission = Student;
 
 export interface RecentTeacher {
-  teacher_id: string;
-  teacher_employee_no: string;
-  teacher_joining_date: string;
-  user_first_name: string;
-  user_last_name: string;
-  teacher_specialization: string;
-  teacher_qualification: string;
-  teacher_experience: number;
+  id: string;
+  employeeCode: string;
+  designation: string;
+  highestQualification: string;
+  specialization: string | null;
+  totalExpMonths: number;
+  dateOfJoining: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    profilePhoto: string | null;
+  };
 }
 
 export interface RecentAdmissionsResponse {
   statusCode: number;
   message: string;
-  data: RecentAdmission[];
+  data: Student[];
   Total_Records: number;
 }
 
@@ -57,6 +55,7 @@ export const dashboardApis = {
   getRecentAdmissions: async () => {
     const res = await api.get<RecentAdmissionsResponse>(
       "/dashboard/recent-admission",
+      { params: { page: 1, limit: 20 } },
     );
     return res.data;
   },

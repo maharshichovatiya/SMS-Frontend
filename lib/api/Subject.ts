@@ -1,4 +1,4 @@
-import api from "./Client";
+import api from "../Axios";
 
 export interface Chapter {
   chapterName: string;
@@ -27,6 +27,7 @@ export interface Class {
 export interface ClassSubjectItem {
   id: string;
   subject: Subject;
+  teacher?: Teacher;
 }
 
 export interface Subject {
@@ -67,6 +68,7 @@ export interface SubjectWithClasses {
       section: string;
     };
     chapters: Chapter[];
+    teacher?: Teacher;
   }[];
 }
 
@@ -94,6 +96,7 @@ export interface UpdateSubjectData {
 export interface AssignClassData {
   subjectId: string;
   classId: string;
+  teacherId: string;
 }
 
 export interface SubjectListResponse {
@@ -156,6 +159,7 @@ export const subjectApis = {
             section: classItem.section,
           },
           chapters: subject.chapters || [],
+          teacher: classSubject.teacher,
         });
       });
     });

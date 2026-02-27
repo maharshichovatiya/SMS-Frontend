@@ -55,7 +55,6 @@ export default function ClassAssignmentForm({
       try {
         const academicYearsData = await classApis.getAcademicYears();
         setAcademicYears(academicYearsData);
-
         if (!currentAcademicYearId) {
           const currentYear = academicYearsData.find(year => year.isCurrent);
           if (currentYear) {

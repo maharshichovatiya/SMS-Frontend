@@ -1,5 +1,5 @@
 import { ApiResponse } from "./Auth";
-import api from "./Client";
+import api from "../Axios";
 import { StudentFormValues } from "@/lib/validations/StudentSchema";
 
 export enum RecordStatus {
