@@ -72,6 +72,7 @@ export default function StudentsTable({
   roleId,
   onRefresh,
   searchParams,
+  onTotalCountChange,
 }: {
   roleId: string;
   onRefresh?: () => void;
@@ -81,6 +82,7 @@ export default function StudentsTable({
     classId?: string;
     sectionId?: string;
   };
+  onTotalCountChange?: (count: number) => void;
 }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,15 +110,20 @@ export default function StudentsTable({
       const response = await studentApis.getAll({
         page,
         limit,
-        search: searchParams?.search || "",
-        status: searchParams?.status,
+        search: searchParams?.status
+          ? searchParams.status
+          : searchParams?.search || "",
         classId: searchParams?.classId,
         sectionId: searchParams?.sectionId,
       });
 
       if (response.data && response.data.data) {
-        const transformedStudents = response.data.data.map(
-          (apiStudent: ApiStudent) => {
+        const transformedStudents = response.data.data
+          .filter(
+            (apiStudent: ApiStudent) =>
+              apiStudent.status.toLowerCase() !== "deleted",
+          )
+          .map((apiStudent: ApiStudent) => {
             // Check if student has any academic records (class assignments)
             const hasClassAssignment =
               apiStudent.academics && apiStudent.academics.length > 0;
@@ -140,7 +147,7 @@ export default function StudentsTable({
               classId: currentAcademic?.class.id,
               academicYear: currentAcademic?.academicYear.yearName,
               academicYearId: currentAcademic?.academicYear.id,
-              dob: apiStudent.user.dob || "Null",
+              dob: apiStudent.user.dob || "N/A",
               guardian: apiStudent.guardianName || "N/A",
               status: apiStudent.status
                 ? apiStudent.status.charAt(0).toUpperCase() +
@@ -153,11 +160,11 @@ export default function StudentsTable({
               familyAnnualIncome: apiStudent.familyAnnualIncome || "",
               medicalConditions: apiStudent.medicalConditions || "",
             };
-          },
-        );
+          });
 
         setStudents(transformedStudents);
         setTotalStudents(response.data.meta.total);
+        onTotalCountChange?.(response.data.meta.total);
       } else {
         setError("Error");
       }
@@ -185,6 +192,10 @@ export default function StudentsTable({
   useEffect(() => {
     fetchStudents();
   }, [currentPage, fetchStudents]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchParams?.search, searchParams?.status]);
 
   const totalPages = Math.ceil(totalStudents / PAGE_SIZE);
   const paginatedStudents = students;
@@ -269,7 +280,6 @@ export default function StudentsTable({
         </div>
       </Modal>
 
-      {}
       <Modal
         isOpen={!!deletingStudent}
         onClose={() => setDeletingStudent(null)}
@@ -310,7 +320,6 @@ export default function StudentsTable({
         </div>
       </Modal>
 
-      {}
       <Modal
         isOpen={!!assigningClassStudent}
         onClose={() => setAssigningClassStudent(null)}

@@ -1,5 +1,4 @@
-import api from "./Client";
-
+import api from "../Axios";
 export interface Chapter {
   id: string;
   chapterNo: number;
@@ -64,9 +63,9 @@ export interface AcademicYearListResponse {
 }
 
 export const classApis = {
-  getAll: async () => {
+  getAll: async (): Promise<Class[]> => {
     const res = await api.get<ClassListResponse>("/classes");
-    return res.data;
+    return res.data.data;
   },
 
   getAcademicYears: async (): Promise<AcademicYear[]> => {

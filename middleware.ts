@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     "/signup",
     "/forgot-password",
     "/reset-password",
+    "/verify-otp",
   ];
 
   const authRoutes = ["/signin", "/signup"];
