@@ -190,7 +190,7 @@ export default function ProfileForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(prev => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
