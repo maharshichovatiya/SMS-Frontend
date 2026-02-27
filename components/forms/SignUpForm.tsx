@@ -2,17 +2,8 @@
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import {
-  Mail,
-  Lock,
-  User,
-  Phone,
-  School,
-  Eye,
-  EyeOff,
-  Users,
-} from "lucide-react";
-import { PersonalDetails, SchoolDetails } from "@/lib/validations/SignUpSchema";
+import { Mail, Lock, User, Phone, School, Eye, EyeOff } from "lucide-react";
+import { PersonalDetails, SchoolDetails } from "@/lib/validations/SignupSchema";
 
 const baseInput =
   "w-full h-12 bg-[var(--color-surface-2)] border rounded-xl text-base text-[var(--color-text)] placeholder:text-[var(--color-text-3)] outline-none transition-all focus:bg-white focus:ring-3 focus:ring-[var(--color-blue)]/10";
@@ -52,8 +43,6 @@ export function PersonalDetailsForm({
   pwStrength,
   pwColors,
   pwLabels,
-  roles,
-  rolesLoading,
 }: PersonalFormProps) {
   const {
     register,
@@ -157,46 +146,7 @@ export function PersonalDetailsForm({
       </div>
 
       <div className="grid grid-cols-1 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-[var(--color-text)] mb-2">
-            Role <span className="text-red-500 text-lg">*</span>
-          </label>
-          <div className="relative">
-            <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-3)] pointer-events-none z-10" />
-            <select
-              {...register("roleId")}
-              className={`${selectClass(!!errors.roleId)} pl-10 appearance-none`}
-              disabled={rolesLoading}
-            >
-              <option value="">
-                {rolesLoading ? "Loading roles..." : "Select Role"}
-              </option>
-              {roles.map(role => (
-                <option key={role.id} value={role.id}>
-                  {role.roleName.charAt(0).toUpperCase() +
-                    role.roleName.slice(1)}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg
-                className="w-4 h-4 text-[var(--color-text-3)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </div>
-          {errorMsg(errors.roleId?.message)}
-        </div>
-
+        <div></div>
         <div></div>
       </div>
 
@@ -450,7 +400,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           </label>
           <input
             type="url"
-            placeholder="https://www.school.edu"
+            placeholder="https://edu.com"
             {...register("websiteUrl")}
             className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
           />

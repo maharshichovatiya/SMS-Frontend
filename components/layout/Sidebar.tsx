@@ -101,7 +101,9 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       className={`fixed left-[14px] top-1/2 -translate-y-1/2 h-[calc(100vh-40px)] bg-[var(--surface)] border border-[var(--border)] rounded-[22px] shadow-[var(--shadow)] flex flex-col z-[var(--z-sidebar)] transition-all duration-300 ease-[var(--ease)] overflow-hidden
         ${collapsed ? "w-[var(--sidebar-closed)]" : "w-[var(--sidebar-open)]"}`}
     >
+      {}
       <div className="flex items-start gap-[11px] px-[18px] py-[22px] pb-[18px] border-b border-[var(--border)] relative">
+        {}
         <button
           onClick={e => {
             e.preventDefault();
@@ -124,6 +126,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </span>
         </button>
 
+        {}
         <div
           className={`flex items-center gap-[11px] transition-all duration-300 ${
             collapsed ? "w-full justify-center mt-16" : ""
@@ -144,6 +147,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </div>
       </div>
 
+      {}
       <div className="flex-1 overflow-y-auto  [&::-webkit-scrollbar]:hidden  overflow-x-hidden p-[10px] scrollbar-thin scrollbar-thumb-[var(--border-2)]">
         <div
           className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
@@ -164,21 +168,19 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           Modules
         </div>
 
+        {}
         <NavItem
           icon={<Users className="w-[18px] h-[18px]" />}
           label="Teachers"
-          badge="86"
-          badgeColor="bg-[var(--green)]"
           active={isActive("/teachers")}
           collapsed={collapsed}
           onClick={() => router.push("/teachers")}
         />
 
+        {}
         <NavItem
           icon={<GraduationCap className="w-6 h-6" />}
           label="Students"
-          badge="1.2k"
-          badgeColor="bg-[var(--blue)]"
           active={isActive("/students")}
           collapsed={collapsed}
           onClick={() => router.push("/students")}
@@ -217,6 +219,25 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           collapsed={collapsed}
           onClick={handleLogout}
         />
+      </div>
+
+      {}
+      <div className="px-[10px] py-3 border-t border-[var(--border)] flex-shrink-0">
+        <div className="flex items-center gap-[10px] px-[10px] py-[9px] rounded-[10px] cursor-pointer hover:bg-[var(--bg)] transition-colors duration-150 overflow-hidden">
+          <div className="w-[34px] h-[34px] rounded-full bg-[var(--grad-primary)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            AD
+          </div>
+          <div
+            className={`overflow-hidden transition-opacity duration-200 ${collapsed ? "opacity-0 w-0" : "opacity-100"}`}
+          >
+            <div className="text-[13px] font-semibold text-[var(--text)] whitespace-nowrap">
+              Admin User
+            </div>
+            <div className="text-[11px] text-[var(--text-2)] whitespace-nowrap">
+              Super Admin
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );

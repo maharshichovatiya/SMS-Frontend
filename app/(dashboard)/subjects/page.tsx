@@ -1,272 +1,533 @@
-import React from "react";
+"use client";
 
-const subjects = [
-  {
-    name: "Mathematics",
-    meta: "Grades 6–12 · Core",
-    badge: "Core",
-    badgeClass: "bg-blue-light text-blue",
-    classes: "12 classes",
-    iconColor: "bg-blue-light text-blue",
-    delay: "0.04s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a1 1 0 001-1V7a1 1 0 00-1-1H4a1 1 0 00-1 1v11a1 1 0 001 1z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Science",
-    meta: "Grades 6–10 · Core",
-    badge: "Core",
-    badgeClass: "bg-green-light text-green",
-    classes: "10 classes",
-    iconColor: "bg-green-light text-green",
-    delay: "0.08s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "English",
-    meta: "Grades 1–12 · Core",
-    badge: "Core",
-    badgeClass: "bg-indigo-light text-indigo",
-    classes: "14 classes",
-    iconColor: "bg-indigo-light text-indigo",
-    delay: "0.12s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Accountancy",
-    meta: "Grades 11–12 · Commerce",
-    badge: "Commerce",
-    badgeClass: "bg-amber-light text-amber",
-    classes: "4 classes",
-    iconColor: "bg-amber-light text-amber",
-    delay: "0.16s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Computer Science",
-    meta: "Grades 9–12 · Elective",
-    badge: "Elective",
-    badgeClass: "bg-cyan-light text-cyan",
-    classes: "6 classes",
-    iconColor: "bg-cyan-light text-cyan",
-    delay: "0.20s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Physical Education",
-    meta: "Grades 1–12 · Mandatory",
-    badge: "Mandatory",
-    badgeClass: "bg-rose-light text-rose",
-    classes: "14 classes",
-    iconColor: "bg-rose-light text-rose",
-    delay: "0.24s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "History",
-    meta: "Grades 6–10 · Social",
-    badge: "Social",
-    badgeClass: "bg-indigo-light text-indigo",
-    classes: "8 classes",
-    iconColor: "bg-indigo-light text-indigo",
-    delay: "0.28s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Geography",
-    meta: "Grades 6–10 · Social",
-    badge: "Social",
-    badgeClass: "bg-green-light text-green",
-    classes: "7 classes",
-    iconColor: "bg-green-light text-green",
-    delay: "0.32s",
-    icon: (
-      <svg
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    ),
-  },
-];
+import React, { useState, useEffect } from "react";
+import PageHeader from "@/components/layout/PageHeader";
+import { BookOpen, Plus, Book, Pencil, Trash2 } from "lucide-react";
+import Modal from "@/components/ui/Modal";
+import SubjectForm from "@/components/forms/SubjectForm";
+import {
+  subjectApis,
+  SubjectWithClasses,
+  Subject,
+  AssignClassData,
+  Chapter,
+} from "@/lib/api/Subject";
+import { classApis, Class } from "@/lib/api/Class";
+import { showToast } from "@/lib/utils/Toast";
 
 export default function Subjects() {
+  /* ================= STATE ================= */
+
+  const [subjects, setSubjects] = useState<SubjectWithClasses[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [selectedSubject, setSelectedSubject] =
+    useState<SubjectWithClasses | null>(null);
+  const [editingSubject, setEditingSubject] =
+    useState<SubjectWithClasses | null>(null);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // assignment modal
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
+  const [allClasses, setAllClasses] = useState<Class[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
+
+  /* ================= FETCH ================= */
+
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      const data = await subjectApis.getAllForPage();
+      setSubjects(data);
+    } catch (error) {
+      showToast.apiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  /* ================= ASSIGNMENT ================= */
+
+  const fetchAssignmentData = async () => {
+    try {
+      setModalLoading(true);
+      const [subjectsData, classesData] = await Promise.all([
+        subjectApis.getAll(),
+        classApis.getAll(),
+      ]);
+      setAllSubjects(subjectsData);
+      setAllClasses(classesData.data);
+    } catch (error) {
+      showToast.apiError(error);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleAssignModalOpen = () => {
+    setIsAssignModalOpen(true);
+    fetchAssignmentData();
+  };
+
+  const handleAssign = async () => {
+    try {
+      const payload: AssignClassData = {
+        subjectId: selectedSubjectId,
+        classId: selectedClassId,
+      };
+      await subjectApis.assignClassToSubject(payload);
+      showToast.success("Assigned subject to class successfully!");
+      setIsAssignModalOpen(false);
+      setSelectedSubjectId("");
+      setSelectedClassId("");
+      fetchSubjects();
+    } catch (error) {
+      showToast.apiError(error);
+    }
+  };
+
+  /* ================= DELETE ================= */
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    try {
+      setIsDeleting(true);
+      await subjectApis.delete(deletingId);
+      showToast.success("Assignment removed successfully!");
+      setDeletingId(null);
+      fetchSubjects();
+    } catch (error) {
+      showToast.apiError(error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  /* ================= UI ================= */
+
   return (
     <section className="animate-fade-up">
-      <div className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-[22px_26px] mb-[18px] flex items-center justify-between flex-wrap gap-[14px] shadow-[var(--shadow-sm)]">
-        <div className="flex items-center gap-[14px]">
-          <div className="w-[50px] h-[50px] rounded-[14px] flex items-center justify-center shrink-0 bg-[var(--amber-light)] text-[var(--amber)]">
-            <svg
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-          </div>
-          <div>
-            <div className="text-[25px] font-extrabold tracking-[-0.6px] text-[var(--text)]">
-              Subjects
+      <PageHeader
+        title="Subjects"
+        description={`${subjects.length} subjects across all grades with detailed curriculum`}
+        icon={BookOpen}
+        iconBgColor="--amber-light"
+        iconColor="--amber"
+        buttonText="Add Subject"
+        onButtonClick={() => setEditingSubject({} as SubjectWithClasses)}
+        buttonIcon={Plus}
+        secondaryButton={{
+          text: "Assign Class",
+          onClick: handleAssignModalOpen,
+        }}
+      />
+
+      {/* ================= SUBJECT GRID ================= */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {loading ? (
+          <div className="col-span-full flex items-center justify-center py-16">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-[var(--text-3)]">
+                Loading subjects...
+              </span>
             </div>
-            <div className="text-sm text-[var(--text-2)] mt-[1px]">
-              34 academic subjects offered this year
-            </div>
           </div>
-        </div>
-        <button className="flex items-center gap-[7px] px-5 py-[10px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-[11px] text-[13.5px] font-semibold shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-[180ms] whitespace-nowrap relative overflow-hidden">
-          <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-          <span className="relative z-10 flex items-center gap-[7px]">
-            <svg
-              width="14"
-              height="14"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.5"
+        ) : subjects.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4">
+              <BookOpen className="w-8 h-8 text-[var(--text-3)]" />
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
+              No Subjects Available
+            </h3>
+            <p className="text-sm text-[var(--text-2)] mb-4">
+              Subject management is currently under development.
+            </p>
+            <p className="text-xs text-[var(--text-3)]">
+              Click &quot;Add Subject&quot; to create your first subject when
+              the feature is available.
+            </p>
+          </div>
+        ) : (
+          subjects.map((subject, idx) => (
+            <div
+              key={subject.id}
+              className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-6 shadow-[var(--shadow-sm)] animate-fade-up hover:border-[var(--border-focus)] transition-all duration-[var(--duration)] cursor-pointer"
+              style={{ animationDelay: `${idx * 0.08}s` }}
+              onClick={() => setSelectedSubject(subject)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Subject
-          </span>
-        </button>
+              {/* SUBJECT ICON */}
+              <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center mb-4 bg-blue-light text-blue">
+                <Book className="w-6 h-6" />
+              </div>
+
+              {/* SUBJECT NAME + BADGE */}
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-[17px] font-bold text-[var(--text)] mb-1">
+                    {subject.subjectName}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-[10px] py-[2px] rounded-full text-[11px] font-semibold bg-blue-light text-blue">
+                      {subject.status || "Active"}
+                    </span>
+                    <span className="text-[12px] text-[var(--text-3)]">
+                      {subject.classes.length} class
+                      {subject.classes.length !== 1 ? "es" : ""} assigned
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CLASSES LIST */}
+              <div
+                className="space-y-2 mb-1"
+                onClick={e => e.stopPropagation()}
+              >
+                {subject.classes.map(cls => (
+                  <div
+                    key={cls.classSubjectId}
+                    className="bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] p-3"
+                  >
+                    {/* Class row */}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-[var(--text)]">
+                        Class {cls.classInfo.classNo}-{cls.classInfo.section}
+                      </span>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setDeletingId(cls.classSubjectId);
+                        }}
+                        className="w-6 h-6 rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)]"
+                        title="Remove Assignment"
+                      >
+                        <Trash2 size={12} strokeWidth={1.8} />
+                      </button>
+                    </div>
+
+                    {/* Chapters */}
+                    {cls.chapters.length > 0 && (
+                      <div className="mt-1 space-y-0.5">
+                        {cls.chapters.map((ch: Chapter, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-1.5 text-[11px] text-[var(--text-3)]"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--blue)] shrink-0"></span>
+                            {ch.chapterNo}. {ch.chapterName}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* CARD FOOTER */}
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+                <button
+                  onClick={() => setSelectedSubject(subject)}
+                  className="text-[var(--blue)] text-sm font-medium hover:text-[var(--blue-dark)] transition-colors"
+                >
+                  View Details →
+                </button>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    setEditingSubject(subject);
+                  }}
+                  className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--blue-light)] text-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--blue-light)]"
+                  title="Edit Subject"
+                >
+                  <Pencil size={14} strokeWidth={1.8} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {subjects.map((sj, idx) => (
-          <div
-            key={idx}
-            className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-5 shadow-[var(--shadow-sm)] block animate-fade-up"
-            style={{ animationDelay: sj.delay }}
-          >
-            <div
-              className={`w-[46px] h-[46px] rounded-[13px] flex items-center justify-center mb-3 ${sj.iconColor}`}
-            >
-              <div className="w-[22px] h-[22px]">{sj.icon}</div>
-            </div>
-            <div className="text-[15.5px] font-bold mb-[3px] text-[var(--text)]">
-              {sj.name}
-            </div>
-            <div className="text-[12.5px] text-[var(--text-2)]">{sj.meta}</div>
-            <div className="flex items-center justify-between mt-3.5 pt-3 border-t border-[var(--border)]">
-              <span
-                className={`inline-flex items-center px-[11px] py-[3px] rounded-full text-[11.5px] font-semibold ${sj.badgeClass}`}
-              >
-                {sj.badge}
-              </span>
-              <div className="text-[13.5px] font-bold text-[var(--blue)]">
-                {sj.classes}
+      {/* ================= SUBJECT DETAIL MODAL ================= */}
+
+      <Modal
+        isOpen={!!selectedSubject}
+        onClose={() => setSelectedSubject(null)}
+        title={selectedSubject?.subjectName || "Subject Details"}
+        description={`Curriculum details for ${selectedSubject?.subjectName}`}
+      >
+        {selectedSubject && (
+          <div className="w-full max-w-5xl max-h-[85vh] overflow-y-auto">
+            <div className="mb-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-[48px] h-[48px] rounded-[12px] flex items-center justify-center bg-blue-light text-blue">
+                  <Book className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[var(--text)]">
+                    {selectedSubject.subjectName}
+                  </h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="inline-flex items-center px-[10px] py-[2px] rounded-full text-[11px] font-semibold bg-blue-light text-blue">
+                      {selectedSubject.status || "Active"}
+                    </span>
+                    <span className="text-[var(--text-3)] text-sm">
+                      {selectedSubject.classes.length} class
+                      {selectedSubject.classes.length !== 1 ? "es" : ""}{" "}
+                      assigned
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {selectedSubject.classes.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center mx-auto mb-3">
+                      <Book className="w-6 h-6 text-[var(--text-3)]" />
+                    </div>
+                    <p className="text-[var(--text-2)]">
+                      No classes assigned to this subject yet
+                    </p>
+                  </div>
+                ) : (
+                  selectedSubject.classes.map(cls => (
+                    <div
+                      key={cls.classSubjectId}
+                      className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden"
+                    >
+                      {/* Class Header */}
+                      <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold">
+                              {cls.classInfo.classNo}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-[var(--text)]">
+                                Class {cls.classInfo.classNo}-
+                                {cls.classInfo.section}
+                              </h3>
+                              <p className="text-xs text-[var(--text-3)]">
+                                {cls.chapters.length} chapter
+                                {cls.chapters.length !== 1 ? "s" : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-xs bg-[var(--blue-light)] text-[var(--blue)] px-2 py-1 rounded-full font-medium">
+                            {cls.chapters.length > 0 ? "Active" : "No Chapters"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Chapters List */}
+                      <div className="p-5">
+                        {cls.chapters.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
+                              Curriculum Chapters
+                            </p>
+                            <div className="grid grid-cols-1 gap-2">
+                              {cls.chapters.map(
+                                (chapter: Chapter, i: number) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center gap-3 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-[var(--border-focus)] transition-colors"
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                      {chapter.chapterNo}
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-[var(--text)]">
+                                        {chapter.chapterName}
+                                      </p>
+                                      <p className="text-xs text-[var(--text-3)]">
+                                        Chapter {chapter.chapterNo}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-6">
+                            <div className="w-10 h-10 rounded-full bg-[var(--surface-3)] flex items-center justify-center mx-auto mb-2">
+                              <Book className="w-5 h-5 text-[var(--text-3)]" />
+                            </div>
+                            <p className="text-sm text-[var(--text-2)]">
+                              No chapters added yet
+                            </p>
+                            <p className="text-xs text-[var(--text-3)] mt-1">
+                              Add chapters to this class for the subject
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      </Modal>
+
+      {/* ================= ADD / EDIT MODAL ================= */}
+      <Modal
+        isOpen={!!editingSubject}
+        onClose={() => setEditingSubject(null)}
+        title={editingSubject?.id ? "Edit Subject" : "Add Subject"}
+        description={
+          editingSubject?.id
+            ? "Update the subject information below."
+            : "Fill in the details below to create a new subject."
+        }
+      >
+        <div className="w-[560px]">
+          <SubjectForm
+            initialData={editingSubject?.id ? editingSubject : undefined}
+            onClose={() => setEditingSubject(null)}
+            onSubmitSuccess={() => {
+              setEditingSubject(null);
+              fetchSubjects();
+            }}
+          />
+        </div>
+      </Modal>
+
+      {/* ================= DELETE MODAL ================= */}
+
+      <Modal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        title="Remove Assignment"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setDeletingId(null)}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-5 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--rose)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDeleting ? "Deleting..." : "Yes, Delete"}
+            </button>
+          </>
+        }
+      >
+        <div className="w-[380px] flex flex-col items-center text-center py-2">
+          <div className="w-14 h-14 rounded-full bg-[var(--rose-light)] flex items-center justify-center mb-4">
+            <Trash2 size={24} className="text-[var(--rose)]" />
+          </div>
+          <p className="text-sm text-[var(--text-3)]">
+            Are you sure you want to remove this{" "}
+            <span className="font-semibold text-[var(--text)]">
+              subject assignment
+            </span>
+            ? This action cannot be undone.
+          </p>
+        </div>
+      </Modal>
+
+      {/* ================= ASSIGN CLASS MODAL ================= */}
+
+      <Modal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        title="Assign Class to Subject"
+        description="Select a subject and class to assign them together."
+      >
+        <div className="w-[600px]">
+          {modalLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-5 h-5 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-[var(--text-3)] ml-2">
+                Loading data...
+              </span>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Subject Dropdown */}
+              <div>
+                <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+                  Select Subject
+                  <span className="text-[var(--rose)] ml-0.5">*</span>
+                </label>
+                <select
+                  value={selectedSubjectId}
+                  onChange={e => setSelectedSubjectId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)]"
+                >
+                  <option value="">Choose a subject...</option>
+                  {allSubjects.map(subject => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.subjectName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Class Dropdown */}
+              <div>
+                <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+                  Select Class
+                  <span className="text-[var(--rose)] ml-0.5">*</span>
+                </label>
+                <select
+                  value={selectedClassId}
+                  onChange={e => setSelectedClassId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)]"
+                >
+                  <option value="">Choose a class...</option>
+                  {allClasses.map(cls => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.classNo}-{cls.section}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)]">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-5 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)] h-10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAssign}
+                  disabled={!selectedSubjectId || !selectedClassId}
+                  className="btn-primary px-5 py-2 text-sm rounded-[var(--radius-sm)] h-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Assign
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
     </section>
   );
 }

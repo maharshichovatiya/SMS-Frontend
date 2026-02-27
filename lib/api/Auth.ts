@@ -1,7 +1,8 @@
 import Cookies from "js-cookie";
-import { AxiosError } from "axios";
+
 import { PersonalDetails } from "@/lib/validations/SignUpSchema";
 import api from "../Axios";
+import { AxiosError } from "axios";
 
 type ApiSuccess<T> = {
   success: true;
@@ -17,7 +18,7 @@ type ApiError = {
   data: null;
 };
 
-type ApiResponse<T> = ApiSuccess<T> | ApiError;
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 type ErrorResponse = {
   message?: string;
@@ -270,10 +271,24 @@ export const authApi = {
   },
 
   signup: async (data: SignupPayload) => {
-    const response = await api.post<ApiResponse<{ id: string }>>(
-      "/auth/register",
-      data,
-    );
+    const response = await api.post<
+      ApiResponse<{ id: string; accessToken?: string; refreshToken?: string }>
+    >("/auth/register", data);
+
+    if (
+      response.data.statusCode === 201 &&
+      response.data.data?.accessToken &&
+      response.data.data?.refreshToken
+    ) {
+      Cookies.set("accessToken", response.data.data.accessToken, {
+        expires: 1,
+      });
+
+      Cookies.set("refreshToken", response.data.data.refreshToken, {
+        expires: 7,
+      });
+    }
+
     return response.data;
   },
 

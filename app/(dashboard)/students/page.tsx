@@ -2,80 +2,57 @@
 import StudentForm from "@/components/forms/StudentForm";
 import StudentsTable from "@/components/tables/StudentTable";
 import Modal from "@/components/ui/Modal";
-import { GraduationCap } from "lucide-react";
-import React, { useState } from "react";
+import PageHeader from "@/components/layout/PageHeader";
+import { authApi, Role } from "@/lib/api/Auth";
+import { showToast } from "@/lib/utils/Toast";
+import { Users, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
-type Tab = {
-  label: string;
-
-  key: string;
-};
-
-const tabs: Tab[] = [
-  { key: "all", label: "All" },
-  { key: "active", label: "Active" },
-  { key: "pending", label: "Pending" },
-  { key: "inactive", label: "Inactive" },
-];
 function Page() {
-  const [active, setActive] = useState("all");
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [role, setRole] = useState<string>("");
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+  useEffect(() => {
+    async function getStudentRoleID() {
+      setRolesLoading(true);
+      try {
+        const res = await authApi.getRoles();
+        const studentRole = res.data?.find(
+          (role: Role) => role.roleName.toLowerCase() === "student",
+        );
+        if (studentRole) {
+          setRole(studentRole.id);
+        }
+      } catch (err: unknown) {
+        showToast.apiError(err);
+      } finally {
+        setRolesLoading(false);
+      }
+    }
+    getStudentRoleID();
+  }, []);
+
   return (
     <div>
-      <div
-        className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] px-6 py-4 flex items-center justify-between"
-        style={{ boxShadow: "var(--shadow-sm)" }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-[var(--blue-light)] flex items-center justify-center">
-            <GraduationCap
-              className="w-5 h-5 text-[var(--blue)]"
-              strokeWidth={1.8}
-            />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-[var(--text)] leading-tight">
-              Students
-            </h1>
-            <p className="text-sm text-[var(--text-3)] mt-0.5">
-              90 students enrolled · Academic Year
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsOpen(true)}
-            className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10"
-          >
-            <span className="text-lg leading-none">+</span>
-            Admit Student
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Students"
+        description="90 students enrolled · Academic Year"
+        icon={Users}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+        buttonText="Admit Student"
+        onButtonClick={() => setIsOpen(true)}
+        buttonIcon={Plus}
+      />
 
       <div className="flex items-center justify-between w-full px-4 py-3 rounded-[var(--radius-md)] gap-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActive(tab.key)}
-              className={`
-                px-4 py-2 rounded-full text-sm font-medium transition-all duration-[var(--duration)] whitespace-nowrap
-                ${
-                  active === tab.key
-                    ? "bg-[var(--blue)] text-[var(--text-inverse)]"
-                    : "bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--blue)] hover:text-[var(--blue)]"
-                }
-              `}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative flex-shrink-0">
+        <div className="relative flex-shrink-0 ml-auto">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +80,25 @@ function Page() {
       </div>
 
       <div className="mt-3">
-        <StudentsTable />
+        {rolesLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-[var(--text-3)]">
+                Loading student data...
+              </span>
+            </div>
+          </div>
+        ) : (
+          <StudentsTable
+            key={refreshKey}
+            roleId={role}
+            onRefresh={handleRefresh}
+            searchParams={{
+              search: search,
+            }}
+          />
+        )}
       </div>
 
       <Modal
@@ -113,7 +108,11 @@ function Page() {
         description="Fill in the details below to register a new student."
       >
         <div className="w-[560px]">
-          <StudentForm onclose={() => setIsOpen(false)} />
+          <StudentForm
+            onClose={() => setIsOpen(false)}
+            roleId={role}
+            onSubmitSuccess={handleRefresh}
+          />
         </div>
       </Modal>
     </div>

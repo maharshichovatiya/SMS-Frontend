@@ -179,7 +179,8 @@
   --color-text-2: #5c6a8a;
   --color-text-3: #9aa5c4;
 
-  --font-sans: "Outfit", sans-serif;
+  /* ── Font Families ── */
+  --font-sans: var(--font-josefin-sans), sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   --radius-xs: 6px;
