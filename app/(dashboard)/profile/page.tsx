@@ -68,6 +68,7 @@ export default function SettingsPage() {
           onClick={() => setIsOpen(true)}
           className="
             flex items-center gap-2
+            cursor-pointer
             px-4 py-2
             rounded-[var(--radius-sm)]
             border border-red-200

@@ -245,17 +245,19 @@ export default function DashboardContent() {
       });
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
   return (
     <>
       {/* ... */}
       <div className="flex items-center justify-between mb-7 flex-wrap gap-[14px]">
         <div>
-          {/* ... */}
-          <div className="text-[11px] font-bold tracking-[0.8px] uppercase text-[var(--blue)] mb-[3px]">
-            Overview
-          </div>
           <div className="text-[25px] font-extrabold text-[var(--text)] tracking-[-0.6px]">
-            Good morning, Admin 👋
+            {getGreeting()}, Admin 👋
           </div>
         </div>
       </div>
@@ -319,7 +321,7 @@ export default function DashboardContent() {
             </div>
             <div className="flex gap-2">
               <button
-                className="flex items-center gap-[7px] px-[14px] py-[8px] rounded-[11px] text-[13.5px] font-semibold bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-[180ms] relative overflow-hidden"
+                className="flex cursor-pointer items-center gap-[7px] px-[14px] py-[8px] rounded-[11px] text-[13.5px] font-semibold bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-[180ms] relative overflow-hidden"
                 onClick={() => router.push("/students")}
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
@@ -434,7 +436,7 @@ export default function DashboardContent() {
                           <button
                             onClick={() => handleEdit(student)}
                             disabled={loadingStudentId === student.id}
-                            className="w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--blue-light)] hover:text-[var(--blue)] transition-all duration-150 border-none bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-[30px] cursor-pointer h-[30px] rounded-lg flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--blue-light)] hover:text-[var(--blue)] transition-all duration-150 border-none bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {loadingStudentId === student.id ? (
                               <div className="w-[15px] h-[15px] border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>

@@ -2,19 +2,13 @@
 import TeacherForm from "@/components/forms/TeacherForm";
 import TeacherCardSkeleton from "@/components/skeletons/TeacherCardSkeleton";
 import TeacherCard from "@/components/TeachersCard";
+import TeacherFilters from "@/components/TeacherFilters";
 import Modal from "@/components/ui/Modal";
 import { getAllTeachers } from "@/lib/api/Teacher";
 import { GetTeachers } from "@/lib/types/Teacher";
-import { Plus, Search, Users } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-
-const DEPARTMENTS = [
-  "all",
-  "academic",
-  "administration",
-  "sports",
-  "laboratory",
-];
+import { Plus, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function TeachersPage() {
   const [open, setOpen] = useState(false);
@@ -22,20 +16,22 @@ export default function TeachersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("all");
-
-  const loadTeachers = useCallback(async () => {
-    setLoading(true);
-    const res = await getAllTeachers();
-    if (res.success && res.data) {
-      setTeachers(res.data);
-    }
-    setLoading(false);
-  }, []);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
-    // eslint-disable-next-line
-    loadTeachers();
-  }, []);
+    const fetchTeachers = async () => {
+      setLoading(true);
+      const res = await getAllTeachers();
+      if (res.success && res.data) {
+        setTeachers(res.data);
+      }
+      setLoading(false);
+    };
+
+    fetchTeachers();
+  }, [refresh]);
+
+  const loadTeachers = () => setRefresh(prev => prev + 1);
 
   const filtered = teachers.filter(teacher => {
     const fullName =
@@ -54,67 +50,23 @@ export default function TeachersPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <div className="w-full bg-[var(--surface)] rounded-[var(--radius-lg)] px-8 py-4 flex items-center justify-between border border-[var(--border)] shadow-[var(--shadow-sm)]">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-[var(--radius-md)] bg-[var(--green-light)] flex items-center justify-center">
-            <Users className="w-6 h-6 text-[var(--green)]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-[var(--text)]">
-              Teachers
-            </h1>
-            <p className="text-sm text-[var(--text-2)] mt-1">
-              {filtered.length} of {teachers.length} staff members
-            </p>
-          </div>
-        </div>
-        <button className="btn-primary" onClick={() => setOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Add Teacher
-        </button>
-      </div>
+      <PageHeader
+        title="Teachers"
+        description={`${filtered.length} of ${teachers.length} staff members`}
+        icon={Users}
+        iconBgColor="--green-light"
+        iconColor="--green"
+        buttonText="Add Teacher"
+        onButtonClick={() => setOpen(true)}
+        buttonIcon={Plus}
+      />
 
-      <div className="flex items-center justify-between gap-4 mt-6">
-        <div className="flex items-center gap-2 flex-wrap">
-          {DEPARTMENTS.map(d => (
-            <button
-              key={d}
-              onClick={() => setDepartment(d)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition capitalize ${
-                department === d
-                  ? "text-white border-transparent"
-                  : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
-              }`}
-              style={
-                department === d
-                  ? {
-                      background: "var(--grad-primary)",
-                      borderColor: "transparent",
-                    }
-                  : {}
-              }
-            >
-              {d === "all" ? "All" : d.charAt(0).toUpperCase() + d.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: "var(--text-3)" }}
-          />
-          <input
-            type="text"
-            placeholder="Search teachers..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="input-base pl-9 w-64"
-          />
-        </div>
-      </div>
+      <TeacherFilters
+        search={search}
+        department={department}
+        onSearchChange={setSearch}
+        onDepartmentChange={setDepartment}
+      />
 
       {loading ? (
         <TeacherCardSkeleton />

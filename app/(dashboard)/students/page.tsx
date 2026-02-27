@@ -65,7 +65,7 @@ function Page() {
             <button
               key={s.id}
               onClick={() => setStatus(s.id as RecordStatus | "all")}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
+              className={`px-4 py-1.5 cursor-pointer rounded-full text-sm font-medium border transition ${
                 status === s.id
                   ? "text-white border-transparent"
                   : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"

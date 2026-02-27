@@ -1,26 +1,27 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
-
-function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setCollapsed(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
       {}
       <Sidebar
         collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
+        onToggle={() => setCollapsed(prev => !prev)}
       />
-
-      {}
       <main
-        className="min-h-screen  transition-all duration-300 ease-[var(--ease)]"
+        className="min-h-screen transition-all duration-300 ease-[var(--ease)]"
         style={{
           marginLeft: collapsed
             ? "calc(var(--sidebar-closed) + 20px)"
@@ -33,12 +34,4 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       </main>
     </div>
   );
-}
-
-export default function DashboardLayoutWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <DashboardLayout>{children}</DashboardLayout>;
 }

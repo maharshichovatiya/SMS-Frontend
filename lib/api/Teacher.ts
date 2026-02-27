@@ -1,18 +1,6 @@
 import { AxiosError } from "axios";
 import api from "@/lib/Axios";
-import { GetTeachers, Teacher } from "../types/Teacher";
-
-type ApiSuccess<T> = {
-  success: true;
-  data: T;
-};
-
-type ApiError = {
-  success: false;
-  message: string;
-};
-
-type ApiResponse<T> = ApiSuccess<T> | ApiError;
+import { ApiResponse, GetTeachers, Teacher } from "../types/Teacher";
 
 export type GetTeachersResponse = {
   statusCode: number;

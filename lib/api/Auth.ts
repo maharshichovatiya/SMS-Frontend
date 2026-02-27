@@ -2,59 +2,16 @@ import Cookies from "js-cookie";
 
 import { PersonalDetails } from "@/lib/validations/SignUpSchema";
 import api from "../Axios";
+import {
+  ApiResponse,
+  ErrorResponse,
+  ForgotPasswordResponse,
+  LoginResponse,
+  ResendOtpResponse,
+  ResetPasswordResponse,
+  VerifyOtpResponse,
+} from "../types/Auth";
 import { AxiosError } from "axios";
-
-type ApiSuccess<T> = {
-  success: true;
-  statusCode: number;
-  message: string;
-  data: T;
-};
-
-type ApiError = {
-  success: false;
-  statusCode: number;
-  message: string;
-  data: null;
-};
-
-export type ApiResponse<T> = ApiSuccess<T> | ApiError;
-
-type ErrorResponse = {
-  message?: string;
-};
-
-type LoginResponse = {
-  statusCode: number;
-  data?: {
-    email?: string;
-  };
-};
-
-type VerifyOtpResponse = {
-  data: {
-    statusCode: number;
-    accessToken: string;
-    refreshToken: string;
-    userId: string;
-    schoolId: string;
-  };
-};
-
-type ForgotPasswordResponse = {
-  statusCode: number;
-  message: string;
-};
-
-type ResetPasswordResponse = {
-  statusCode: number;
-  message: string;
-};
-
-type ResendOtpResponse = {
-  statusCode: number;
-  message: string;
-};
 
 export const login = async (data: {
   email: string;

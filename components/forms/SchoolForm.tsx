@@ -3,6 +3,18 @@
 import React, { useState, useEffect } from "react";
 import { getSchoolById, updateSchool } from "@/lib/api/School";
 import { showToast } from "@/lib/utils/Toast";
+import {
+  School,
+  BookMarked,
+  MapPin,
+  CalendarDays,
+  Mail,
+  Phone,
+  Hash,
+  Languages,
+  Clock,
+  Globe,
+} from "lucide-react";
 
 const initialState = {
   name: "",
@@ -58,7 +70,11 @@ export default function SchoolForm() {
     fetchSchool();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
@@ -83,6 +99,7 @@ export default function SchoolForm() {
         mediumOfInstruction: toNullable(form.mediumOfInstruction),
       });
       setSavedForm(form);
+      showToast.success("School updated successfully");
     } catch (error) {
       const err = error as Error;
       showToast.error(err.message);
@@ -95,20 +112,14 @@ export default function SchoolForm() {
   return (
     <div
       className="
-        bg-[var(--surface)]
-        border border-[var(--border)]
-        rounded-[var(--radius-xl)]
-        shadow-[var(--shadow)]
-        overflow-hidden
-      "
+    bg-[var(--surface)]
+    border border-[var(--border)]
+    rounded-[var(--radius-xl)]
+    shadow-[var(--shadow)]
+    overflow-hidden
+  "
     >
-      <div
-        className="
-          px-8 py-5
-          border-b border-[var(--border)]
-          bg-[var(--surface-2)]
-        "
-      >
+      <div className="px-8 py-5 border-b border-[var(--border)] bg-[var(--surface-2)]">
         <h2 className="text-lg font-semibold text-[var(--text)]">
           School Information
         </h2>
@@ -118,127 +129,178 @@ export default function SchoolForm() {
         <div className="flex items-center gap-3">
           <div className="w-full">
             <label className="label-base">School Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
           <div className="w-full">
             <label className="label-base">Affiliation Board</label>
-            <input
-              type="text"
-              name="affiliationBoard"
-              value={form.affiliationBoard}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <BookMarked className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
+              <select
+                name="affiliationBoard"
+                value={form.affiliationBoard}
+                onChange={handleChange}
+                className="input-base pl-9"
+              >
+                <option value="">Select Board</option>
+                <option value="CBSE">CBSE</option>
+                <option value="ICSE">ICSE</option>
+                <option value="State Board">State Board</option>
+                <option value="IB">IB</option>
+                <option value="Cambridge">Cambridge</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="w-full">
+          <div className="flex-1">
             <label className="label-base">Address</label>
-            <input
-              type="text"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <MapPin className="absolute left-3 top-3 w-4 h-4 text-[var(--text-3)]" />
+              <textarea
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                rows={2}
+                cols={4}
+                className="input-base pl-9 resize-none py-2 w-full min-h-[120px]"
+              />
+            </div>
           </div>
-          <div className="w-full">
+          <div className="flex-[1]">
             <label className="label-base">Establishment Year</label>
-            <input
-              type="number"
-              name="establishmentYear"
-              value={form.establishmentYear}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="number"
+                name="establishmentYear"
+                value={form.establishmentYear}
+                onChange={handleChange}
+                className="input-base pl-9 w-full"
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="w-full">
             <label className="label-base">Official Email</label>
-            <input
-              type="email"
-              name="emailOfficial"
-              value={form.emailOfficial}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="email"
+                name="emailOfficial"
+                value={form.emailOfficial}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
           <div className="w-full">
             <label className="label-base">Contact</label>
-            <input
-              type="text"
-              name="contact"
-              value={form.contact}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="contact"
+                value={form.contact}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="w-full">
             <label className="label-base">School Code</label>
-            <input
-              type="text"
-              name="schoolCode"
-              value={form.schoolCode}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="schoolCode"
+                value={form.schoolCode}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
           <div className="w-full">
             <label className="label-base">Medium of Instruction</label>
-            <input
-              type="text"
-              name="mediumOfInstruction"
-              value={form.mediumOfInstruction}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
+              <select
+                name="mediumOfInstruction"
+                value={form.mediumOfInstruction}
+                onChange={handleChange}
+                className="input-base pl-9"
+              >
+                <option value="">Select Medium</option>
+                <option value="Gujarati">Gujarati</option>
+                <option value="Hindi">Hindi</option>
+                <option value="English">English</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="w-full">
             <label className="label-base">School Timing Start</label>
-            <input
-              type="time"
-              name="schoolTimingStart"
-              value={form.schoolTimingStart}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="time"
+                name="schoolTimingStart"
+                value={form.schoolTimingStart}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
           <div className="w-full">
             <label className="label-base">School Timing End</label>
-            <input
-              type="time"
-              name="schoolTimingEnd"
-              value={form.schoolTimingEnd}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="time"
+                name="schoolTimingEnd"
+                value={form.schoolTimingEnd}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
         </div>
 
         <div>
           <label className="label-base">Website URL</label>
-          <input
-            type="url"
-            name="websiteUrl"
-            value={form.websiteUrl}
-            onChange={handleChange}
-            className="input-base pl-4"
-          />
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+            <input
+              type="url"
+              name="websiteUrl"
+              value={form.websiteUrl}
+              onChange={handleChange}
+              className="input-base pl-9"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end pt-2">

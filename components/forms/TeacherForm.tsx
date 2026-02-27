@@ -8,7 +8,8 @@ import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
-import { getRoles, Role } from "@/lib/api/Role";
+import { getRoles } from "@/lib/api/Role";
+
 import {
   Award,
   BadgeCheck,
@@ -26,6 +27,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { Role } from "@/lib/types/Role";
 
 interface TeacherFormProps {
   onCancel: () => void;

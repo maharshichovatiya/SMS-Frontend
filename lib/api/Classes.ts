@@ -8,19 +8,18 @@ import {
 } from "@/lib/types/Class";
 import api from "../Axios";
 
-export const getAllClasses = async (): Promise<GetClassesResponse> => {
+export const getClassSummary = async (): Promise<GetClassesResponse> => {
   try {
-    const res = await api.get("/classes");
+    const res = await api.get("/classes/class-summary");
     return {
       success: true,
       data: res.data.data,
-      total: res.data.data.length,
     };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
     return {
       success: false,
-      message: err.response?.data?.message || "Failed to fetch classes.",
+      message: err.response?.data?.message || "Failed to fetch class summary.",
     };
   }
 };
