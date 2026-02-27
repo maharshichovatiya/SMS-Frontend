@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { getProfile, updateProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
+import { User, Shield, Lock, Eye, EyeOff } from "lucide-react";
 
 const initialState = {
   id: "",
@@ -17,6 +18,7 @@ export default function ProfileForm() {
   const [savedForm, setSavedForm] = useState(initialState);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const isChange =
     form.firstName !== savedForm.firstName ||
@@ -73,19 +75,19 @@ export default function ProfileForm() {
   return (
     <div
       className="
-        bg-[var(--surface)]
-        border border-[var(--border)]
-        rounded-[var(--radius-xl)]
-        shadow-[var(--shadow)]
-        overflow-hidden
-      "
+    bg-[var(--surface)]
+    border border-[var(--border)]
+    rounded-[var(--radius-xl)]
+    shadow-[var(--shadow)]
+    overflow-hidden
+  "
     >
       <div
         className="
-          px-8 py-4
-          border-b border-[var(--border)]
-          bg-[var(--surface-2)]
-        "
+      px-8 py-4
+      border-b border-[var(--border)]
+      bg-[var(--surface-2)]
+    "
       >
         <h2 className="text-lg font-semibold text-[var(--text)]">
           Admin Profile
@@ -95,21 +97,21 @@ export default function ProfileForm() {
       <div className="p-4 space-y-4">
         <div
           className="
-            flex items-center justify-between
-            bg-[var(--bg-2)]
-            rounded-[var(--radius-lg)]
-            p-6
-          "
+        flex items-center justify-between
+        bg-[var(--bg-2)]
+        rounded-[var(--radius-lg)]
+        p-6
+      "
         >
           <div className="flex items-center gap-4">
             <div
               className="
-                w-10 h-10
-                rounded-full
-                flex items-center justify-center
-                text-white font-bold text-xl
-                bg-[var(--grad-primary)]
-              "
+            w-10 h-10
+            rounded-full
+            flex items-center justify-center
+            text-white font-bold text-xl
+          "
+              style={{ background: "var(--grad-primary)" }}
             >
               {form.firstName.charAt(0).toUpperCase()}
               {form.lastName.charAt(0).toUpperCase()}
@@ -119,9 +121,7 @@ export default function ProfileForm() {
               <p className="font-semibold text-[var(--text)]">
                 {form.firstName} {form.lastName}
               </p>
-              <p className="text-sm text-[var(--text-2)]">
-                {form.role} · {email}
-              </p>
+              <p className="text-sm text-[var(--text-2)]">{email}</p>
             </div>
           </div>
         </div>
@@ -129,52 +129,77 @@ export default function ProfileForm() {
         <div className="flex items-center gap-3">
           <div className="w-full">
             <label className="label-base">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={form.firstName ?? ""}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="firstName"
+                value={form.firstName ?? ""}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
 
           <div className="w-full">
             <label className="label-base">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={form.lastName ?? ""}
-              onChange={handleChange}
-              className="input-base pl-4"
-            />
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="lastName"
+                value={form.lastName ?? ""}
+                onChange={handleChange}
+                className="input-base pl-9"
+              />
+            </div>
           </div>
         </div>
 
-        <div>
-          <label className="label-base">Role</label>
-          <input
-            type="text"
-            name="role"
-            value={"admin"}
-            disabled
-            className="
-              input-base pl-4
-              bg-[var(--bg-2)]
-              text-[var(--text-2)]
-              cursor-not-allowed
-            "
-          />
-        </div>
+        <div className="flex items-center gap-3 ">
+          <div className=" w-full">
+            <label className="label-base">Role</label>
+            <div className="relative">
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type="text"
+                name="role"
+                value={"admin"}
+                disabled
+                className="
+            input-base pl-9
+            bg-[var(--bg-2)]
+            text-[var(--text-2)]
+            cursor-not-allowed
+          "
+              />
+            </div>
+          </div>
 
-        <div>
-          <label className="label-base">New Password</label>
-          <input
-            type="password"
-            name="newPassword"
-            value={form.newPassword ?? ""}
-            onChange={handleChange}
-            className="input-base pl-4"
-          />
+          <div className="w-full">
+            <label className="label-base">New Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="newPassword"
+                value={form.newPassword ?? ""}
+                onChange={handleChange}
+                className="input-base pl-9 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end pt-2">

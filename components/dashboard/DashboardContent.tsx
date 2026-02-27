@@ -172,15 +172,18 @@ function QuickItem({ icon, iconBg, iconColor, label, sub }: QuickItemProps) {
 }
 
 export default function DashboardContent() {
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
   return (
     <>
       <div className="flex items-center justify-between mb-7 flex-wrap gap-[14px]">
         <div>
-          <div className="text-[11px] font-bold tracking-[0.8px] uppercase text-[var(--blue)] mb-[3px]">
-            Overview
-          </div>
           <div className="text-[25px] font-extrabold text-[var(--text)] tracking-[-0.6px]">
-            Good morning, Admin 👋
+            {getGreeting()}, Admin 👋
           </div>
         </div>
       </div>

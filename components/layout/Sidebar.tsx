@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { showToast } from "@/lib/utils/Toast";
 import { logout } from "@/lib/api/Auth";
+import Modal from "../ui/Modal";
+import { useState } from "react";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -26,8 +28,6 @@ interface NavItemProps {
 function NavItem({
   icon,
   label,
-  badge,
-  badgeColor = "bg-[var(--green)]",
   active = false,
   collapsed = false,
   onClick,
@@ -81,6 +81,7 @@ interface SidebarProps {
 export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleLogout = async () => {
     const res = await logout();
@@ -91,133 +92,163 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       showToast.error(res.message || "Failed to logout");
     }
   };
+
   const isActive = (path: string) => {
     if (path === "/dashboard" && pathname === "/") return true;
     return pathname === path || pathname.startsWith(path + "/");
   };
 
   return (
-    <aside
-      className={`fixed left-[14px] top-1/2 -translate-y-1/2 h-[calc(100vh-40px)] bg-[var(--surface)] border border-[var(--border)] rounded-[22px] shadow-[var(--shadow)] flex flex-col z-[var(--z-sidebar)] transition-all duration-300 ease-[var(--ease)] overflow-hidden
-        ${collapsed ? "w-[var(--sidebar-closed)]" : "w-[var(--sidebar-open)]"}`}
-    >
-      <div className="flex items-start gap-[11px] px-[18px] py-[22px] pb-[18px] border-b border-[var(--border)] relative">
-        <button
-          onClick={e => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggle?.();
-          }}
-          className={`absolute transition-all duration-300 z-20 w-[32px] h-[32px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-full flex items-center justify-center cursor-pointer shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 border border-white/20 ${
-            collapsed
-              ? "top-[22px] left-[50%] translate-x-[-50%]"
-              : "top-[22px] right-10"
-          }`}
-          aria-label="Toggle sidebar"
-          type="button"
-        >
-          <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none rounded-full" />
-          <span
-            className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""} relative z-10`}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </span>
-        </button>
-
-        <div
-          className={`flex items-center gap-[11px] transition-all duration-300 ${
-            collapsed ? "w-full justify-center mt-16" : ""
-          }`}
-        >
-          <div
-            className={`transition-all duration-300 rounded-[var(--radius-sm)] flex items-center justify-center bg-gradient-to-br from-[var(--blue)] to-[var(--indigo)] backdrop-blur-sm border border-white/20 flex-shrink-0 ${
-              collapsed ? "w-12 h-12" : "w-16 h-10 min-w-[64px]"
+    <>
+      <aside
+        className={`fixed left-[14px] top-1/2 -translate-y-1/2 h-[calc(100vh-40px)] bg-[var(--surface)] border border-[var(--border)] rounded-[22px] shadow-[var(--shadow)] flex flex-col z-[var(--z-sidebar)] transition-all duration-300 ease-[var(--ease)] overflow-hidden
+          ${collapsed ? "w-[var(--sidebar-closed)]" : "w-[var(--sidebar-open)]"}`}
+      >
+        <div className="flex items-start gap-[11px] px-[18px] py-[22px] pb-[18px] border-b border-[var(--border)] relative">
+          <button
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggle?.();
+            }}
+            className={`absolute transition-all duration-300 z-20 w-[32px] h-[32px] bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-full flex items-center justify-center cursor-pointer shadow-[var(--shadow-blue)] hover:-translate-y-0.5 active:translate-y-0 border border-white/20 ${
+              collapsed
+                ? "top-[22px] left-[50%] translate-x-[-50%]"
+                : "top-[22px] right-10"
             }`}
-            style={{ boxShadow: "var(--shadow-blue)" }}
+            aria-label="Toggle sidebar"
+            type="button"
           >
-            <GraduationCap
-              className={`transition-all duration-300 text-white ${
-                collapsed ? "w-7 h-7" : "w-6 h-6"
+            <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none rounded-full" />
+            <span
+              className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""} relative z-10`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </span>
+          </button>
+
+          <div
+            className={`flex items-center gap-[11px] transition-all duration-300 ${
+              collapsed ? "w-full justify-center mt-16" : ""
+            }`}
+          >
+            <div
+              className={`transition-all duration-300 rounded-[var(--radius-sm)] flex items-center justify-center bg-gradient-to-br from-[var(--blue)] to-[var(--indigo)] backdrop-blur-sm border border-white/20 flex-shrink-0 ${
+                collapsed ? "w-12 h-12" : "w-16 h-10 min-w-[64px]"
               }`}
-            />
+              style={{ boxShadow: "var(--shadow-blue)" }}
+            >
+              <GraduationCap
+                className={`transition-all duration-300 text-white ${
+                  collapsed ? "w-7 h-7" : "w-6 h-6"
+                }`}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto  [&::-webkit-scrollbar]:hidden  overflow-x-hidden p-[10px] scrollbar-thin scrollbar-thumb-[var(--border-2)]">
-        <div
-          className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
-        >
-          Overview
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden overflow-x-hidden p-[10px] scrollbar-thin scrollbar-thumb-[var(--border-2)]">
+          <div
+            className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
+          >
+            Overview
+          </div>
+          <NavItem
+            icon={<Home className="w-[18px] h-[18px]" />}
+            label="Dashboard"
+            active={isActive("/dashboard")}
+            collapsed={collapsed}
+            onClick={() => router.push("/dashboard")}
+          />
+
+          <div
+            className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
+          >
+            Modules
+          </div>
+
+          <NavItem
+            icon={<Users className="w-[18px] h-[18px]" />}
+            label="Teachers"
+            badge="86"
+            badgeColor="bg-[var(--green)]"
+            active={isActive("/teachers")}
+            collapsed={collapsed}
+            onClick={() => router.push("/teachers")}
+          />
+          <NavItem
+            icon={<GraduationCap className="w-6 h-6" />}
+            label="Students"
+            badge="1.2k"
+            badgeColor="bg-[var(--blue)]"
+            active={isActive("/students")}
+            collapsed={collapsed}
+            onClick={() => router.push("/students")}
+          />
+          <NavItem
+            icon={<BookOpen className="w-[18px] h-[18px]" />}
+            label="Subjects"
+            active={isActive("/subjects")}
+            collapsed={collapsed}
+            onClick={() => router.push("/subjects")}
+          />
+          <NavItem
+            icon={<Building className="w-[18px] h-[18px]" />}
+            label="Classes"
+            active={isActive("/classes")}
+            collapsed={collapsed}
+            onClick={() => router.push("/classes")}
+          />
+
+          <div
+            className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
+          >
+            General
+          </div>
+          <NavItem
+            icon={<UserCircle className="w-6 h-6" />}
+            label="Profile"
+            active={isActive("/profile")}
+            collapsed={collapsed}
+            onClick={() => router.push("/profile")}
+          />
+          <NavItem
+            icon={<LogOut className="w-6 h-6" />}
+            label="Logout"
+            collapsed={collapsed}
+            onClick={() => setLogoutOpen(true)}
+          />
         </div>
-        <NavItem
-          icon={<Home className="w-[18px] h-[18px]" />}
-          label="Dashboard"
-          active={isActive("/dashboard")}
-          collapsed={collapsed}
-          onClick={() => router.push("/dashboard")}
-        />
+      </aside>
 
-        <div
-          className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
-        >
-          Modules
+      <Modal
+        isOpen={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        title="Confirm Logout"
+        description="Are you sure you want to logout from your account?"
+        footer={
+          <>
+            <button
+              onClick={() => setLogoutOpen(false)}
+              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-[var(--text-2)] bg-[var(--bg-2)] hover:bg-[var(--border)] transition-colors duration-150"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-700 transition-colors duration-150"
+            >
+              Logout
+            </button>
+          </>
+        }
+      >
+        <div className="flex items-center justify-center py-2">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+            <LogOut className="w-7 h-7 text-red-500" />
+          </div>
         </div>
-
-        <NavItem
-          icon={<Users className="w-[18px] h-[18px]" />}
-          label="Teachers"
-          badge="86"
-          badgeColor="bg-[var(--green)]"
-          active={isActive("/teachers")}
-          collapsed={collapsed}
-          onClick={() => router.push("/teachers")}
-        />
-
-        <NavItem
-          icon={<GraduationCap className="w-6 h-6" />}
-          label="Students"
-          badge="1.2k"
-          badgeColor="bg-[var(--blue)]"
-          active={isActive("/students")}
-          collapsed={collapsed}
-          onClick={() => router.push("/students")}
-        />
-        <NavItem
-          icon={<BookOpen className="w-[18px] h-[18px]" />}
-          label="Subjects"
-          active={isActive("/subjects")}
-          collapsed={collapsed}
-          onClick={() => router.push("/subjects")}
-        />
-        <NavItem
-          icon={<Building className="w-[18px] h-[18px]" />}
-          label="Classes"
-          active={isActive("/classes")}
-          collapsed={collapsed}
-          onClick={() => router.push("/classes")}
-        />
-
-        <div
-          className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
-        >
-          General
-        </div>
-        <NavItem
-          icon={<UserCircle className="w-6 h-6" />}
-          label="Profile"
-          active={isActive("/profile")}
-          collapsed={collapsed}
-          onClick={() => router.push("/profile")}
-        />
-
-        <NavItem
-          icon={<LogOut className="w-6 h-6" />}
-          label="Logout"
-          collapsed={collapsed}
-          onClick={handleLogout}
-        />
-      </div>
-    </aside>
+      </Modal>
+    </>
   );
 }

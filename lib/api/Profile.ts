@@ -1,20 +1,6 @@
 import { AxiosError } from "axios";
 import api from "@/lib/Axios";
-
-export interface ProfileData {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  school: string;
-}
-
-export interface ProfileResponse {
-  statusCode: number;
-  message: string;
-  data: ProfileData;
-}
+import { ProfileData, ProfileResponse } from "../types/Profile";
 
 export const getProfile = async (): Promise<ProfileData> => {
   try {

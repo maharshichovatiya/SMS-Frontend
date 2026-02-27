@@ -1,17 +1,6 @@
 import { AxiosError } from "axios";
 import api from "@/lib/Axios";
-
-export type Role = {
-  id: string;
-  roleName: string;
-};
-
-export type GetRoleResponse = {
-  statusCode: number;
-  message: string;
-  data: Role[];
-  Total_Records: number;
-};
+import { GetRoleResponse, Role } from "../types/Role";
 
 export const getRoles = async (): Promise<{
   success: boolean;
