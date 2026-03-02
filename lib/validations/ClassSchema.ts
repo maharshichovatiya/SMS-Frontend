@@ -22,7 +22,7 @@ export const classSchema = z.object({
       z.coerce
         .number()
         .min(10, "Minimum capacity is 10 students")
-        .max(60, "Maximum capacity is 60 students"),
+        .max(120, "Maximum capacity is 120 students"),
       z.literal("").transform(() => undefined),
     ])
     .optional(),

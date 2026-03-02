@@ -236,7 +236,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             </button>
             <button
               onClick={handleLogout}
-              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-700 transition-colors duration-150"
+              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-white bg-[var(--rose)]  active:bg-red-700 transition-colors duration-150"
             >
               Logout
             </button>

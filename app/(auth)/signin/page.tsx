@@ -1,12 +1,11 @@
 import { GraduationCap } from "lucide-react";
 import SignInForm from "@/components/forms/SignInForm";
-import { ShieldCheck, BarChart2, Zap } from "lucide-react";
+import { ShieldCheck, Zap } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const features = [
   { icon: ShieldCheck, label: "Role-based secure access" },
-  { icon: BarChart2, label: "Real-time performance reports" },
   { icon: Zap, label: "Fast daily operations" },
 ];
 export default async function SignInPage() {
@@ -43,7 +42,7 @@ export default async function SignInPage() {
                 <p className="text-white font-bold text-sm">
                   School Management System
                 </p>
-                <p className="text-white/50 text-xs uppercase tracking-widest font-medium">
+                <p className="text-white/50 text-xs uppercase  font-medium">
                   Admin Portal
                 </p>
               </div>
