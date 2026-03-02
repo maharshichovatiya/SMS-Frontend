@@ -1,5 +1,6 @@
 "use client";
 
+import Cookies from "js-cookie";
 import ProfileForm from "@/components/forms/ProfileForm";
 import SchoolForm from "@/components/forms/SchoolForm";
 import Modal from "@/components/ui/Modal";
@@ -16,10 +17,25 @@ export default function SettingsPage() {
   const router = useRouter();
   const handleDelete = async () => {
     try {
+      const schoolId = localStorage.getItem("schoolId");
+      const userId = localStorage.getItem("userId");
+
+      if (!schoolId || !userId) {
+        showToast.error("User or School ID not found");
+        return;
+      }
+
       setDeleting(true);
-      const schoolId = localStorage.getItem("schoolId") ?? "";
-      const userId = localStorage.getItem("userId") ?? "";
+
       await Promise.all([deleteSchool(schoolId), deleteUser(userId)]);
+
+      showToast.success("Profile deleted successfully");
+
+      Cookies.remove("accessToken");
+      Cookies.remove("refreshToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("schoolId");
+
       setIsOpen(false);
       router.replace("/signin");
     } catch (error) {
@@ -33,32 +49,25 @@ export default function SettingsPage() {
   return (
     <div className="w-full">
       <div
-        className="
-          flex items-center justify-between
-          bg-[var(--surface)]
-          border border-[var(--border)]
-          rounded-[var(--radius-xl)]
-          px-8 py-6
-          shadow-[var(--shadow)]
-        "
+        className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] px-6 py-4 flex items-center justify-between"
+        style={{ boxShadow: "var(--shadow-sm)" }}
       >
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <div
-            className="
-              flex items-center justify-center
-              w-14 h-14
-              rounded-[var(--radius-md)]
-              bg-[var(--blue-light)]
-            "
+            className="w-11 h-11 rounded-[var(--radius-sm)] flex items-center justify-center"
+            style={{ backgroundColor: "var(--blue-light)" }}
           >
-            <Settings className="w-6 h-6 text-[var(--blue)]" />
+            <Settings
+              className="w-5 h-5"
+              strokeWidth={1.8}
+              style={{ color: "var(--blue)" }}
+            />
           </div>
-
           <div>
-            <h1 className="text-[22px] font-bold text-[var(--text)]">
+            <h1 className="text-xl font-bold text-[var(--text)] leading-tight">
               Settings
             </h1>
-            <p className="text-[14px] text-[var(--text-2)] mt-1">
+            <p className="text-sm text-[var(--text-3)] mt-0.5">
               Manage system preferences and configuration
             </p>
           </div>
@@ -66,17 +75,7 @@ export default function SettingsPage() {
 
         <button
           onClick={() => setIsOpen(true)}
-          className="
-            flex items-center gap-2
-            cursor-pointer
-            px-4 py-2
-            rounded-[var(--radius-sm)]
-            border border-red-200
-            bg-red-50
-            text-sm font-medium text-red-600
-            hover:bg-red-100
-            transition
-          "
+          className="flex items-center gap-2 cursor-pointer px-4 py-2 rounded-[var(--radius-sm)] border border-red-200 bg-red-50 text-sm font-medium text-red-600 hover:bg-red-100 transition"
         >
           <Trash2 className="w-4 h-4" />
           Delete Account
@@ -96,22 +95,23 @@ export default function SettingsPage() {
         isOpen={isOpen}
         onClose={() => !deleting && setIsOpen(false)}
         title="Delete Account?"
-        description="This will permanently delete the admin account and school along with all its data. This action cannot be undone."
+        className="max-w-lg"
         footer={
           <>
             <button
               onClick={() => setIsOpen(false)}
               disabled={deleting}
               className="
-                px-4 py-2
-                rounded-[var(--radius-sm)]
-                border border-[var(--border)]
-                bg-[var(--surface)]
-                text-sm font-medium text-[var(--text-2)]
-                hover:bg-[var(--bg-2)]
-                transition
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+          px-4 py-2
+          rounded-[var(--radius-sm)]
+          cursor-pointer
+          border border-[var(--border)]
+          bg-[var(--surface)]
+          text-sm font-medium text-[var(--text-2)]
+          hover:bg-[var(--bg-2)]
+          transition
+          disabled:opacity-50 disabled:cursor-not-allowed
+        "
             >
               Cancel
             </button>
@@ -119,23 +119,25 @@ export default function SettingsPage() {
               onClick={handleDelete}
               disabled={deleting}
               className="
-                px-4 py-2
-                rounded-[var(--radius-sm)]
-                bg-red-600
-                text-sm font-medium text-white
-                hover:bg-red-700
-                transition
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+          px-4 py-2
+          rounded-[var(--radius-sm)]
+          cursor-pointer
+          bg-red-600
+          text-sm font-medium text-white
+          hover:bg-red-700
+          transition
+          disabled:opacity-50 disabled:cursor-not-allowed
+        "
             >
               {deleting ? "Deleting..." : "Yes, Delete"}
             </button>
           </>
         }
       >
-        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-100 mx-auto">
-          <Trash2 className="w-6 h-6 text-red-600" />
-        </div>
+        <p className="text-sm text-[var(--text-2)]">
+          This will permanently delete the admin account and school along with
+          all its data. This action cannot be undone.
+        </p>
       </Modal>
     </div>
   );

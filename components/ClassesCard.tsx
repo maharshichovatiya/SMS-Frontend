@@ -15,10 +15,10 @@ interface Props {
 
 const getClassLevel = (classNo: string | number) => {
   const num = parseInt(String(classNo));
-  if (num >= 1 && num <= 5) return "Junior";
-  if (num >= 6 && num <= 8) return "Middle";
+  if (num >= 1 && num <= 5) return "Primary";
+  if (num >= 6 && num <= 8) return "Upper Primary";
   if (num >= 9 && num <= 10) return "Secondary";
-  if (num >= 11 && num <= 12) return "Senior";
+  // if (num >= 11 && num <= 12) return "Senior";
   return "Unknown";
 };
 
@@ -60,7 +60,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
   const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
   const subjectCount = cls.subjectCount ?? cls.classSubjects?.length ?? 0;
   const teacherCount = cls.teacherCount ?? 0;
-
+  const availableSeats = (cls.studentCapacity ?? 0) - (cls.studentCount ?? 0);
   return (
     <>
       <div
@@ -85,7 +85,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         <div className="border-t border-[var(--border)] my-3" />
 
         <p className="text-sm font-bold text-[var(--text)] mb-1.5">
-          Grade {cls.classNo} · Section {cls.section}
+          Class {cls.classNo} · Section {cls.section}
         </p>
 
         <div className="flex items-center gap-1.5 mb-3 min-w-0">
@@ -125,7 +125,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
         <div className="flex items-end gap-5 mb-3">
           <div>
-            <p className="text-xl font-extrabold leading-none text-[var(--blue)]">
+            <p className="text-xl font-extrabold leading-none text-[var(--text)]">
               {cls.studentCount ?? 0}
             </p>
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
@@ -154,6 +154,14 @@ export default function ClassCard({ cls, onSuccess }: Props) {
             </p>
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
               Capacity
+            </p>
+          </div>
+          <div>
+            <p className="text-xl font-extrabold leading-none text-[var(--text)]">
+              {availableSeats}
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+              Available
             </p>
           </div>
         </div>

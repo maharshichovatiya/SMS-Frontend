@@ -3,7 +3,10 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("accessToken");
+  const accessToken = request.cookies.get("accessToken");
+  const refreshToken = request.cookies.get("refreshToken");
+
+  const hasToken = accessToken || refreshToken;
 
   const publicRoutes = [
     "/signin",
@@ -16,12 +19,13 @@ export function middleware(request: NextRequest) {
   const authRoutes = ["/signin", "/signup"];
 
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-  if (token && isAuthRoute) {
+  if (hasToken && isAuthRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (!token && !publicRoutes.some(route => pathname.startsWith(route))) {
+  if (!hasToken && !isPublicRoute) {
     return NextResponse.redirect(new URL("/signin", request.url));
   }
 

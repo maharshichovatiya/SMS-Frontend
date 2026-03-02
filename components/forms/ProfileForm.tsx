@@ -1,44 +1,53 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { getProfile, updateProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
 import { User, Shield, Lock, Eye, EyeOff } from "lucide-react";
-
-const initialState = {
-  id: "",
-  firstName: "",
-  lastName: "",
-  role: "",
-  newPassword: "",
-};
+import {
+  ProfileFormData,
+  profileSchema,
+} from "@/lib/validations/ProfileSchema";
 
 export default function ProfileForm() {
-  const [form, setForm] = useState(initialState);
-  const [savedForm, setSavedForm] = useState(initialState);
+  const [profileId, setProfileId] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [savedName, setSavedName] = useState({ firstName: "", lastName: "" });
 
-  const isChange =
-    form.firstName !== savedForm.firstName ||
-    form.lastName !== savedForm.lastName ||
-    form.newPassword !== savedForm.newPassword;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      password: "",
+    },
+    mode: "onChange",
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const data = await getProfile();
-        const fetched = {
-          id: data.id ?? "",
+        setProfileId(data.id ?? "");
+        setEmail(data.email ?? "");
+        reset({
           firstName: data.firstName ?? "",
           lastName: data.lastName ?? "",
-          role: data.role ?? "",
-          newPassword: "",
-        };
-        setForm(fetched);
-        setSavedForm(fetched);
-        setEmail(data.email ?? "");
+          password: "",
+        });
+        setSavedName({
+          firstName: data.firstName ?? "",
+          lastName: data.lastName ?? "",
+        });
       } catch (error) {
         const err = error as Error;
         showToast.error(err.message);
@@ -50,21 +59,17 @@ export default function ProfileForm() {
     fetchProfile();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
+  const onSubmit = async (data: ProfileFormData) => {
     try {
-      await updateProfile(form.id, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        newPassword: form.newPassword,
+      await updateProfile(profileId, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
       });
       showToast.success("Profile updated successfully");
-      setSavedForm(form);
-    } catch (error) {
+      reset({ ...data, password: "" });
+      setSavedName({ firstName: data.firstName, lastName: data.lastName });
+    } catch {
       showToast.error("Profile not updated");
     }
   };
@@ -75,70 +80,72 @@ export default function ProfileForm() {
   return (
     <div
       className="
-    bg-[var(--surface)]
-    border border-[var(--border)]
-    rounded-[var(--radius-xl)]
-    shadow-[var(--shadow)]
-    overflow-hidden
-  "
+        bg-[var(--surface)]
+        border border-[var(--border)]
+        rounded-[var(--radius-xl)]
+        shadow-[var(--shadow)]
+        overflow-hidden
+      "
     >
       <div
         className="
-      px-8 py-4
-      border-b border-[var(--border)]
-      bg-[var(--surface-2)]
-    "
+          px-8 py-4
+          border-b border-[var(--border)]
+          bg-[var(--surface-2)]
+        "
       >
         <h2 className="text-lg font-semibold text-[var(--text)]">
           Admin Profile
         </h2>
       </div>
 
-      <div className="p-4 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
         <div
           className="
-        flex items-center justify-between
-        bg-[var(--bg-2)]
-        rounded-[var(--radius-lg)]
-        p-6
-      "
+            flex items-center justify-between
+            bg-[var(--bg-2)]
+            rounded-[var(--radius-lg)]
+            p-6
+          "
         >
           <div className="flex items-center gap-4">
             <div
               className="
-            w-10 h-10
-            rounded-full
-            flex items-center justify-center
-            text-white font-bold text-xl
-          "
+                w-12 h-12
+                rounded-full
+                flex items-center justify-center
+                text-white font-bold text-xl
+              "
               style={{ background: "var(--grad-primary)" }}
             >
-              {form.firstName.charAt(0).toUpperCase()}
-              {form.lastName.charAt(0).toUpperCase()}
+              {savedName.firstName?.charAt(0).toUpperCase()}
+              {savedName.lastName?.charAt(0).toUpperCase()}
             </div>
 
             <div>
               <p className="font-semibold text-[var(--text)]">
-                {form.firstName} {form.lastName}
+                {savedName.firstName} {savedName.lastName}
               </p>
               <p className="text-sm text-[var(--text-2)]">{email}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div className="w-full">
             <label className="label-base">First Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
               <input
+                {...register("firstName")}
                 type="text"
-                name="firstName"
-                value={form.firstName ?? ""}
-                onChange={handleChange}
-                className="input-base pl-9"
+                placeholder="First Name"
+                className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
               />
             </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.firstName?.message}
+            </span>
           </div>
 
           <div className="w-full">
@@ -146,32 +153,28 @@ export default function ProfileForm() {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
               <input
+                {...register("lastName")}
                 type="text"
-                name="lastName"
-                value={form.lastName ?? ""}
-                onChange={handleChange}
-                className="input-base pl-9"
+                placeholder="Last Name"
+                className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
               />
             </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.lastName?.message}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 ">
-          <div className=" w-full">
+        <div className="flex items-start gap-3">
+          <div className="w-full">
             <label className="label-base">Role</label>
             <div className="relative">
               <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
               <input
                 type="text"
-                name="role"
-                value={"admin"}
+                value="Admin"
                 disabled
-                className="
-            input-base pl-9
-            bg-[var(--bg-2)]
-            text-[var(--text-2)]
-            cursor-not-allowed
-          "
+                className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
               />
             </div>
           </div>
@@ -181,11 +184,10 @@ export default function ProfileForm() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
               <input
+                {...register("password")}
                 type={showPassword ? "text" : "password"}
-                name="newPassword"
-                value={form.newPassword ?? ""}
-                onChange={handleChange}
-                className="input-base pl-9 pr-10"
+                placeholder="Leave blank to keep current"
+                className={`input-base pl-9 pr-10 ${errors.password ? "error" : ""}`}
               />
               <button
                 type="button"
@@ -199,19 +201,22 @@ export default function ProfileForm() {
                 )}
               </button>
             </div>
+            <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              {errors.password?.message}
+            </span>
           </div>
         </div>
 
         <div className="flex justify-end pt-2">
           <button
-            onClick={handleSave}
-            disabled={!isChange}
+            type="submit"
+            disabled={!isDirty || isSubmitting}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Changes
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

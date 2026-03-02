@@ -19,6 +19,8 @@ import {
   CalendarCheck,
   ChevronDown,
   Clock,
+  Eye,
+  EyeOff,
   GraduationCap,
   Lock,
   Mail,
@@ -59,7 +61,7 @@ export default function TeacherForm({
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
-
+  const [showPassword, setShowPassword] = useState(false);
   useEffect(() => {
     const loadRoles = async () => {
       const res = await getRoles();
@@ -116,7 +118,10 @@ export default function TeacherForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-6 w-full max-w-2xl mx-auto"
+    >
       <div>
         <div className="flex items-center gap-3 mb-4">
           <span className="section-label">Account Info</span>
@@ -160,10 +165,21 @@ export default function TeacherForm({
               />
               <input
                 {...register("password")}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder={mode === "edit" ? "••••••••" : "Min. 8 characters"}
                 className={`input-base pl-9 ${errors.password ? "error" : ""}`}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
             {errors.password && (
               <span className="text-xs text-[var(--rose)]">
@@ -475,10 +491,12 @@ export default function TeacherForm({
               <input
                 {...register("salaryPackage")}
                 type="number"
-                placeholder="50000"
-                className={`input-base pl-9 ${
-                  errors.salaryPackage ? "error" : ""
-                }`}
+                step="any"
+                placeholder="60000"
+                onKeyDown={e =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
+                className={`input-base pl-9 ${errors.salaryPackage ? "error" : ""}`}
               />
             </div>
             {errors.salaryPackage && (

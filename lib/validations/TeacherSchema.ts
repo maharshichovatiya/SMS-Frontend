@@ -79,8 +79,7 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
     highestQualification: z
       .string()
       .min(1, "Qualification is required")
-      .max(40, "Qualification cannot exceed 40 characters")
-      .regex(/^[a-zA-Z\s'-]+$/, "Qualification can only contain letters"),
+      .max(40, "Qualification cannot exceed 40 characters"),
     experienceYears: z.coerce
       .number()
       .min(0, "Experience cannot be negative")

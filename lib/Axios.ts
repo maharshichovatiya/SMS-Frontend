@@ -60,7 +60,10 @@ api.interceptors.response.use(
         const newAccessToken = response.data.data.access_token;
         const newRefreshToken = response.data.data.refresh_token;
 
-        Cookies.set("accessToken", newAccessToken, { path: "/", expires: 1 });
+        Cookies.set("accessToken", newAccessToken, {
+          path: "/",
+          expires: 15 / (60 * 24),
+        });
         Cookies.set("refreshToken", newRefreshToken, { path: "/", expires: 7 });
 
         api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;

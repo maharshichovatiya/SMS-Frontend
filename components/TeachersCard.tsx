@@ -154,6 +154,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
         onClose={() => setOpenEdit(false)}
         title="Edit Teacher"
         description="Update the staff member's details."
+        className="max-w-3xl"
       >
         <TeacherForm
           mode="edit"

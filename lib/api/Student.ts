@@ -1,6 +1,6 @@
-import { ApiResponse } from "./Auth";
 import api from "../Axios";
 import { StudentFormValues } from "@/lib/validations/StudentSchema";
+import { ApiResponse } from "../types/Auth";
 
 export enum RecordStatus {
   ACTIVE = "active",

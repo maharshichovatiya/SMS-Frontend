@@ -23,6 +23,7 @@ export default function SignInForm() {
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: SignInFormValues) => {
