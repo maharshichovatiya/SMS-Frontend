@@ -12,8 +12,6 @@ import { getRoles } from "@/lib/api/Role";
 
 import {
   Award,
-  BadgeCheck,
-  Briefcase,
   Building2,
   Calendar,
   CalendarCheck,
@@ -343,62 +341,6 @@ export default function TeacherForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Employee Code <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <BadgeCheck
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("employeeCode")}
-                placeholder="EMP-2024-001"
-                className={`input-base pl-9 ${
-                  errors.employeeCode ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.employeeCode && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.employeeCode.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Staff Category <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Briefcase
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("staffCategory")}
-                className={`input-base pl-9 pr-9 appearance-none ${
-                  errors.staffCategory ? "error" : ""
-                }`}
-              >
-                <option value="">Select category</option>
-                <option value="teaching">Teaching</option>
-                <option value="non_teaching">Non-Teaching</option>
-                <option value="admin">Administrative</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.staffCategory && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.staffCategory.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
               Department <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">
@@ -480,7 +422,7 @@ export default function TeacherForm({
 
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Salary Package (₹/month){" "}
+              Salary Package (₹ Year){" "}
               <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">

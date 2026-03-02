@@ -43,21 +43,6 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
         const age = today.getFullYear() - dob.getFullYear();
         return age >= 18 && age <= 70;
       }, "Teacher must be between 18 and 70 years old"),
-    employeeCode: z
-      .string()
-      .min(1, "Employee code is required")
-      .max(20, "Employee code is too long")
-      .regex(
-        /^[a-zA-Z0-9-_]+$/,
-        "Employee code can only contain letters, numbers, - and _",
-      ),
-    staffCategory: z
-      .string()
-      .min(1, "Staff category is required")
-      .refine(
-        val => ["teaching", "non_teaching", "admin"].includes(val),
-        "Invalid staff category",
-      ),
     department: z
       .string()
       .min(1, "Department is required")

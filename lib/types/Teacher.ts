@@ -9,8 +9,6 @@ export type Teacher = {
   phone: string;
   gender: string;
   dob: string;
-  employeeCode: string;
-  staffCategory: string;
   department: string;
   designation: string;
   dateOfJoining: string;
@@ -27,7 +25,6 @@ export type GetTeachers = {
   id: string;
   status: "active" | "inactive";
   userId: string;
-  employeeCode: string;
   staffCategory: string;
   department: string;
   designation: string;

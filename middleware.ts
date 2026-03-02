@@ -3,10 +3,11 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const accessToken = request.cookies.get("accessToken");
-  const refreshToken = request.cookies.get("refreshToken");
 
-  const hasToken = accessToken || refreshToken;
+  const accessToken = request.cookies.get("accessToken")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
+
+  const hasToken = Boolean(accessToken || refreshToken);
 
   const publicRoutes = [
     "/signin",
@@ -16,12 +17,9 @@ export function middleware(request: NextRequest) {
     "/verify-otp",
   ];
 
-  const authRoutes = ["/signin", "/signup"];
+  const isPublicRoute = publicRoutes.includes(pathname);
 
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-
-  if (hasToken && isAuthRoute) {
+  if (hasToken && (pathname === "/signin" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
