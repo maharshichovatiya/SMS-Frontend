@@ -15,10 +15,10 @@ interface Props {
 
 const getClassLevel = (classNo: string | number) => {
   const num = parseInt(String(classNo));
-  if (num >= 1 && num <= 5) return "Junior";
-  if (num >= 6 && num <= 8) return "Middle";
+  if (num >= 1 && num <= 5) return "Primary";
+  if (num >= 6 && num <= 8) return "Upper Primary";
   if (num >= 9 && num <= 10) return "Secondary";
-  if (num >= 11 && num <= 12) return "Senior";
+  // if (num >= 11 && num <= 12) return "Senior";
   return "Unknown";
 };
 
@@ -60,24 +60,28 @@ export default function ClassCard({ cls, onSuccess }: Props) {
   const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
   const subjectCount = cls.subjectCount ?? cls.classSubjects?.length ?? 0;
   const teacherCount = cls.teacherCount ?? 0;
-
+  const availableSeats = (cls.studentCapacity ?? 0) - (cls.studentCount ?? 0);
   return (
     <>
       <div
-        className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-5 hover:shadow-[var(--shadow)] transition cursor-pointer group"
+        className="bg-[var(--surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] border border-[var(--border)] p-4 sm:p-5 hover:shadow-[var(--shadow)] transition cursor-pointer group"
         onClick={() => setOpenDetail(true)}
       >
-        <div className="flex items-start justify-between mb-1">
+        <div className="flex items-start justify-between mb-2">
           <div>
-            <h2 className="text-3xl font-black leading-none text-[var(--blue)]">
+            <h2 className="text-2xl sm:text-3xl font-black leading-none text-[var(--blue)]">
               {cls.classNo}
-              <span className="text-2xl font-extrabold">-{cls.section}</span>
+              <span className="text-xl sm:text-2xl font-extrabold">
+                -{cls.section}
+              </span>
             </h2>
+
             <p className="text-xs text-[var(--text-3)] mt-1 font-medium">
               {academicYear}
             </p>
           </div>
-          <span className="text-xs px-3 py-1 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium mt-1">
+
+          <span className="text-xs px-2.5 py-1 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium">
             {level}
           </span>
         </div>
@@ -85,7 +89,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         <div className="border-t border-[var(--border)] my-3" />
 
         <p className="text-sm font-bold text-[var(--text)] mb-1.5">
-          Grade {cls.classNo} · Section {cls.section}
+          Class {cls.classNo} · Section {cls.section}
         </p>
 
         <div className="flex items-center gap-1.5 mb-3 min-w-0">
@@ -103,13 +107,13 @@ export default function ClassCard({ cls, onSuccess }: Props) {
               {cls.classSubjects.slice(0, 4).map(cs => (
                 <span
                   key={cs.id}
-                  className="text-xs px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium"
+                  className="text-xs px-2 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium"
                 >
                   {cs.subject.subjectName}
                 </span>
               ))}
               {cls.classSubjects.length > 4 && (
-                <span className="text-xs px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-3)] bg-[var(--bg-2)] font-medium">
+                <span className="text-xs px-2 py-0.5 rounded-full border border-[var(--border)] text-[var(--text-3)] bg-[var(--bg-2)] font-medium">
                   +{cls.classSubjects.length - 4}
                 </span>
               )}
@@ -123,73 +127,85 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
         <div className="border-t border-[var(--border)] my-3" />
 
-        <div className="flex items-end gap-5 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
           <div>
-            <p className="text-xl font-extrabold leading-none text-[var(--blue)]">
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
               {cls.studentCount ?? 0}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
               Students
             </p>
           </div>
+
           <div>
-            <p className="text-xl font-extrabold leading-none text-[var(--text)]">
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
               {subjectCount}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
               Subjects
             </p>
           </div>
+
           <div>
-            <p className="text-xl font-extrabold leading-none text-[var(--text)]">
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
               {teacherCount}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
               Teachers
             </p>
           </div>
+
           <div>
-            <p className="text-xl font-extrabold leading-none text-[var(--text)]">
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
               {cls.studentCapacity}
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mt-0.5">
+            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
               Capacity
+            </p>
+          </div>
+
+          <div>
+            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
+              {availableSeats}
+            </p>
+            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
+              Available
             </p>
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between pt-2.5 border-t border-[var(--border)]">
+        <div className="flex flex-wrap gap-2 justify-between pt-2.5 border-t border-[var(--border)]">
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              setOpenDetail(true);
+            }}
+            className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+          >
+            <LayoutList size={12} />
+            View
+          </button>
+
+          <div className="flex gap-2">
             <button
               onClick={e => {
                 e.stopPropagation();
-                setOpenDetail(true);
+                setOpenEdit(true);
               }}
-              className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+              className="flex items-center cursor-pointer gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
             >
-              <LayoutList size={12} />
-              View Details
+              <Pencil size={11} /> Edit
             </button>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  setOpenEdit(true);
-                }}
-                className="flex cursor-pointer items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
-              >
-                <Pencil size={11} /> Edit
-              </button>
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  setOpenDelete(true);
-                }}
-                className="flex cursor-pointer items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
-              >
-                <Trash2 size={11} /> Delete
-              </button>
-            </div>
+
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                setOpenDelete(true);
+              }}
+              className="flex items-center cursor-pointer gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+            >
+              <Trash2 size={11} /> Delete
+            </button>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export const getProfile = async (): Promise<ProfileData> => {
 export interface UpdateProfilePayload {
   firstName: string;
   lastName: string;
-  newPassword?: string;
+  password?: string;
 }
 
 export const updateProfile = async (
@@ -28,8 +28,8 @@ export const updateProfile = async (
       lastName: payload.lastName,
     };
 
-    if (payload.newPassword) {
-      body.newPassword = payload.newPassword;
+    if (payload.password) {
+      body.password = payload.password;
     }
 
     const response = await api.patch<ProfileResponse>(

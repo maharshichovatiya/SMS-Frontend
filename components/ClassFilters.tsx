@@ -2,10 +2,9 @@ import { Search } from "lucide-react";
 
 const GRADE_TABS = [
   { key: "all", label: "All" },
-  { key: "junior", label: "Junior (1–5)" },
-  { key: "middle", label: "Middle (6–8)" },
+  { key: "primary", label: "Primary (1–5)" },
+  { key: "upperPrimary", label: "Upper Primary (6–8)" },
   { key: "secondary", label: "Secondary (9–10)" },
-  // { key: "senior", label: "Senior (11–12)" },
 ];
 
 interface Props {

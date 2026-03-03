@@ -11,14 +11,21 @@ export type GetTeachersResponse = {
   };
 };
 
-export const getAllTeachers = async (): Promise<{
+export const getAllTeachers = async (
+  search?: string,
+  department?: string,
+): Promise<{
   success: boolean;
   data?: GetTeachers[];
   total?: number;
   message?: string;
 }> => {
   try {
-    const res = await api.get<GetTeachersResponse>("/teachers");
+    const params: Record<string, string> = {};
+    if (search) params.search = search;
+    if (department) params.department = department;
+
+    const res = await api.get<GetTeachersResponse>("/teachers", { params });
 
     return {
       success: true,

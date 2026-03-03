@@ -50,12 +50,13 @@ export const verifyOtp = async (data: {
 
     Cookies.set("accessToken", res.data.data.accessToken, {
       expires: 1,
+      path: "/",
     });
 
     Cookies.set("refreshToken", res.data.data.refreshToken, {
       expires: 7,
+      path: "/",
     });
-
     return {
       success: true,
       statusCode: 200,

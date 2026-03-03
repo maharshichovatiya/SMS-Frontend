@@ -2,6 +2,7 @@ export interface SchoolData {
   id: string;
   name: string;
   address: string | null;
+  type: string | null;
   affiliationBoard: string | null;
   establishmentYear: number | null;
   schoolCode: string | null;

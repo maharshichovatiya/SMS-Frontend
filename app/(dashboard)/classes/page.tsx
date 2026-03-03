@@ -11,28 +11,32 @@ import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 import PageHeader from "@/components/layout/PageHeader";
 
-const getGradeKey = (classNo: string | number) => {
-  const num = parseInt(String(classNo));
-  if (num >= 1 && num <= 5) return "junior";
-  if (num >= 6 && num <= 8) return "middle";
-  if (num >= 9 && num <= 10) return "secondary";
-  // if (num >= 11 && num <= 12) return "senior";
-  return "unknown";
+const TYPE_MAP: Record<string, string> = {
+  all: "",
+  primary: "Primary",
+  upperPrimary: "UpperPrimary",
+  secondary: "Secondary",
 };
 
 function Page() {
   const [active, setActive] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [refresh, setRefresh] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     const fetchClasses = async () => {
       setLoading(true);
-      const res = await getClassSummary();
+      const type = TYPE_MAP[active] || undefined;
+      const res = await getClassSummary(debouncedSearch || undefined, type);
       if (res.success && Array.isArray(res.data)) {
         setClasses(res.data);
       }
@@ -40,20 +44,9 @@ function Page() {
     };
 
     fetchClasses();
-  }, [refresh]);
+  }, [refresh, debouncedSearch, active]);
 
   const loadData = () => setRefresh(prev => prev + 1);
-
-  const filtered = classes.filter(cls => {
-    const classNoStr = String(cls.classNo);
-    const sectionStr = String(cls.section).toLowerCase();
-    const matchesSearch =
-      search === "" ||
-      classNoStr.includes(search) ||
-      sectionStr.includes(search.toLowerCase());
-    const matchesGrade = active === "all" || getGradeKey(classNoStr) === active;
-    return matchesSearch && matchesGrade;
-  });
 
   return (
     <div className="space-y-4">
@@ -62,7 +55,7 @@ function Page() {
         description={
           loading
             ? "Loading..."
-            : `${filtered.length} of ${classes.length} sections · Academic Year 2026`
+            : `${classes.length} sections · Academic Year 2026`
         }
         icon={Building2}
         iconBgColor="--cyan-light"
@@ -81,23 +74,23 @@ function Page() {
 
       {loading ? (
         <ClassCardSkeleton />
-      ) : filtered.length === 0 ? (
+      ) : classes.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)]">
           <Building2 className="w-12 h-12 mb-3 opacity-30" />
           <p className="text-lg font-medium">
-            {classes.length === 0
-              ? "No classes found"
-              : "No results match your search"}
+            {search || active !== "all"
+              ? "No results match your search"
+              : "No classes found"}
           </p>
           <p className="text-sm">
-            {classes.length === 0
-              ? `Click "Create Class" to get started.`
-              : "Try adjusting your search or filter."}
+            {search || active !== "all"
+              ? "Try adjusting your search or filter."
+              : `Click "Create Class" to get started.`}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(cls => (
+          {classes.map(cls => (
             <ClassCard key={cls.id} cls={cls} onSuccess={loadData} />
           ))}
         </div>

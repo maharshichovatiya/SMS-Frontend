@@ -23,6 +23,7 @@ export default function SignInForm() {
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: SignInFormValues) => {
@@ -88,7 +89,7 @@ export default function SignInForm() {
             <button
               onClick={() => router.push("forgot-password")}
               type="button"
-              className="text-xs text-[var(--blue)] font-semibold hover:underline underline-offset-2"
+              className="text-xs cursor-pointer text-[var(--blue)] font-semibold hover:underline underline-offset-2"
             >
               Forgot password?
             </button>
