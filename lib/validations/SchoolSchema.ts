@@ -1,9 +1,9 @@
 import z from "zod";
 
 export const schoolSchema = z.object({
-  name: z.string().min(1, "School name is required").max(100, "Too long"),
+  name: z.string().min(1, "School name is required").max(200, "Too long"),
   affiliationBoard: z.string().optional(),
-  address: z.string().max(300, "Address is too long").optional(),
+  address: z.string().max(100, "Address is too long").optional(),
   establishmentYear: z
     .string()
     .refine(
@@ -20,6 +20,7 @@ export const schoolSchema = z.object({
     .refine(val => val === "" || z.string().email().safeParse(val).success, {
       message: "Please enter a valid email address",
     })
+    .max(50, "email is too long ")
     .optional(),
   type: z.string().optional(),
   contact: z

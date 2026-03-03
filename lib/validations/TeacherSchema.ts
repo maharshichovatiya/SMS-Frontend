@@ -14,7 +14,10 @@ const passwordValidation = z
 
 export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
   z.object({
-    email: z.string().email("Invalid email address"),
+    email: z
+      .string()
+      .email("Invalid email address")
+      .max(50, "email cannot exceed 50 characters"),
     password:
       mode === "add"
         ? passwordValidation
@@ -69,8 +72,13 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .max(10000000, "Salary cannot exceed ₹1 Crore/year"),
     highestQualification: z
       .string()
+      .trim()
       .min(1, "Qualification is required")
-      .max(40, "Qualification cannot exceed 40 characters"),
+      .max(40, "Qualification cannot exceed 40 characters")
+      .regex(
+        /^[a-zA-Z.\s]+$/,
+        "Qualification can only contain letters, spaces and dot (.)",
+      ),
     experienceYears: z.coerce
       .number()
       .min(0, "Experience cannot be negative")
