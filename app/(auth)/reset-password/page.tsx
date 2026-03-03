@@ -147,7 +147,6 @@ export default function ResetPasswordPage() {
             <div className="flex flex-col gap-6 mb-10 pb-8 border-b border-[var(--border)]">
               <div>
                 <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[var(--blue)] mb-3">
-                  <span className="w-5 h-[2px] rounded-full bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)]" />
                   Reset Password
                 </span>
                 <h1 className="text-3xl font-extrabold text-[var(--text)] tracking-tight leading-tight">
@@ -177,7 +176,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !isComplete}
-                  className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/35 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
+                  className="flex-shrink-0 cursor-pointer h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/35 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
                   {loading ? (
