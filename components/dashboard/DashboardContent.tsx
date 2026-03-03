@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, BookOpen, Building, Edit } from "lucide-react";
+import { Users, BookOpen, Building } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -9,10 +9,7 @@ import {
   RecentAdmission,
   RecentTeacher,
 } from "@/lib/api/Dashboard";
-import StudentForm from "@/components/forms/StudentForm";
-import Modal from "@/components/ui/Modal";
-import { authApi, Role } from "@/lib/api/Auth";
-import { studentApis, Student } from "@/lib/api/Student";
+import DashboardTableSkeleton from "@/components/skeletons/DashboardTableSkeleton";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -125,24 +122,16 @@ export default function DashboardContent() {
   );
   const [recentTeachers, setRecentTeachers] = useState<RecentTeacher[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [role, setRole] = useState<string>("");
-  const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [
-          summaryResponse,
-          admissionsResponse,
-          teachersResponse,
-          rolesResponse,
-        ] = await Promise.all([
-          dashboardApis.getSummary(),
-          dashboardApis.getRecentAdmissions(),
-          dashboardApis.getRecentTeachers(),
-          authApi.getRoles(),
-        ]);
+        const [summaryResponse, admissionsResponse, teachersResponse] =
+          await Promise.all([
+            dashboardApis.getSummary(),
+            dashboardApis.getRecentAdmissions(),
+            dashboardApis.getRecentTeachers(),
+          ]);
 
         if (summaryResponse?.data) {
           setSummary(summaryResponse.data);
@@ -154,13 +143,6 @@ export default function DashboardContent() {
 
         if (teachersResponse?.data) {
           setRecentTeachers(teachersResponse.data);
-        }
-
-        const studentRole = rolesResponse.data?.find(
-          (role: Role) => role.roleName.toLowerCase() === "student",
-        );
-        if (studentRole) {
-          setRole(studentRole.id);
         }
       } catch {
         // Handle error silently for now
@@ -201,48 +183,6 @@ export default function DashboardContent() {
       rt: "cyan",
     };
     return variants[section] || "blue";
-  };
-
-  const handleEdit = async (student: RecentAdmission) => {
-    setLoadingStudentId(student.id);
-    try {
-      const studentsResponse = await studentApis.getAll();
-      const fullStudent = studentsResponse.data?.data.find(
-        s => s.id === student.id,
-      );
-
-      if (fullStudent) {
-        setEditingStudent(fullStudent);
-      } else {
-        alert(
-          "Complete student details not available. Redirecting to Students page for full editing...",
-        );
-        router.push("/students");
-      }
-    } catch {
-      // Handle error gracefully
-      alert(
-        "Unable to load student details. Please try again from the Students page.",
-      );
-      router.push("/students");
-    } finally {
-      setLoadingStudentId(null);
-    }
-  };
-
-  const handleEditSuccess = () => {
-    setEditingStudent(null);
-    // Refresh the recent admissions data
-    dashboardApis
-      .getRecentAdmissions()
-      .then(response => {
-        if (response?.data) {
-          setRecentAdmissions(response.data);
-        }
-      })
-      .catch(() => {
-        // Handle error silently
-      });
   };
 
   const getGreeting = () => {
@@ -335,34 +275,23 @@ export default function DashboardContent() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {["Student", "Class", "Guardian", "Status", "Date", ""].map(
-                    h => (
-                      <th
-                        key={h}
-                        className="px-[18px] py-[12px] text-left text-[11.5px] font-bold text-[var(--text-3)] uppercase tracking-[0.6px] bg-[var(--surface-2)] whitespace-nowrap border-b border-[var(--border)]"
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {["Student", "Class", "Guardian", "Status", "Date"].map(h => (
+                    <th
+                      key={h}
+                      className="px-[18px] py-[12px] text-left text-[11.5px] font-bold text-[var(--text-3)] uppercase tracking-[0.6px] bg-[var(--surface-2)] whitespace-nowrap border-b border-[var(--border)]"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-[18px] py-16 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="w-6 h-6 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-xs text-[var(--text-3)] font-medium">
-                          Loading admissions...
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
+                  <DashboardTableSkeleton />
                 ) : recentAdmissions.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-[18px] py-12 text-center text-sm text-[var(--text-3)]"
                     >
                       No recent admissions found
@@ -431,19 +360,6 @@ export default function DashboardContent() {
                         </td>
                         <td className="px-[18px] py-[13px] text-[var(--text-2)] text-[12.5px]">
                           {formatDate(student.admissionDate)}
-                        </td>
-                        <td className="px-[18px] py-[13px]">
-                          <button
-                            onClick={() => handleEdit(student)}
-                            disabled={loadingStudentId === student.id}
-                            className="w-[30px] cursor-pointer h-[30px] rounded-lg flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--blue-light)] hover:text-[var(--blue)] transition-all duration-150 border-none bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {loadingStudentId === student.id ? (
-                              <div className="w-[15px] h-[15px] border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <Edit className="w-[15px] h-[15px]" />
-                            )}
-                          </button>
                         </td>
                       </tr>
                     );
@@ -596,43 +512,6 @@ export default function DashboardContent() {
           </div>
         </div>
       </div>
-
-      {/* Edit Student Modal */}
-      <Modal
-        isOpen={!!editingStudent}
-        onClose={() => setEditingStudent(null)}
-        title="Edit Student"
-        description="Update the student's information below."
-      >
-        <div className="w-[560px]">
-          {editingStudent && (
-            <StudentForm
-              initialData={{
-                id: editingStudent.id,
-                firstName: editingStudent.user.firstName,
-                middleName: editingStudent.user.middleName || "",
-                lastName: editingStudent.user.lastName,
-                email: editingStudent.user.email,
-                phone: editingStudent.user.phone || "",
-                admissionNo: editingStudent.admissionNo,
-                rollNo: editingStudent.rollNo,
-                admissionDate: new Date(editingStudent.admissionDate)
-                  .toISOString()
-                  .split("T")[0],
-                fatherName: editingStudent.fatherName || "",
-                fatherPhone: editingStudent.fatherPhone || "",
-                motherName: editingStudent.motherName || "",
-                guardianName: editingStudent.guardianName || "",
-                familyAnnualIncome: editingStudent.familyAnnualIncome || "",
-                medicalConditions: editingStudent.medicalConditions || "",
-              }}
-              onSubmitSuccess={handleEditSuccess}
-              onClose={() => setEditingStudent(null)}
-              roleId={role}
-            />
-          )}
-        </div>
-      </Modal>
     </>
   );
 }

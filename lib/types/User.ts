@@ -1,5 +1,5 @@
 import { Role } from "./Role";
-import { School } from "./School";
+import { SchoolData } from "./School";
 
 export type User = {
   id: string;
@@ -30,6 +30,6 @@ export type User = {
 
   tokenVersion: number;
 
-  school: School;
+  school: SchoolData;
   role: Role;
 };

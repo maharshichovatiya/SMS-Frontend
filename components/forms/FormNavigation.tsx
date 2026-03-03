@@ -26,7 +26,7 @@ export function FormNavigation({
           <button
             type="button"
             onClick={onPrev}
-            className="h-13 px-6 border border-[var(--color-border)] text-[var(--color-text)] rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:bg-[var(--color-surface-2)] transition-all duration-200"
+            className="h-13 px-6 border border-[var(--color-border)] text-[var(--color-text)] rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:bg-[var(--color-surface-2)] transition-all duration-200 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -49,7 +49,7 @@ export function FormNavigation({
             type="button"
             onClick={onNext}
             disabled={loading || !isPersonalStepComplete}
-            className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[140px]"
+            className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[140px] cursor-pointer"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
             {loading ? (
@@ -67,7 +67,7 @@ export function FormNavigation({
           <button
             type="submit"
             disabled={loading || !isSchoolStepComplete}
-            className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px]"
+            className="flex-shrink-0 h-13 px-8 bg-gradient-to-r from-[var(--blue)] to-[var(--indigo)] text-white rounded-xl font-bold text-base flex items-center justify-center gap-2 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 relative overflow-hidden min-w-[180px] cursor-pointer"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
             {loading ? (

@@ -299,9 +299,9 @@ export default function SubjectForm({
               <button
                 type="button"
                 onClick={addChapter}
-                className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-[var(--blue)] bg-[var(--blue-light)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-light)]/80 transition-colors duration-[var(--duration)]"
+                className="flex cursor-pointer items-center gap-1 px-2 py-1 text-xs font-medium text-[var(--blue)] bg-[var(--blue-light)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-light)]/80 transition-colors duration-[var(--duration)] cursor-pointer"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3 h-3 cursor-pointer" />
                 Add Chapter
               </button>
             </div>
@@ -339,7 +339,7 @@ export default function SubjectForm({
                     <button
                       type="button"
                       onClick={() => removeChapter(index)}
-                      className="p-2 text-[var(--rose)] bg-[var(--rose-light)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-light)]/80 transition-colors duration-[var(--duration)]"
+                      className="p-2 text-[var(--rose)] bg-[var(--rose-light)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-light)]/80 transition-colors duration-[var(--duration)] cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -367,14 +367,14 @@ export default function SubjectForm({
         <button
           type="button"
           onClick={handleCancel}
-          className="px-5 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)] h-[52px]"
+          className="px-5 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)] h-[52px] cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting
             ? "Saving..."

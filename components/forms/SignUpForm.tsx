@@ -16,7 +16,7 @@ const inputClass = (hasError: boolean, extra = "pl-10") =>
   }`;
 
 const selectClass = (hasError: boolean) =>
-  `${baseInput} px-4 ${
+  `${baseInput} px-4 cursor-pointer ${
     hasError
       ? "border-red-500 focus:border-red-500"
       : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"
@@ -67,7 +67,14 @@ export function PersonalDetailsForm({
             <input
               type="text"
               placeholder="John"
-              {...register("firstName")}
+              maxLength={50}
+              {...register("firstName", {
+                onChange: e => {
+                  e.target.value = e.target.value
+                    .replace(/[^a-zA-Z\s]/g, "")
+                    .slice(0, 50);
+                },
+              })}
               className={inputClass(!!errors.firstName)}
             />
           </div>
@@ -84,7 +91,14 @@ export function PersonalDetailsForm({
             <input
               type="text"
               placeholder="William"
-              {...register("middleName")}
+              maxLength={50}
+              {...register("middleName", {
+                onChange: e => {
+                  e.target.value = e.target.value
+                    .replace(/[^a-zA-Z\s]/g, "")
+                    .slice(0, 50);
+                },
+              })}
               className={`${baseInput} pl-10 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
             />
           </div>
@@ -99,7 +113,14 @@ export function PersonalDetailsForm({
             <input
               type="text"
               placeholder="Smith"
-              {...register("lastName")}
+              maxLength={50}
+              {...register("lastName", {
+                onChange: e => {
+                  e.target.value = e.target.value
+                    .replace(/[^a-zA-Z\s]/g, "")
+                    .slice(0, 50);
+                },
+              })}
               className={inputClass(!!errors.lastName)}
             />
           </div>
@@ -117,6 +138,7 @@ export function PersonalDetailsForm({
             <input
               type="email"
               placeholder="admin@school.edu"
+              maxLength={100}
               {...register("email")}
               className={inputClass(!!errors.email)}
             />
@@ -133,9 +155,15 @@ export function PersonalDetailsForm({
             <input
               type="tel"
               placeholder="(555) 000-0000"
+              maxLength={10}
               {...register("phone", {
                 onChange: e => {
-                  e.target.value = e.target.value.replace(/[^\d]/g, "");
+                  const value = e.target.value.replace(/\D/g, "");
+                  if (value.length <= 10) {
+                    e.target.value = value;
+                  } else {
+                    e.target.value = value.slice(0, 10);
+                  }
                 },
               })}
               className={inputClass(!!errors.phone)}
@@ -211,7 +239,9 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
   const {
     register,
     formState: { errors },
+    watch,
   } = form;
+  const adminEmail = watch("adminEmail");
 
   return (
     <>
@@ -229,7 +259,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <input
               type="text"
               placeholder="Riverside Academy"
-              {...register("schoolName")}
+              maxLength={100}
+              {...register("schoolName", {
+                onChange: e => {
+                  e.target.value = e.target.value
+                    .replace(/[^a-zA-Z0-9\s&.,'-]/g, "")
+                    .slice(0, 100);
+                },
+              })}
               className={inputClass(!!errors.schoolName)}
             />
           </div>
@@ -247,7 +284,6 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <option value="">Select Type</option>
             <option value="private">Private</option>
             <option value="govt">Government</option>
-            <option value="aided">Aided</option>
           </select>
           {errorMsg(errors.schoolType?.message)}
         </div>
@@ -260,7 +296,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           </label>
           <textarea
             placeholder="123 School Street, City, State - 123456"
-            {...register("address")}
+            maxLength={200}
+            {...register("address", {
+              onChange: e => {
+                e.target.value = e.target.value
+                  .replace(/[^a-zA-Z0-9\s,.-/#]/g, "")
+                  .slice(0, 200);
+              },
+            })}
             rows={3}
             className={`w-full bg-[var(--color-surface-2)] border rounded-xl text-base text-[var(--color-text)] placeholder:text-[var(--color-text-3)] outline-none transition-all focus:bg-white focus:ring-3 focus:ring-[var(--color-blue)]/10 p-4 ${
               errors.address
@@ -282,6 +325,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <input
               type="email"
               placeholder="contact@school.edu"
+              maxLength={100}
               {...register("officialEmail")}
               className={inputClass(!!errors.officialEmail)}
             />
@@ -298,9 +342,15 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <input
               type="tel"
               placeholder="(555) 000-0000"
+              maxLength={10}
               {...register("contactNumber", {
                 onChange: e => {
-                  e.target.value = e.target.value.replace(/\D/g, "");
+                  const value = e.target.value.replace(/\D/g, "");
+                  if (value.length <= 10) {
+                    e.target.value = value;
+                  } else {
+                    e.target.value = value.slice(0, 10);
+                  }
                 },
               })}
               className={inputClass(!!errors.contactNumber)}
@@ -323,6 +373,8 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <option value="">Select Medium</option>
             <option value="english">English</option>
             <option value="hindi">Hindi</option>
+            <option value="gujarati">Gujarati</option>
+            <option value="other">Other</option>
           </select>
           {errorMsg(errors.mediumOfInstruction?.message)}
         </div>
@@ -339,8 +391,6 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <option value="cbse">CBSE</option>
             <option value="icse">ICSE</option>
             <option value="state">State Board</option>
-            <option value="ib">IB</option>
-            <option value="cambridge">Cambridge</option>
           </select>
           {errorMsg(errors.affiliationBoard?.message)}
         </div>
@@ -358,7 +408,15 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           <input
             type="text"
             placeholder="Auto-generated or manual"
-            {...register("schoolCode")}
+            maxLength={20}
+            {...register("schoolCode", {
+              onChange: e => {
+                e.target.value = e.target.value
+                  .toUpperCase()
+                  .replace(/[^A-Z0-9]/g, "")
+                  .slice(0, 20);
+              },
+            })}
             className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
           />
         </div>
@@ -367,14 +425,20 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           <label className="block text-xs font-bold uppercase tracking-wider text-[var(--color-text)] mb-2">
             Establishment Year
           </label>
-          <input
-            type="number"
-            placeholder="e.g., 1995"
+          <select
             {...register("establishmentYear")}
-            min="1900"
-            max={new Date().getFullYear()}
-            className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
-          />
+            className={selectClass(!!errors.establishmentYear)}
+          >
+            <option value="">Select Year</option>
+            {Array.from({ length: new Date().getFullYear() - 1799 }, (_, i) => {
+              const year = 1800 + i;
+              return (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              );
+            })}
+          </select>
         </div>
       </div>
 
@@ -388,10 +452,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <input
               type="email"
               placeholder="Defaults to your email"
+              maxLength={100}
               {...register("adminEmail")}
-              className={`${baseInput} pl-10 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
+              className={`${baseInput} pl-10 ${errors.adminEmail ? "border-red-500 focus:border-red-500" : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"}`}
             />
           </div>
+          {errors.adminEmail &&
+            adminEmail &&
+            errorMsg(errors.adminEmail?.message)}
         </div>
 
         <div>
@@ -401,7 +469,24 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           <input
             type="url"
             placeholder="https://edu.com"
-            {...register("websiteUrl")}
+            maxLength={200}
+            {...register("websiteUrl", {
+              onChange: e => {
+                let value = e.target.value;
+                if (
+                  value &&
+                  !value.startsWith("http://") &&
+                  !value.startsWith("https://")
+                ) {
+                  value = "https://" + value;
+                }
+                if (value.length <= 200) {
+                  e.target.value = value;
+                } else {
+                  e.target.value = value.slice(0, 200);
+                }
+              },
+            })}
             className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
           />
         </div>

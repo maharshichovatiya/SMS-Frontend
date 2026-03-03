@@ -12,12 +12,12 @@ import {
 import { StepProgress } from "@/components/forms/StepProgress";
 import { FormNavigation } from "@/components/forms/FormNavigation";
 import { useFormCompletion } from "@/lib/hooks/UseFormCompletion";
+import { useFormPersistence } from "@/lib/hooks/UseFormPersistence";
 
 import { PersonalStep } from "@/components/forms/PersonalStep";
 import { SchoolStep } from "@/components/forms/SchoolStep";
 import { PW_COLORS, PW_LABELS } from "@/lib/utils/SignupConstants";
-import { authApi, Role } from "@/lib/api/Auth";
-import toast from "react-hot-toast";
+import { authApi, Role, RegisterSchoolPayload } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
 export default function SignUpPage() {
@@ -32,7 +32,7 @@ export default function SignUpPage() {
     mode: "onChange",
     defaultValues: {
       firstName: "",
-      middleName: "",
+      middleName: undefined,
       lastName: "",
       email: "",
       phone: "",
@@ -52,12 +52,17 @@ export default function SignUpPage() {
       contactNumber: "",
       mediumOfInstruction: undefined,
       affiliationBoard: undefined,
-      schoolCode: "",
-      establishmentYear: "",
-      adminEmail: "",
-      websiteUrl: "",
+      schoolCode: undefined,
+      establishmentYear: undefined,
+      adminEmail: undefined,
+      websiteUrl: undefined,
     },
   });
+
+  const { isPersonalStepComplete, isSchoolStepComplete } = useFormCompletion(
+    personalForm,
+    schoolForm,
+  );
 
   const password = personalForm.watch("password") ?? "";
   const pwStrength =
@@ -73,10 +78,12 @@ export default function SignUpPage() {
   const pwColors = PW_COLORS;
   const pwLabels = PW_LABELS;
 
-  const { isPersonalStepComplete, isSchoolStepComplete } = useFormCompletion(
+  const { clearPersistence } = useFormPersistence({
     personalForm,
     schoolForm,
-  );
+    currentStep,
+    setCurrentStep,
+  });
   useEffect(() => {
     const controller = new AbortController();
     const fetchRoles = async () => {
@@ -95,8 +102,7 @@ export default function SignUpPage() {
             (role: Role) => role.roleName.toLowerCase() === "admin",
           );
           if (adminRole) {
-            localStorage.setItem("adminRoleId", adminRole.id);
-            // Set the roleId in the form automatically
+            localStorage.setItem("roleId", adminRole.id);
             personalForm.setValue("roleId", adminRole.id);
           }
         }
@@ -122,12 +128,26 @@ export default function SignUpPage() {
   const prevStep = () => setCurrentStep(1);
 
   const handleSubmit = async () => {
-    const isValid = await schoolForm.trigger();
+    // Only validate required fields, not optional ones
+    const requiredFields = [
+      "schoolName",
+      "schoolType",
+      "address",
+      "officialEmail",
+      "contactNumber",
+      "mediumOfInstruction",
+      "affiliationBoard",
+    ] as const;
+
+    const isValid = await schoolForm.trigger(requiredFields);
     if (!isValid) return;
     setLoading(true);
+
     try {
-      const schoolData = { ...schoolForm.getValues() };
       const personalDetails = { ...personalForm.getValues() };
+      const schoolData = { ...schoolForm.getValues() };
+
+      // Clean phone numbers
       if (personalDetails.phone) {
         personalDetails.phone = personalDetails.phone.replace(/[^\d]/g, "");
       }
@@ -137,39 +157,118 @@ export default function SignUpPage() {
           "",
         );
       }
-      const mappedSchoolData = {
+
+      // Create the combined payload for the new API
+      const registerPayload: RegisterSchoolPayload = {
+        firstName: personalDetails.firstName,
+        lastName: personalDetails.lastName,
+        email: personalDetails.email,
+        password: personalDetails.password,
+        roleId: personalDetails.roleId,
         name: schoolData.schoolName,
-        type: schoolData.schoolType,
         address: schoolData.address,
-        emailOfficial: schoolData.officialEmail,
-        contact: schoolData.contactNumber,
-        mediumOfInstruction: schoolData.mediumOfInstruction,
-        affiliationBoard: schoolData.affiliationBoard,
-        schoolCode: schoolData.schoolCode || undefined,
-        establishmentYear: schoolData.establishmentYear
-          ? parseInt(schoolData.establishmentYear)
-          : undefined,
-        emailAdmin: schoolData.adminEmail || undefined,
-        websiteUrl: schoolData.websiteUrl || undefined,
       };
 
-      const schoolResponse = await authApi.createSchool(mappedSchoolData);
+      // Only add optional fields if they have values
+      if (personalDetails.middleName) {
+        registerPayload.middleName = personalDetails.middleName;
+      }
+      if (personalDetails.phone) {
+        registerPayload.phone = personalDetails.phone;
+      }
+      if (schoolData.affiliationBoard) {
+        registerPayload.affiliationBoard = schoolData.affiliationBoard;
+      }
+      if (schoolData.establishmentYear) {
+        registerPayload.establishmentYear = schoolData.establishmentYear;
+      }
+      if (schoolData.schoolCode) {
+        registerPayload.schoolCode = schoolData.schoolCode;
+      }
+      if (schoolData.contactNumber) {
+        registerPayload.contact = schoolData.contactNumber;
+      }
+      if (schoolData.officialEmail) {
+        registerPayload.emailOfficial = schoolData.officialEmail;
+      }
+      if (schoolData.adminEmail) {
+        registerPayload.emailAdmin = schoolData.adminEmail;
+      }
+      if (schoolData.websiteUrl) {
+        registerPayload.websiteUrl = schoolData.websiteUrl;
+      }
+      if (schoolData.mediumOfInstruction) {
+        registerPayload.mediumOfInstruction = schoolData.mediumOfInstruction;
+      }
+      if (schoolData.schoolType) {
+        registerPayload.type = schoolData.schoolType;
+      }
 
-      await toast.promise(
-        authApi.signup({
-          ...personalDetails,
-          schoolId: schoolResponse.data?.id || "",
-        }),
-        {
-          loading: "Creating your account...",
-          success: "Sign up successfully",
-          error: "Signup failed",
-        },
-      );
-      localStorage.setItem("schoolId", schoolResponse.data?.id || "");
+      const response = await authApi.registerSchool(registerPayload);
+
+      // Store all response data in localStorage
+      if (response.data) {
+        const responseData = response.data;
+
+        // Store tokens
+        if (responseData.accessToken) {
+          localStorage.setItem("accessToken", responseData.accessToken);
+        }
+        if (responseData.refreshToken) {
+          localStorage.setItem("refreshToken", responseData.refreshToken);
+        }
+
+        // Store user data
+        if (responseData.user) {
+          localStorage.setItem("user", JSON.stringify(responseData.user));
+          if (responseData.user.email) {
+            localStorage.setItem("userEmail", responseData.user.email);
+          }
+          if (responseData.user.id) {
+            localStorage.setItem("userId", responseData.user.id);
+          }
+          if (responseData.user.role) {
+            localStorage.setItem("userRole", responseData.user.role);
+          }
+          if (responseData.user.roleId) {
+            localStorage.setItem("userRoleId", responseData.user.roleId);
+          }
+        }
+
+        // Store school ID
+        if (responseData.user?.schoolId) {
+          localStorage.setItem("schoolId", responseData.user.schoolId);
+        }
+
+        // Also store the complete response data as a backup
+      }
+
+      showToast.success("Sign up successfully");
+
+      // Clear persistence data on success
+      clearPersistence();
+
+      // Clear all signup-related localStorage data
+      localStorage.removeItem("signup_personal_details");
+      localStorage.removeItem("signup_school_details");
+      localStorage.removeItem("signup_current_step");
+      localStorage.removeItem("roleId");
+
       router.replace("/dashboard");
     } catch (error: unknown) {
-      showToast.apiError(error);
+      // Handle API errors specifically
+      if (error && typeof error === "object" && "response" in error) {
+        const errorResponse = error as {
+          response?: { data?: { message?: string } };
+        };
+        if (errorResponse.response?.data?.message) {
+          showToast.error(errorResponse.response.data.message);
+        } else {
+          showToast.apiError(error);
+        }
+      } else {
+        showToast.apiError(error);
+      }
     } finally {
       setLoading(false);
     }
@@ -258,7 +357,10 @@ export default function SignUpPage() {
               onSubmit={
                 currentStep === 1
                   ? personalForm.handleSubmit(nextStep)
-                  : schoolForm.handleSubmit(handleSubmit)
+                  : e => {
+                      e.preventDefault();
+                      handleSubmit();
+                    }
               }
             >
               {currentStep === 1 && (

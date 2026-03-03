@@ -291,7 +291,7 @@ export default function TeacherForm({
                 {...register("dob")}
                 max={new Date().toISOString().split("T")[0]}
                 type="date"
-                className={`input-base pl-9 ${errors.dob ? "error" : ""}`}
+                className={`input-base pl-9 cursor-pointer ${errors.dob ? "error" : ""}`}
               />
             </div>
             {errors.dob && (
@@ -450,7 +450,7 @@ export default function TeacherForm({
               <input
                 {...register("dateOfJoining")}
                 type="date"
-                className={`input-base pl-9 ${
+                className={`input-base pl-9 cursor-pointer ${
                   errors.dateOfJoining ? "error" : ""
                 }`}
               />

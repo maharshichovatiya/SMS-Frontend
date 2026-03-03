@@ -1,6 +1,7 @@
 import api from "../Axios";
 
 export interface Chapter {
+  id?: string;
   chapterName: string;
   chapterNo: number;
 }
@@ -124,8 +125,11 @@ export const subjectApis = {
     return res.data.data;
   },
 
-  getAllForPage: async (): Promise<SubjectWithClasses[]> => {
-    const res = await api.get<ClassSubjectListResponse>("/class-subject");
+  getAllForPage: async (search?: string): Promise<SubjectWithClasses[]> => {
+    const params = search ? { search } : {};
+    const res = await api.get<ClassSubjectListResponse>("/class-subject", {
+      params,
+    });
 
     const subjectMap = new Map<string, SubjectWithClasses>();
 
@@ -185,6 +189,21 @@ export const subjectApis = {
       data,
     );
     return res.data.data;
+  },
+
+  addChaptersToSubject: async (
+    subjectId: string,
+    chapter: Chapter,
+  ): Promise<Subject> => {
+    const res = await api.post<{ data: Subject }>(
+      `/subjects/${subjectId}/chapters`,
+      chapter,
+    );
+    return res.data.data;
+  },
+
+  deleteChapter: async (subjectId: string, classId: string): Promise<void> => {
+    await api.delete(`/subjects/${subjectId}/chapters/${classId}`);
   },
 
   update: async (id: string, data: UpdateSubjectData): Promise<Subject> => {

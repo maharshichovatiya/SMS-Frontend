@@ -228,7 +228,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
             </p>
             <div className="flex items-center gap-3 p-3 rounded-[var(--radius-sm)] bg-[var(--bg-2)] border border-[var(--border)]">
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-[var(--text-inverse)] shrink-0"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-[var(--text-inverse)] shrink-0 cursor-pointer"
                 style={{ background: "var(--grad-primary)" }}
               >
                 {teacherInitials}
@@ -267,7 +267,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <div
-                          className="w-6 h-6 rounded flex items-center justify-center shrink-0"
+                          className="w-6 h-6 rounded flex items-center justify-center shrink-0 cursor-pointer"
                           style={{ background: "var(--blue-light)" }}
                         >
                           <BookOpen
@@ -286,7 +286,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 ml-2">
                         <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-[var(--text-inverse)]"
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-[var(--text-inverse)] cursor-pointer"
                           style={{ background: "var(--grad-primary)" }}
                         >
                           {subTeacherInitials}
