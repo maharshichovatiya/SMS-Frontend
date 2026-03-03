@@ -73,6 +73,11 @@ export default function Subjects() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingSubject, setDeletingSubject] =
     useState<SubjectWithClasses | null>(null);
+  const [deletingChapter, setDeletingChapter] = useState<{
+    subjectId: string;
+    chapterId: string;
+    chapterName: string;
+  } | null>(null);
 
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
@@ -178,6 +183,35 @@ export default function Subjects() {
       showToast.success("Subject deleted successfully!");
       setDeletingSubject(null);
       fetchSubjects();
+    } catch (error) {
+      showToast.apiError(error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteChapter = async () => {
+    if (!deletingChapter) return;
+    try {
+      setIsDeleting(true);
+      await subjectApis.deleteChapter(
+        deletingChapter.subjectId,
+        deletingChapter.chapterId,
+      );
+      showToast.success("Chapter deleted successfully!");
+      setDeletingChapter(null);
+
+      // Refresh subjects data
+      await fetchSubjects();
+
+      // Update selectedSubject with latest data
+      const updatedSubjects = await subjectApis.getAllForPage();
+      const updatedSubject = updatedSubjects.find(
+        s => s.id === selectedSubject?.id,
+      );
+      if (updatedSubject) {
+        setSelectedSubject(updatedSubject);
+      }
     } catch (error) {
       showToast.apiError(error);
     } finally {
@@ -455,7 +489,7 @@ export default function Subjects() {
                                 (chapter: Chapter, i: number) => (
                                   <div
                                     key={chapter.id || i}
-                                    className="flex items-center gap-3 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-[var(--border-focus)] transition-colors"
+                                    className="flex items-center gap-3 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border)] hover:border-[var(--border-focus)] transition-colors group"
                                   >
                                     <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold flex-shrink-0">
                                       {chapter.chapterNo}
@@ -468,6 +502,21 @@ export default function Subjects() {
                                         Chapter {chapter.chapterNo}
                                       </p>
                                     </div>
+                                    {chapter.id && (
+                                      <button
+                                        onClick={() =>
+                                          setDeletingChapter({
+                                            subjectId: selectedSubject.id,
+                                            chapterId: chapter.id,
+                                            chapterName: chapter.chapterName,
+                                          })
+                                        }
+                                        className="w-6 h-6 rounded-[var(--radius-sm)] cursor-pointer bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] opacity-0 group-hover:opacity-100"
+                                        title="Delete Chapter"
+                                      >
+                                        <Trash2 size={12} strokeWidth={1.8} />
+                                      </button>
+                                    )}
                                   </div>
                                 ),
                               )}
@@ -748,6 +797,43 @@ export default function Subjects() {
             onChapterCreated={handleChapterCreated}
           />
         )}
+      </Modal>
+
+      {/* Chapter Delete Modal */}
+      <Modal
+        isOpen={!!deletingChapter}
+        onClose={() => setDeletingChapter(null)}
+        title="Delete Chapter"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setDeletingChapter(null)}
+              disabled={isDeleting}
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteChapter}
+              disabled={isDeleting}
+              className="px-5 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--rose)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-dark)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+          </>
+        }
+      >
+        <div className="w-[380px] flex flex-col items-center text-center py-2">
+          <p className="text-sm text-[var(--text-3)]">
+            Are you sure you want to delete the chapter{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {deletingChapter?.chapterName}
+            </span>
+            ? This action cannot be undone.
+          </p>
+        </div>
       </Modal>
     </section>
   );
