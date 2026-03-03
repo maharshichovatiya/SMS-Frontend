@@ -17,6 +17,7 @@ import {
   Clock,
   Globe,
   Building2,
+  ChevronDown,
 } from "lucide-react";
 import { SchoolFormData, schoolSchema } from "@/lib/validations/SchoolSchema";
 
@@ -150,12 +151,13 @@ export default function SchoolForm() {
               <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               <select
                 {...register("type")}
-                className={`input-base pl-9 appearance-none ${errors.type ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.type ? "error" : ""}`}
               >
                 <option value="">Select Type</option>
                 <option value="private">Private</option>
                 <option value="govt">Government</option>
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
               {errors.type?.message}
@@ -170,13 +172,14 @@ export default function SchoolForm() {
               <BookMarked className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               <select
                 {...register("affiliationBoard")}
-                className={`input-base pl-9 appearance-none ${errors.affiliationBoard ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.affiliationBoard ? "error" : ""}`}
               >
                 <option value="">Select Board</option>
                 <option value="cbse">CBSE</option>
                 <option value="icse">ICSE</option>
                 <option value="state">State Board</option>
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
               {errors.affiliationBoard?.message}
@@ -188,7 +191,7 @@ export default function SchoolForm() {
               <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               <select
                 {...register("mediumOfInstruction")}
-                className={`input-base pl-9 appearance-none ${errors.mediumOfInstruction ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.mediumOfInstruction ? "error" : ""}`}
               >
                 <option value="">Select Medium</option>
                 <option value="english">English</option>
@@ -196,6 +199,7 @@ export default function SchoolForm() {
                 <option value="gujarati">Gujarati</option>
                 <option value="other">Other</option>
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
               {errors.mediumOfInstruction?.message}
@@ -224,7 +228,7 @@ export default function SchoolForm() {
               <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               <select
                 {...register("establishmentYear")}
-                className={`input-base pl-9 appearance-none ${errors.establishmentYear ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.establishmentYear ? "error" : ""}`}
               >
                 <option value="">Select Year</option>
                 {Array.from(
@@ -236,6 +240,7 @@ export default function SchoolForm() {
                   </option>
                 ))}
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
               {errors.establishmentYear?.message}
