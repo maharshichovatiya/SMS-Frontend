@@ -13,13 +13,23 @@ export const profileSchema = z.object({
     .regex(/^[A-Za-z\s]+$/, "Last name must contain only letters"),
   password: z
     .string()
-    .refine(val => val === "" || val.length >= 8, {
-      message: "Password must be at least 8 characters",
-    })
-    .refine(val => val === "" || val.length <= 64, {
-      message: "Password must be at most 64 characters",
-    })
-    .optional(),
+    .trim()
+    .transform(val => (val === "" ? undefined : val))
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (val.length >= 8 &&
+          val.length <= 20 &&
+          /[A-Z]/.test(val) &&
+          /[a-z]/.test(val) &&
+          /[0-9]/.test(val) &&
+          /[^a-zA-Z0-9]/.test(val)),
+      {
+        message:
+          "Password must be 8 characters, include uppercase, lowercase, number and special character",
+      },
+    ),
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;

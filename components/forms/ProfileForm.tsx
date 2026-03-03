@@ -69,8 +69,14 @@ export default function ProfileForm() {
       showToast.success("Profile updated successfully");
       reset({ ...data, password: "" });
       setSavedName({ firstName: data.firstName, lastName: data.lastName });
-    } catch {
-      showToast.error("Profile not updated");
+    } catch (error: unknown) {
+      let message = "Profile not updated";
+
+      if (error instanceof Error) {
+        message = error.message;
+      }
+
+      showToast.error(message);
     }
   };
 

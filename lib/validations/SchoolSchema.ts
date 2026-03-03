@@ -24,10 +24,12 @@ export const schoolSchema = z.object({
   type: z.string().optional(),
   contact: z
     .string()
-    .refine(val => val === "" || /^[0-9+\-\s()]{7,15}$/.test(val), {
-      message: "Please enter a valid contact number",
-    })
-    .optional(),
+    .trim()
+    .transform(val => (val === "" ? undefined : val))
+    .optional()
+    .refine(val => !val || /^[0-9]{10}$/.test(val), {
+      message: "Contact number must be exactly 10 digits",
+    }),
   schoolCode: z.string().max(20, "School code is too long").optional(),
   mediumOfInstruction: z.string().optional(),
   schoolTimingStart: z.string().optional(),

@@ -286,6 +286,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@layer base {
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer !important;
+  }
+}
+
 /* ── Reusable component classes ── */
 .input-base {
   width: 100%;

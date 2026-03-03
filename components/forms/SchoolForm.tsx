@@ -299,7 +299,7 @@ export default function SchoolForm() {
               <input
                 {...register("schoolTimingStart")}
                 type="time"
-                className={`input-base pl-9 ${errors.schoolTimingStart ? "error" : ""}`}
+                className={`input-base  pl-9 ${errors.schoolTimingStart ? "error" : ""}`}
               />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
