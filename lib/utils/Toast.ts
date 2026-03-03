@@ -33,9 +33,32 @@ export const showToast = {
 
     if (error && typeof error === "object" && "response" in error) {
       const responseError = error as {
-        response?: { data?: { message?: string } };
+        response?: {
+          data?: {
+            message?: string;
+            error?: string | string[];
+            errors?: { [key: string]: string | string[] };
+          };
+        };
       };
-      message = responseError.response?.data?.message || message;
+
+      // Handle different error response formats
+      const responseData = responseError.response?.data;
+
+      if (responseData?.message) {
+        message = responseData.message;
+      } else if (responseData?.error) {
+        // Handle string or array of errors - show only first error if array
+        if (Array.isArray(responseData.error)) {
+          message = responseData.error?.[0];
+        } else {
+          message = responseData.error;
+        }
+      } else if (responseData?.errors) {
+        // Handle validation errors object - show only first error if array
+        const errorMessages = Object.values(responseData.errors).flat();
+        message = errorMessages?.[0];
+      }
     } else if (error && typeof error === "object" && "message" in error) {
       const messageError = error as { message?: string };
       message = messageError.message || message;

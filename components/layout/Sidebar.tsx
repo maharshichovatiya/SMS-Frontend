@@ -47,13 +47,11 @@ function NavItem({
     }`}
     >
       <div
-        className={`w-9 h-9 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms]
+        className={`w-9 h-9 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms] cursor-pointer
     ${
       label == "Logout"
         ? "group-hover:bg-red-100"
-        : active
-          ? "bg-[var(--blue-muted)]"
-          : "group-hover:bg-[var(--bg-2)]"
+        : "group-hover:bg-[var(--blue-light)]"
     }`}
       >
         {icon}

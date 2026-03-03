@@ -8,16 +8,24 @@ import { RecordStatus } from "@/lib/api/Student";
 import { showToast } from "@/lib/utils/Toast";
 import { Users, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDebounce } from "@/lib/hooks/UseDebounce";
 function Page() {
-  const [search, setSearch] = useState("");
   const [status, setStatus] = useState<RecordStatus | "all">("all");
-  const debouncedSearch = useDebounce(search, 500);
   const [isOpen, setIsOpen] = useState(false);
   const [role, setRole] = useState<string>("");
   const [rolesLoading, setRolesLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [studentCount, setStudentCount] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce search query (500ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -65,7 +73,7 @@ function Page() {
             <button
               key={s.id}
               onClick={() => setStatus(s.id as RecordStatus | "all")}
-              className={`px-4 py-1.5 cursor-pointer rounded-full text-sm font-medium border transition ${
+              className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
                 status === s.id
                   ? "text-white border-transparent"
                   : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
@@ -84,17 +92,17 @@ function Page() {
           ))}
         </div>
 
+        {/* Search Bar - Right side like teachers page */}
         <div className="relative">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
             style={{ color: "var(--text-3)" }}
           />
           <input
             type="text"
             placeholder="Search students..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
           />
         </div>
@@ -117,7 +125,7 @@ function Page() {
             onRefresh={handleRefresh}
             onTotalCountChange={setStudentCount}
             searchParams={{
-              search: debouncedSearch,
+              search: debouncedSearch || undefined,
               status: status === "all" ? undefined : status,
             }}
           />

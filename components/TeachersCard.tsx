@@ -48,7 +48,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             />
           ) : (
             <div
-              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] flex items-center justify-center font-bold text-lg text-[var(--text-inverse)]"
+              className="w-14 h-14 shrink-0 rounded-[var(--radius-md)] flex items-center justify-center font-bold text-lg text-[var(--text-inverse)] cursor-pointer"
               style={{ background: "var(--grad-primary)" }}
             >
               {initials}

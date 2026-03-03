@@ -147,13 +147,28 @@ export const studentApis = {
     return res.data;
   },
   addStudent: async (
-    data: StudentFormValues & { roleId: string; schoolId: string },
+    data: (StudentFormValues & { roleId: string; schoolId: string }) & {
+      academic?: {
+        classId: string;
+        academicYearId: string;
+        rollNo?: string | null;
+      };
+    },
   ) => {
     const filteredData = filterEmptyOptionalFields(data);
     const res = await api.post<ApiResponse<Student>>("/student", filteredData);
     return res.data;
   },
-  updateStudent: async (id: string, data: Partial<StudentFormValues>) => {
+  updateStudent: async (
+    id: string,
+    data: Partial<StudentFormValues> & {
+      academic?: {
+        classId: string;
+        academicYearId: string;
+        rollNo?: string | null;
+      };
+    },
+  ) => {
     const filteredData = filterEmptyOptionalFields(data);
 
     const res = await api.patch<ApiResponse<Student>>(

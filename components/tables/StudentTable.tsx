@@ -5,6 +5,7 @@ import { Pencil, Trash2, Users } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import StudentForm from "@/components/forms/StudentForm";
 import ClassAssignmentForm from "@/components/forms/ClassAssignmentForm";
+import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
 import {
   studentApis,
   Student as ApiStudent,
@@ -66,7 +67,8 @@ function formatPhone(phone: string | undefined | null) {
   return `+91  ${phone.slice(0, 5)}  ${phone.slice(5)}`;
 }
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
+const DEFAULT_PAGE_SIZE = 6;
 
 export default function StudentsTable({
   roleId,
@@ -86,11 +88,10 @@ export default function StudentsTable({
 }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalStudents, setTotalStudents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const isSearching = searchParams?.search && searchParams.search.trim() !== "";
 
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
@@ -105,14 +106,13 @@ export default function StudentsTable({
       setLoading(true);
       setError(null);
       const page = Math.max(1, Number(currentPage) || 1);
-      const limit = Math.max(1, Number(PAGE_SIZE) || 10);
+      const limit = Math.max(1, Number(pageSize) || 10);
 
       const response = await studentApis.getAll({
         page,
         limit,
-        search: searchParams?.status
-          ? searchParams.status
-          : searchParams?.search || "",
+        search: searchParams?.search,
+        status: searchParams?.status,
         classId: searchParams?.classId,
         sectionId: searchParams?.sectionId,
       });
@@ -183,10 +183,12 @@ export default function StudentsTable({
     }
   }, [
     currentPage,
+    pageSize,
     searchParams?.search,
     searchParams?.status,
     searchParams?.classId,
     searchParams?.sectionId,
+    onTotalCountChange,
   ]);
 
   useEffect(() => {
@@ -195,13 +197,17 @@ export default function StudentsTable({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchParams?.search, searchParams?.status]);
+  }, [searchParams?.status, pageSize]);
 
-  const totalPages = Math.ceil(totalStudents / PAGE_SIZE);
+  const totalPages = Math.ceil(totalStudents / pageSize);
   const paginatedStudents = students;
 
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
   const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
 
   const handleEdit = (student: Student) => setEditingStudent(student);
   const handleEditSuccess = () => {
@@ -265,12 +271,23 @@ export default function StudentsTable({
                 admissionNo: editingStudent.admissionNo,
                 rollNo: editingStudent.rollNo,
                 admissionDate: editingStudent.admissionDate,
+                dob:
+                  editingStudent.dob === "N/A" || editingStudent.dob === null
+                    ? ""
+                    : editingStudent.dob,
+                status: editingStudent.status.toLowerCase() as
+                  | "active"
+                  | "inactive",
                 fatherName: editingStudent.fatherName,
                 fatherPhone: editingStudent.fatherPhone,
                 motherName: editingStudent.motherName,
                 guardianName: editingStudent.guardianName,
                 familyAnnualIncome: editingStudent.familyAnnualIncome,
                 medicalConditions: editingStudent.medicalConditions,
+                isAssigned: editingStudent.class !== "Unassigned",
+                classId: editingStudent.classId,
+                academicYearId: editingStudent.academicYearId,
+                className: editingStudent.class,
               }}
               onSubmitSuccess={handleEditSuccess}
               onClose={() => setEditingStudent(null)}
@@ -290,7 +307,7 @@ export default function StudentsTable({
               type="button"
               onClick={() => setDeletingStudent(null)}
               disabled={isDeleting}
-              className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-5 cursor-pointer py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors h-[52px]"
             >
               Cancel
             </button>
@@ -306,9 +323,6 @@ export default function StudentsTable({
         }
       >
         <div className="w-[380px] flex flex-col items-center text-center py-2">
-          <div className="w-14 h-14 rounded-full bg-[var(--rose-light)] flex items-center justify-center mb-4">
-            <Trash2 size={24} className="text-[var(--rose)]" />
-          </div>
           <p className="text-sm text-[var(--text-3)]">
             Are you sure you want to delete{" "}
             <span className="font-semibold text-[var(--text)]">
@@ -351,31 +365,21 @@ export default function StudentsTable({
       </Modal>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-sm text-[var(--text-3)]">
-            Loading students...
-          </div>
-        </div>
+        <StudentTableSkeleton />
       ) : error ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-sm text-[var(--rose)]">{error}</div>
         </div>
       ) : students.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4">
-            <div className="text-2xl text-[var(--text-3)]">
-              {isSearching ? "🔍" : "📚"}
-            </div>
+          <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4 cursor-pointer">
+            <div className="text-2xl text-[var(--text-3)]">📚</div>
           </div>
           <p className="text-sm text-[var(--text-3)] text-center">
-            {isSearching
-              ? `No students found for "${searchParams?.search}"`
-              : "No students found"}
+            No students found
           </p>
           <p className="text-xs text-[var(--text-4)] mt-1">
-            {isSearching
-              ? "Try different search terms or clear the search to see all students"
-              : "Try adjusting your search or add new students to get started"}
+            Try adjusting your filters or add new students to get started
           </p>
         </div>
       ) : (
@@ -424,7 +428,7 @@ export default function StudentsTable({
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-inverse)] text-sm font-bold flex-shrink-0 bg-[var(--blue)]">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-inverse)] text-sm font-bold flex-shrink-0 bg-[var(--blue)] cursor-pointer">
                             {initials}
                           </div>
                           <div>
@@ -516,26 +520,44 @@ export default function StudentsTable({
           </div>
 
           <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--border)]">
-            <p className="text-sm text-[var(--text-3)]">
-              Showing{" "}
-              {students.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–
-              {students.length > 0
-                ? Math.min(currentPage * PAGE_SIZE, totalStudents)
-                : 0}{" "}
-              of {totalStudents.toLocaleString()} students
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-[var(--text-3)]">
+                Showing{" "}
+                {students.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–
+                {students.length > 0
+                  ? Math.min(currentPage * pageSize, totalStudents)
+                  : 0}{" "}
+                of {totalStudents.toLocaleString()} students
+              </p>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[var(--text-3)]">
+                  Rows per page:
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={e => handlePageSizeChange(Number(e.target.value))}
+                  className="px-3 py-1 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 ← Prev
               </button>
               <button
                 onClick={handleNext}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 Next →
               </button>

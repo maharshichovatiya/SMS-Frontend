@@ -6,8 +6,8 @@ import SchoolForm from "@/components/forms/SchoolForm";
 import Modal from "@/components/ui/Modal";
 import { deleteSchool } from "@/lib/api/School";
 import { deleteUser } from "@/lib/api/Profile";
-import { Settings, Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import { Settings } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { showToast } from "@/lib/utils/Toast";
 
@@ -73,13 +73,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <button
+        {/* <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2 cursor-pointer px-4 py-2 rounded-[var(--radius-sm)] border border-red-200 bg-red-50 text-sm font-medium text-red-600 hover:bg-red-100 transition"
         >
           <Trash2 className="w-4 h-4" />
           Delete Account
-        </button>
+        </button> */}
       </div>
 
       <div className="flex flex-col gap-4 my-4">

@@ -151,7 +151,7 @@ export default function VerifyOTPPage() {
   const features = [
     {
       icon: <Clock className="w-4 h-4" />,
-      text: "Code expires in 01:30 minutes",
+      text: "Otp expires in 01:30 minutes",
     },
     {
       icon: <RefreshCw className="w-4 h-4" />,

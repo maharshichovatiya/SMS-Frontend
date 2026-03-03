@@ -1,6 +1,5 @@
 import Cookies from "js-cookie";
 
-import { PersonalDetails } from "@/lib/validations/SignUpSchema";
 import api from "../Axios";
 import {
   ApiResponse,
@@ -192,18 +191,41 @@ export const resetPassword = async (data: {
     };
   }
 };
-export interface BackendSchoolTypes {
+export interface RegisterSchoolPayload {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  password: string;
+  roleId: string;
+  phone?: string;
   name: string;
-  type: "private" | "govt" | "aided";
   address: string;
-  emailOfficial: string;
-  contact: string;
-  mediumOfInstruction: "english" | "hindi";
-  affiliationBoard: "cbse" | "icse" | "state" | "ib" | "cambridge";
+  affiliationBoard?: string;
+  establishmentYear?: string;
   schoolCode?: string;
-  establishmentYear?: number;
+  contact?: string;
+  emailOfficial?: string;
   emailAdmin?: string;
   websiteUrl?: string;
+  logoUrl?: string;
+  schoolTimingStart?: string;
+  schoolTimingEnd?: string;
+  mediumOfInstruction?: string;
+  type?: string;
+}
+
+export interface SchoolResponse {
+  id: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: {
+    email: string;
+    id: string;
+    role: string;
+    roleId: string;
+    schoolId: string;
+  };
 }
 
 export interface Role {
@@ -214,24 +236,17 @@ export interface Role {
   updatedAt: string;
 }
 
-export interface SchoolResponse {
-  id: string;
-}
-
-export interface SignupPayload extends PersonalDetails {
-  schoolId: string;
-}
-
 export const authApi = {
   getRoles: async () => {
     const response = await api.get<ApiResponse<Role[]>>("/role");
     return response.data;
   },
 
-  signup: async (data: SignupPayload) => {
-    const response = await api.post<
-      ApiResponse<{ id: string; accessToken?: string; refreshToken?: string }>
-    >("/auth/register", data);
+  registerSchool: async (data: RegisterSchoolPayload) => {
+    const response = await api.post<ApiResponse<SchoolResponse>>(
+      "/auth/register-school",
+      data,
+    );
 
     if (
       response.data.statusCode === 201 &&
@@ -247,14 +262,6 @@ export const authApi = {
       });
     }
 
-    return response.data;
-  },
-
-  createSchool: async (schoolData: BackendSchoolTypes) => {
-    const response = await api.post<ApiResponse<SchoolResponse>>(
-      "/school",
-      schoolData,
-    );
     return response.data;
   },
 };

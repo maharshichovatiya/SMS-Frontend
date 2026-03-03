@@ -36,7 +36,7 @@ export default function PageHeader({
     >
       <div className="flex items-center gap-4">
         <div
-          className="w-11 h-11 rounded-[var(--radius-sm)] flex items-center justify-center"
+          className="w-11 h-11 rounded-[var(--radius-sm)] flex items-center justify-center cursor-pointer"
           style={{ backgroundColor: `var(${iconBgColor})` }}
         >
           <Icon
@@ -56,21 +56,21 @@ export default function PageHeader({
       <div className="flex items-center gap-3">
         {secondaryButton && (
           <button
-            className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10"
+            className="btn-primary cursor-pointer px-5 text-sm rounded-[var(--radius-sm)] h-10"
             onClick={secondaryButton.onClick}
           >
             {secondaryButton.icon && (
-              <secondaryButton.icon className="w-4 h-4 mr-2" />
+              <secondaryButton.icon className="w-4 h-4 mr-2 cursor-pointer" />
             )}
             {secondaryButton.text}
           </button>
         )}
         {buttonText && onButtonClick && (
           <button
-            className="btn-primary px-5 text-sm rounded-[var(--radius-sm)] h-10"
+            className="btn-primary cursor-pointer px-5 text-sm rounded-[var(--radius-sm)] h-10"
             onClick={onButtonClick}
           >
-            {ButtonIcon && <ButtonIcon className="w-4 h-4" />}
+            {ButtonIcon && <ButtonIcon className="w-4 h-4 cursor-pointer" />}
             {buttonText}
           </button>
         )}

@@ -359,10 +359,10 @@ body {
   font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 700;
-  cursor: pointer;
   transition: all var(--duration) var(--ease);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .btn-primary::before {
@@ -387,5 +387,4 @@ body {
 
 .btn-primary:disabled {
   opacity: 0.65;
-  cursor: not-allowed;
 }

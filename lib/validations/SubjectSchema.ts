@@ -1,14 +1,23 @@
 import { z } from "zod";
 
-const chapterSchema = z.object({
-  chapterName: z.string().min(1, "Chapter name is required"),
+export const chapterSchema = z.object({
+  chapterName: z
+    .string()
+    .min(1, "Chapter name is required")
+    .max(50, "Chapter name cannot exceed 50 characters"),
   chapterNo: z.number().min(1, "Chapter number is required"),
 });
 
 export const createSubjectSchema = z
   .object({
-    subjectName: z.string().min(1, "Subject name is required"),
-    subjectCode: z.string().min(1, "Subject code is required"),
+    subjectName: z
+      .string()
+      .min(1, "Subject name is required")
+      .max(40, "Subject name cannot exceed 40 characters"),
+    subjectCode: z
+      .string()
+      .min(1, "Subject code is required")
+      .max(30, "Subject code cannot exceed 30 characters"),
     passingMarks: z.number().min(1, "Passing marks must be greater than 0"),
     maxMarks: z.number().min(1, "Maximum marks must be greater than 0"),
     chapters: z.array(chapterSchema).min(1, "At least one chapter is required"),
@@ -20,8 +29,16 @@ export const createSubjectSchema = z
 
 export const updateSubjectSchema = z
   .object({
-    subjectName: z.string().min(1, "Subject name is required").optional(),
-    subjectCode: z.string().min(1, "Subject code is required").optional(),
+    subjectName: z
+      .string()
+      .min(1, "Subject name is required")
+      .max(40, "Subject name cannot exceed 40 characters")
+      .optional(),
+    subjectCode: z
+      .string()
+      .min(1, "Subject code is required")
+      .max(30, "Subject code cannot exceed 30 characters")
+      .optional(),
     passingMarks: z
       .number()
       .min(1, "Passing marks must be greater than 0")
