@@ -173,6 +173,203 @@ export default function StudentForm({
     fetchData();
   }, [isEditMode, initialData, setValue]);
 
+  // Function to get only changed fields
+  const getChangedFields = (
+    formData: StudentFormValues,
+    initialData: Partial<StudentFormValues> & {
+      id?: string;
+      classId?: string;
+      academicYearId?: string;
+      isAssigned?: boolean;
+      className?: string;
+    },
+  ) => {
+    const changedFields: Partial<StudentFormValues> = {};
+
+    // Compare each field with initial data
+    Object.keys(formData).forEach(key => {
+      const formValue = formData[key as keyof StudentFormValues];
+      const initialValue = initialData?.[key as keyof typeof initialData];
+
+      // Handle different types of comparisons
+      if (formValue !== initialValue) {
+        // For string fields, check if both are empty/null/undefined
+        if (typeof formValue === "string" && typeof initialValue === "string") {
+          if (formValue.trim() !== initialValue.trim()) {
+            // Special handling for status field to ensure proper type
+            if (
+              key === "status" &&
+              (formValue === "active" || formValue === "inactive")
+            ) {
+              const typedChangedFields =
+                changedFields as Partial<StudentFormValues> & {
+                  status?: "active" | "inactive";
+                };
+              typedChangedFields.status = formValue;
+            } else if (key !== "status") {
+              // Handle each non-status field explicitly with proper typing
+              switch (key) {
+                case "firstName":
+                  changedFields.firstName = formValue;
+                  break;
+                case "lastName":
+                  changedFields.lastName = formValue;
+                  break;
+                case "email":
+                  changedFields.email = formValue;
+                  break;
+                case "phone":
+                  changedFields.phone = formValue;
+                  break;
+                case "admissionNo":
+                  changedFields.admissionNo = formValue;
+                  break;
+                case "rollNo":
+                  changedFields.rollNo = formValue;
+                  break;
+                case "admissionDate":
+                  changedFields.admissionDate = formValue;
+                  break;
+                case "dob":
+                  changedFields.dob = formValue;
+                  break;
+                case "fatherName":
+                  changedFields.fatherName = formValue;
+                  break;
+                case "fatherPhone":
+                  changedFields.fatherPhone = formValue;
+                  break;
+                case "motherName":
+                  changedFields.motherName = formValue;
+                  break;
+                case "guardianName":
+                  changedFields.guardianName = formValue;
+                  break;
+                case "familyAnnualIncome":
+                  changedFields.familyAnnualIncome = formValue;
+                  break;
+                case "medicalConditions":
+                  changedFields.medicalConditions = formValue;
+                  break;
+                case "middleName":
+                  changedFields.middleName = formValue;
+                  break;
+                case "password":
+                  changedFields.password = formValue;
+                  break;
+                case "classId":
+                  changedFields.classId = formValue;
+                  break;
+                case "academicYearId":
+                  changedFields.academicYearId = formValue;
+                  break;
+                default:
+                  // For any other fields, handle status field separately
+                  if (key === "status") {
+                    // This should not reach here due to earlier check, but just in case
+                    const typedChangedFields =
+                      changedFields as Partial<StudentFormValues> & {
+                        status?: "active" | "inactive";
+                      };
+                    if (formValue === "active" || formValue === "inactive") {
+                      typedChangedFields.status = formValue;
+                    }
+                  } else {
+                    // Handle other fields with proper typing
+                    const fieldKey = key as keyof StudentFormValues;
+                    if (fieldKey === "status") {
+                      // Type assertion for status field
+                      const statusTypedFields =
+                        changedFields as Partial<StudentFormValues>;
+                      statusTypedFields.status = formValue as
+                        | "active"
+                        | "inactive";
+                    } else {
+                      changedFields[fieldKey] =
+                        formValue as StudentFormValues[keyof StudentFormValues];
+                    }
+                  }
+              }
+            }
+          }
+        } else {
+          // Special handling for status field to ensure proper type
+          if (
+            key === "status" &&
+            typeof formValue === "string" &&
+            (formValue === "active" || formValue === "inactive")
+          ) {
+            const typedChangedFields =
+              changedFields as Partial<StudentFormValues> & {
+                status?: "active" | "inactive";
+              };
+            typedChangedFields.status = formValue;
+          } else if (key !== "status") {
+            // Handle each non-status field explicitly for non-string types
+            switch (key) {
+              case "firstName":
+                changedFields.firstName = formValue as string;
+                break;
+              case "middleName":
+                changedFields.middleName = formValue as string;
+                break;
+              case "lastName":
+                changedFields.lastName = formValue as string;
+                break;
+              case "email":
+                changedFields.email = formValue as string;
+                break;
+              case "phone":
+                changedFields.phone = formValue as string;
+                break;
+              case "admissionNo":
+                changedFields.admissionNo = formValue as string;
+                break;
+              case "rollNo":
+                changedFields.rollNo = formValue as string;
+                break;
+              case "admissionDate":
+                changedFields.admissionDate = formValue as string;
+                break;
+              case "dob":
+                changedFields.dob = formValue as string;
+                break;
+              case "fatherName":
+                changedFields.fatherName = formValue as string;
+                break;
+              case "fatherPhone":
+                changedFields.fatherPhone = formValue as string;
+                break;
+              case "motherName":
+                changedFields.motherName = formValue as string;
+                break;
+              case "guardianName":
+                changedFields.guardianName = formValue as string;
+                break;
+              case "familyAnnualIncome":
+                changedFields.familyAnnualIncome = formValue as string;
+                break;
+              case "medicalConditions":
+                changedFields.medicalConditions = formValue as string;
+                break;
+              case "password":
+                changedFields.password = formValue as string;
+                break;
+              case "classId":
+                changedFields.classId = formValue as string;
+                break;
+              case "academicYearId":
+                changedFields.academicYearId = formValue as string;
+                break;
+            }
+          }
+        }
+      }
+    });
+
+    return changedFields;
+  };
+
   const onSubmit = async (data: StudentFormValues) => {
     try {
       const schoolId = localStorage.getItem("schoolId");
@@ -187,24 +384,84 @@ export default function StudentForm({
           return;
         }
 
-        const { rollNo, classId, academicYearId, ...studentData } = data;
+        // Prepare update payload with only student data changes (exclude academic fields)
+        const { classId, academicYearId, rollNo, ...studentFieldsOnly } = data;
+        const {
+          classId: initialClassId,
+          academicYearId: initialAcademicYearId,
+          rollNo: initialRollNo,
+        } = initialData;
 
-        // Prepare update payload
+        // Check if academic assignment changed
+        const academicChanged =
+          classId !== initialClassId ||
+          academicYearId !== initialAcademicYearId;
+
+        const rollNoChanged = rollNo !== initialRollNo;
+
+        const changedStudentFields = getChangedFields(
+          studentFieldsOnly as StudentFormValues,
+          initialData,
+        );
+
+        // If no fields changed, show message and return
+        if (
+          Object.keys(changedStudentFields).length === 0 &&
+          !academicChanged &&
+          !rollNoChanged
+        ) {
+          showToast.info("No changes detected");
+          return;
+        }
+
+        // Prepare update payload with only student data changes (exclude academic fields)
         const updatePayload: Partial<StudentFormValues> & {
           academic?: {
             classId: string;
             academicYearId: string;
             rollNo?: string | null;
           };
-        } = { ...studentData };
+        } = { ...changedStudentFields };
 
-        // Add academic assignment if both classId and academicYearId are provided
-        if (classId && academicYearId) {
-          updatePayload.academic = {
-            classId,
-            academicYearId,
+        // Handle academic assignment separately
+        let academicPayload:
+          | {
+              classId: string;
+              academicYearId: string;
+              rollNo?: string | null;
+            }
+          | undefined;
+
+        // Add academic assignment only if it changed and both classId and academicYearId are provided
+        if (academicChanged && classId && academicYearId) {
+          academicPayload = {
+            classId: classId,
+            academicYearId: academicYearId,
+          };
+
+          // Only include rollNo if it changed
+          if (rollNoChanged) {
+            academicPayload.rollNo = rollNo || null;
+          }
+        } else if (
+          !academicChanged &&
+          rollNoChanged &&
+          classId &&
+          academicYearId
+        ) {
+          // Only rollNo changed, include just that with current class and academic year
+          academicPayload = {
+            classId: classId,
+            academicYearId: academicYearId,
             rollNo: rollNo || null,
           };
+        }
+        // Note: If academic assignment was completely removed (academicChanged && !classId && !academicYearId),
+        // we don't send academic payload since the backend handles removal differently
+
+        // Add academic payload to update request if it exists
+        if (academicPayload) {
+          updatePayload.academic = academicPayload;
         }
 
         await studentApis.updateStudent(initialData.id, updatePayload);

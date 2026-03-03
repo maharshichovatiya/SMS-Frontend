@@ -504,13 +504,15 @@ export default function Subjects() {
                                     </div>
                                     {chapter.id && (
                                       <button
-                                        onClick={() =>
-                                          setDeletingChapter({
-                                            subjectId: selectedSubject.id,
-                                            chapterId: chapter.id,
-                                            chapterName: chapter.chapterName,
-                                          })
-                                        }
+                                        onClick={() => {
+                                          if (chapter.id) {
+                                            setDeletingChapter({
+                                              subjectId: selectedSubject.id,
+                                              chapterId: chapter.id,
+                                              chapterName: chapter.chapterName,
+                                            });
+                                          }
+                                        }}
                                         className="w-6 h-6 rounded-[var(--radius-sm)] cursor-pointer bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] opacity-0 group-hover:opacity-100"
                                         title="Delete Chapter"
                                       >
@@ -670,8 +672,7 @@ export default function Subjects() {
                   <option value="">Choose a teacher...</option>
                   {allTeachers.map(teacher => (
                     <option key={teacher.id} value={teacher.id}>
-                      {teacher.user.firstName} {teacher.user.lastName} (
-                      {teacher.employeeCode})
+                      {teacher.user.firstName} {teacher.user.lastName}
                     </option>
                   ))}
                 </select>

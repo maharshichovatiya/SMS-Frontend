@@ -68,7 +68,7 @@ function formatPhone(phone: string | undefined | null) {
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
-const DEFAULT_PAGE_SIZE = 6;
+const DEFAULT_PAGE_SIZE = 5;
 
 export default function StudentsTable({
   roleId,

@@ -42,9 +42,9 @@ export const createStudentSchema = z.object({
     .regex(/^\d{10}$/, "Phone must be a 10-digit number"),
   admissionNo: z
     .string()
+    .min(1, "Admission No is required")
     .max(20, "Admission No cannot exceed 20 characters")
-    .regex(/^\d+$/, "Must be a number")
-    .optional(),
+    .regex(/^\d+$/, "Must be a number"),
   rollNo: z
     .string()
     .min(1, "Roll No is required")
@@ -287,14 +287,30 @@ export const updateStudentSchema = z.object({
   academicYearId: z.string().optional(),
 });
 
-export type CreateStudentFormValues = z.infer<typeof createStudentSchema>;
-export type UpdateStudentFormValues = z.infer<typeof updateStudentSchema>;
-export type StudentFormValues =
-  | CreateStudentFormValues
-  | UpdateStudentFormValues;
+export type StudentFormValues = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  admissionNo: string;
+  rollNo: string;
+  admissionDate: string;
+  dob?: string;
+  status?: "active" | "inactive";
+  fatherName?: string;
+  fatherPhone?: string;
+  motherName?: string;
+  guardianName?: string;
+  familyAnnualIncome?: string;
+  medicalConditions?: string;
+  classId?: string;
+  academicYearId?: string;
+};
 
 export const STUDENT_FIELDS: {
-  name: keyof CreateStudentFormValues;
+  name: keyof StudentFormValues;
   label: string;
   type: string;
   placeholder: string;
