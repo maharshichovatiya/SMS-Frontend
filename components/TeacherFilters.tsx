@@ -1,11 +1,11 @@
 import { Search } from "lucide-react";
 
 const DEPARTMENTS = [
-  "all",
-  "academic",
-  "administration",
-  "sports",
-  "laboratory",
+  { key: "all", label: "All" },
+  { key: "academic", label: "Academic" },
+  { key: "administration", label: "Administration" },
+  { key: "sports", label: "Sports" },
+  { key: "laboratory", label: "Laboratory" },
 ];
 
 interface TeacherFiltersProps {
@@ -26,15 +26,15 @@ export default function TeacherFilters({
       <div className="flex items-center gap-2 flex-wrap">
         {DEPARTMENTS.map(d => (
           <button
-            key={d}
-            onClick={() => onDepartmentChange(d)}
-            className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition capitalize ${
-              department === d
+            key={d.key}
+            onClick={() => onDepartmentChange(d.key)}
+            className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
+              department === d.key
                 ? "text-white border-transparent"
                 : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
             }`}
             style={
-              department === d
+              department === d.key
                 ? {
                     background: "var(--grad-primary)",
                     borderColor: "transparent",
@@ -42,7 +42,7 @@ export default function TeacherFilters({
                 : {}
             }
           >
-            {d === "all" ? "All" : d.charAt(0).toUpperCase() + d.slice(1)}
+            {d.label}
           </button>
         ))}
       </div>

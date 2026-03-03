@@ -206,7 +206,6 @@ export default function SignUpPage() {
 
       const response = await authApi.registerSchool(registerPayload);
 
-      // Store all response data in localStorage
       if (response.data) {
         const responseData = response.data;
 

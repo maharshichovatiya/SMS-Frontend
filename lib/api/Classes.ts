@@ -8,9 +8,16 @@ import {
 } from "@/lib/types/Class";
 import api from "../Axios";
 
-export const getClassSummary = async (): Promise<GetClassesResponse> => {
+export const getClassSummary = async (
+  search?: string,
+  type?: string,
+): Promise<GetClassesResponse> => {
   try {
-    const res = await api.get("/classes/class-summary");
+    const params: Record<string, string> = {};
+    if (search) params.search = search;
+    if (type) params.type = type;
+
+    const res = await api.get("/classes/class-summary", { params });
     return {
       success: true,
       data: res.data.data,
@@ -19,7 +26,7 @@ export const getClassSummary = async (): Promise<GetClassesResponse> => {
     const err = error as AxiosError<{ message: string }>;
     return {
       success: false,
-      message: err.response?.data?.message || "Failed to fetch class summary.",
+      message: err.response?.data?.message || "Failed to fetch classes.",
     };
   }
 };

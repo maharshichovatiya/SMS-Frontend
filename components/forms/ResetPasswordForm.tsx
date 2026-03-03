@@ -88,7 +88,7 @@ export function ResetPasswordForm({
             <button
               type="button"
               onClick={() => setShowConfirmPass(!showConfirmPass)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-3)] hover:text-[var(--color-text-2)] transition-colors p-1 rounded-lg hover:bg-[var(--color-surface-2)]"
+              className="absolute  right-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-3)] hover:text-[var(--color-text-2)] transition-colors p-1 rounded-lg hover:bg-[var(--color-surface-2)]"
             >
               {showConfirmPass ? (
                 <EyeOff className="w-4 h-4" />

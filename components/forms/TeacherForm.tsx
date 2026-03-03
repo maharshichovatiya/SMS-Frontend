@@ -12,13 +12,13 @@ import { getRoles } from "@/lib/api/Role";
 
 import {
   Award,
-  BadgeCheck,
-  Briefcase,
   Building2,
   Calendar,
   CalendarCheck,
   ChevronDown,
   Clock,
+  Eye,
+  EyeOff,
   GraduationCap,
   Lock,
   Mail,
@@ -59,7 +59,7 @@ export default function TeacherForm({
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
-
+  const [showPassword, setShowPassword] = useState(false);
   useEffect(() => {
     const loadRoles = async () => {
       const res = await getRoles();
@@ -116,7 +116,10 @@ export default function TeacherForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-6 w-full max-w-2xl mx-auto"
+    >
       <div>
         <div className="flex items-center gap-3 mb-4">
           <span className="section-label">Account Info</span>
@@ -160,10 +163,21 @@ export default function TeacherForm({
               />
               <input
                 {...register("password")}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder={mode === "edit" ? "••••••••" : "Min. 8 characters"}
                 className={`input-base pl-9 ${errors.password ? "error" : ""}`}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
             {errors.password && (
               <span className="text-xs text-[var(--rose)]">
@@ -327,62 +341,6 @@ export default function TeacherForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Employee Code <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <BadgeCheck
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("employeeCode")}
-                placeholder="EMP-2024-001"
-                className={`input-base pl-9 ${
-                  errors.employeeCode ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.employeeCode && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.employeeCode.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Staff Category <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Briefcase
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("staffCategory")}
-                className={`input-base pl-9 pr-9 appearance-none ${
-                  errors.staffCategory ? "error" : ""
-                }`}
-              >
-                <option value="">Select category</option>
-                <option value="teaching">Teaching</option>
-                <option value="non_teaching">Non-Teaching</option>
-                <option value="admin">Administrative</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.staffCategory && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.staffCategory.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
               Department <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">
@@ -464,7 +422,7 @@ export default function TeacherForm({
 
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Salary Package (₹/month){" "}
+              Salary Package (₹ Year){" "}
               <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">
@@ -475,10 +433,12 @@ export default function TeacherForm({
               <input
                 {...register("salaryPackage")}
                 type="number"
-                placeholder="50000"
-                className={`input-base pl-9 ${
-                  errors.salaryPackage ? "error" : ""
-                }`}
+                step="any"
+                placeholder="60000"
+                onKeyDown={e =>
+                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
+                }
+                className={`input-base pl-9 ${errors.salaryPackage ? "error" : ""}`}
               />
             </div>
             {errors.salaryPackage && (

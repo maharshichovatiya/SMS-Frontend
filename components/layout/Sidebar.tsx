@@ -223,7 +223,7 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         isOpen={logoutOpen}
         onClose={() => setLogoutOpen(false)}
         title="Confirm Logout"
-        description="Are you sure you want to logout from your account?"
+        className=" max-w-md"
         footer={
           <>
             <button
@@ -234,18 +234,16 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             </button>
             <button
               onClick={handleLogout}
-              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-700 transition-colors duration-150"
+              className="cursor-pointer px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium text-white bg-[var(--rose)]  active:bg-red-700 transition-colors duration-150"
             >
               Logout
             </button>
           </>
         }
       >
-        <div className="flex items-center justify-center py-2">
-          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center cursor-pointer">
-            <LogOut className="w-7 h-7 text-red-500" />
-          </div>
-        </div>
+        <p className="text-sm text-[var(--text-2)]">
+          You will be logged out of your account.
+        </p>
       </Modal>
     </>
   );

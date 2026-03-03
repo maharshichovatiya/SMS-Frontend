@@ -1,18 +1,27 @@
 import z from "zod";
 
+const passwordValidation = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(20, "Password cannot exceed 20 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(
+    /[^a-zA-Z0-9]/,
+    "Password must contain at least one special character",
+  );
+
 export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
   z.object({
-    email: z.string().email("Invalid email address"),
+    email: z
+      .string()
+      .email("Invalid email address")
+      .max(50, "email cannot exceed 50 characters"),
     password:
       mode === "add"
-        ? z.string().min(8, "Password must be at least 8 characters")
-        : z
-            .string()
-            .optional()
-            .refine(
-              val => !val || val.length >= 8,
-              "Password must be at least 8 characters",
-            ),
+        ? passwordValidation
+        : passwordValidation.optional().or(z.literal("")),
     firstName: z
       .string()
       .min(1, "First name is required")
@@ -43,21 +52,6 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
         const age = today.getFullYear() - dob.getFullYear();
         return age >= 18 && age <= 70;
       }, "Teacher must be between 18 and 70 years old"),
-    employeeCode: z
-      .string()
-      .min(1, "Employee code is required")
-      .max(20, "Employee code is too long")
-      .regex(
-        /^[a-zA-Z0-9-_]+$/,
-        "Employee code can only contain letters, numbers, - and _",
-      ),
-    staffCategory: z
-      .string()
-      .min(1, "Staff category is required")
-      .refine(
-        val => ["teaching", "non_teaching", "admin"].includes(val),
-        "Invalid staff category",
-      ),
     department: z
       .string()
       .min(1, "Department is required")
@@ -78,9 +72,13 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .max(10000000, "Salary cannot exceed ₹1 Crore/year"),
     highestQualification: z
       .string()
+      .trim()
       .min(1, "Qualification is required")
       .max(40, "Qualification cannot exceed 40 characters")
-      .regex(/^[a-zA-Z\s'-]+$/, "Qualification can only contain letters"),
+      .regex(
+        /^[a-zA-Z.\s]+$/,
+        "Qualification can only contain letters, spaces and dot (.)",
+      ),
     experienceYears: z.coerce
       .number()
       .min(0, "Experience cannot be negative")

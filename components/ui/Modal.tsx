@@ -8,6 +8,7 @@ interface ModalProps {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  className?: string;
 }
 
 export default function Modal({
@@ -17,6 +18,7 @@ export default function Modal({
   description,
   children,
   footer,
+  className,
 }: ModalProps) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -51,8 +53,8 @@ export default function Modal({
             max-h-[90vh]
             bg-[var(--surface)]
             rounded-[var(--radius-xl)]
-            max-w-max
             border border-[var(--border)]
+             ${className ?? "max-w-max"}
           `}
         >
           {title && (

@@ -51,8 +51,27 @@ export default function VerifyOTPPage() {
     next[i] = val;
     setOtp(next);
     setError("");
-    if (val) focus(Math.min(i + 1, 3));
-    else focus(Math.max(i - 1, 0));
+    if (val) {
+      focus(Math.min(i + 1, 3)); // move forward on input
+    }
+  }
+
+  function handleKeyDown(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace") {
+      if (otp[i]) {
+        // clear current field
+        const next = [...otp];
+        next[i] = "";
+        setOtp(next);
+      } else {
+        // move back if already empty
+        focus(Math.max(i - 1, 0));
+      }
+    } else if (e.key === "ArrowLeft") {
+      focus(Math.max(i - 1, 0));
+    } else if (e.key === "ArrowRight") {
+      focus(Math.min(i + 1, 3));
+    }
   }
 
   function handlePaste(e: React.ClipboardEvent) {
@@ -132,7 +151,7 @@ export default function VerifyOTPPage() {
   const features = [
     {
       icon: <Clock className="w-4 h-4" />,
-      text: "Code expires in 01:30 minutes",
+      text: "Otp expires in 01:30 minutes",
     },
     {
       icon: <RefreshCw className="w-4 h-4" />,
@@ -333,6 +352,7 @@ export default function VerifyOTPPage() {
                       value={digit}
                       autoComplete="one-time-code"
                       onChange={e => handleChange(i, e.target.value)}
+                      onKeyDown={e => handleKeyDown(i, e)}
                       onPaste={i === 0 ? handlePaste : undefined}
                       className="w-16 h-16 text-center text-4xl font-bold font-mono leading-none rounded-2xl border-2 outline-none transition-all duration-150 focus:scale-105"
                       style={{
@@ -409,9 +429,9 @@ export default function VerifyOTPPage() {
                     <span
                       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold font-mono border"
                       style={{
-                        background: "var(--amber-light)",
-                        borderColor: "var(--amber-muted)",
-                        color: "var(--amber)",
+                        background: "var(--blue-light)",
+                        borderColor: "var(--blue-muted)",
+                        color: "var(--blue)",
                       }}
                     >
                       <Clock className="w-3 h-3" />
@@ -422,7 +442,7 @@ export default function VerifyOTPPage() {
                     <button
                       type="button"
                       onClick={handleResend}
-                      className="inline-flex items-center gap-1.5 font-bold hover:underline underline-offset-2"
+                      className="inline-flex cursor-pointer items-center gap-1.5 font-bold hover:underline underline-offset-2"
                       style={{ color: "var(--blue)" }}
                     >
                       <RefreshCw className="w-3.5 h-3.5" /> Resend code

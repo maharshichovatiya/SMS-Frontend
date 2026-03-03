@@ -41,6 +41,17 @@ export default function ClassForm({
   });
 
   useEffect(() => {
+    if (defaultValues) {
+      reset({
+        classNo: String(defaultValues.classNo ?? ""),
+        section: defaultValues.section ?? "",
+        classTeacherId: defaultValues.classTeacherId ?? null,
+        studentCapacity: defaultValues.studentCapacity ?? undefined,
+      });
+    }
+  }, [defaultValues]);
+
+  useEffect(() => {
     const load = async () => {
       try {
         const res = await getAllTeachers();
@@ -60,12 +71,13 @@ export default function ClassForm({
     };
     load();
   }, []);
+
   const onSubmit: SubmitHandler<ClassFormData> = async data => {
     setSubmitting(true);
     try {
       const payload = {
         ...data,
-        classTeacherId: data.classTeacherId || null, // convert empty string to null
+        classTeacherId: data.classTeacherId || null,
       };
 
       const res =
@@ -111,10 +123,20 @@ export default function ClassForm({
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
                 style={{ color: "var(--text-3)" }}
               />
-              <input
+              <select
                 {...register("classNo")}
-                placeholder="e.g. 10"
-                className={`input-base pl-9 ${errors.classNo ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.classNo ? "error" : ""}`}
+              >
+                <option value="">Select class</option>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
+                  <option key={num} value={String(num)}>
+                    Class {num}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: "var(--text-3)" }}
               />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
@@ -131,14 +153,20 @@ export default function ClassForm({
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
                 style={{ color: "var(--text-3)" }}
               />
-              <input
+              <select
                 {...register("section")}
-                placeholder="e.g. A"
-                onChange={e => {
-                  e.target.value = e.target.value.toUpperCase();
-                  register("section").onChange(e);
-                }}
-                className={`input-base pl-9 ${errors.section ? "error" : ""}`}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.section ? "error" : ""}`}
+              >
+                <option value="">Select section</option>
+                {["A", "B", "C", "D", "E"].map(s => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: "var(--text-3)" }}
               />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
@@ -167,6 +195,10 @@ export default function ClassForm({
                 {...register("studentCapacity")}
                 type="number"
                 placeholder="e.g. 60"
+                onKeyDown={e => {
+                  if (["e", "E", "+", "-", "."].includes(e.key))
+                    e.preventDefault();
+                }}
                 className={`input-base pl-9 ${errors.studentCapacity ? "error" : ""}`}
               />
             </div>

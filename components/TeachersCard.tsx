@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Pencil,
-  Trash2,
-  Mail,
-  Phone,
-  Calendar,
-  BadgeCheck,
-} from "lucide-react";
+import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
@@ -78,7 +71,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             </div>
 
             <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
-              {teacher.highestQualification} · {teacher.designation}
+              {teacher.highestQualification}
             </p>
           </div>
         </div>
@@ -127,10 +120,6 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             <span className="text-[var(--border)]">·</span>
             <span>Joined: {teacher.dateOfJoining}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--text-2)]">
-            <BadgeCheck size={12} className="shrink-0 text-[var(--text-3)]" />
-            <span>{teacher.employeeCode}</span>
-          </div>
         </div>
 
         <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
@@ -154,6 +143,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
         onClose={() => setOpenEdit(false)}
         title="Edit Teacher"
         description="Update the staff member's details."
+        className="max-w-3xl"
       >
         <TeacherForm
           mode="edit"
@@ -170,8 +160,6 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             phone: teacher.user.phone,
             gender: teacher.user.gender,
             dob: teacher.user.dob,
-            employeeCode: teacher.employeeCode,
-            staffCategory: teacher.staffCategory,
             department: teacher.department,
             designation: teacher.designation,
             dateOfJoining: teacher.dateOfJoining,

@@ -1,0 +1,35 @@
+import z from "zod";
+
+export const profileSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, "First name is required")
+    .max(50, "First name is too long")
+    .regex(/^[A-Za-z\s]+$/, "First name must contain only letters"),
+  lastName: z
+    .string()
+    .min(1, "Last name is required")
+    .max(50, "Last name is too long")
+    .regex(/^[A-Za-z\s]+$/, "Last name must contain only letters"),
+  password: z
+    .string()
+    .trim()
+    .transform(val => (val === "" ? undefined : val))
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (val.length >= 8 &&
+          val.length <= 20 &&
+          /[A-Z]/.test(val) &&
+          /[a-z]/.test(val) &&
+          /[0-9]/.test(val) &&
+          /[^a-zA-Z0-9]/.test(val)),
+      {
+        message:
+          "Password must be 8 characters, include uppercase, lowercase, number and special character",
+      },
+    ),
+});
+
+export type ProfileFormData = z.infer<typeof profileSchema>;

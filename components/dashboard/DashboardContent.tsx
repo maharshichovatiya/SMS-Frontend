@@ -10,6 +10,9 @@ import {
   RecentTeacher,
 } from "@/lib/api/Dashboard";
 import DashboardTableSkeleton from "@/components/skeletons/DashboardTableSkeleton";
+import { ProfileData } from "@/lib/types/Profile";
+import { getProfile } from "@/lib/api/Profile";
+import { showToast } from "@/lib/utils/Toast";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -122,6 +125,22 @@ export default function DashboardContent() {
   );
   const [recentTeachers, setRecentTeachers] = useState<RecentTeacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [role, setRole] = useState<string>("");
+  const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getProfile();
+        setProfile(data);
+      } catch (error) {
+        showToast.error("Failed to load profile.");
+      }
+    };
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,7 +164,6 @@ export default function DashboardContent() {
           setRecentTeachers(teachersResponse.data);
         }
       } catch {
-        // Handle error silently for now
       } finally {
         setLoading(false);
       }
@@ -185,24 +203,60 @@ export default function DashboardContent() {
     return variants[section] || "blue";
   };
 
+  const handleEdit = async (student: RecentAdmission) => {
+    setLoadingStudentId(student.id);
+    try {
+      const studentsResponse = await studentApis.getAll();
+      const fullStudent = studentsResponse.data?.data.find(
+        s => s.id === student.id,
+      );
+
+      if (fullStudent) {
+        setEditingStudent(fullStudent);
+      } else {
+        showToast.error(
+          "Complete student details not available. Redirecting to Students page for full editing...",
+        );
+        router.push("/students");
+      }
+    } catch {
+      showToast.error(
+        "Unable to load student details. Please try again from the Students page.",
+      );
+      router.push("/students");
+    } finally {
+      setLoadingStudentId(null);
+    }
+  };
+  const handleEditSuccess = () => {
+    setEditingStudent(null);
+    dashboardApis
+      .getRecentAdmissions()
+      .then(response => {
+        if (response?.data) {
+          setRecentAdmissions(response.data);
+        }
+      })
+      .catch(() => {});
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
+
   return (
     <>
-      {/* ... */}
       <div className="flex items-center justify-between mb-7 flex-wrap gap-[14px]">
         <div>
           <div className="text-[25px] font-extrabold text-[var(--text)] tracking-[-0.6px]">
-            {getGreeting()}, Admin 👋
+            {getGreeting()}, {profile?.firstName || "Admin"} 👋
           </div>
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-4 gap-4 mb-[22px] max-xl:grid-cols-2">
         <StatCard
           icon={<Users className="w-[18px] h-[18px]" />}
@@ -246,9 +300,7 @@ export default function DashboardContent() {
         />
       </div>
 
-      {}
       <div className="grid grid-cols-[1fr_300px] gap-5 mb-[22px] max-lg:grid-cols-1">
-        {}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
           <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[var(--border)] flex-wrap gap-2">
             <div>
@@ -303,7 +355,6 @@ export default function DashboardContent() {
                       student.user.firstName,
                       student.user.lastName,
                     );
-
                     const academic = student.academics?.[0];
                     const classNo = academic?.class?.classNo || "-";
                     const section = academic?.class?.section || "-";
@@ -370,9 +421,7 @@ export default function DashboardContent() {
           </div>
         </div>
 
-        {}
         <div className="flex flex-col gap-[18px]">
-          {}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
             <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
               <div className="text-[15px] font-bold text-[var(--text)]">
@@ -413,7 +462,6 @@ export default function DashboardContent() {
             />
           </div>
 
-          {}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
             <div className="px-[22px] py-[18px] border-b border-[var(--border)] flex items-center justify-between">
               <div>
