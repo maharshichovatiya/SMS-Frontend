@@ -37,7 +37,7 @@ export default function ClassForm({
   } = useForm<ClassFormData>({
     resolver: zodResolver(classSchema) as Resolver<ClassFormData>,
     defaultValues,
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   useEffect(() => {

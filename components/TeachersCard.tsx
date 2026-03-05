@@ -1,12 +1,19 @@
 "use client";
 
-import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Mail,
+  Phone,
+  Calendar,
+  ChevronDown,
+} from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
 import { GetTeachers } from "@/lib/types/Teacher";
 import { showToast } from "@/lib/utils/Toast";
-import { deleteTeacher } from "@/lib/api/Teacher";
+import { deleteTeacher, updateTeacherStatus } from "@/lib/api/Teacher";
 
 interface Props {
   teacher: GetTeachers;
@@ -18,6 +25,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
   const initials =
     teacher?.user.firstName?.charAt(0) + teacher?.user.lastName?.charAt(0);
 
@@ -31,6 +39,18 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
       onSuccess();
     } else {
       showToast.error(res.message || "Failed to delete teacher");
+    }
+  };
+
+  const handleStatusChange = async (status: string) => {
+    setStatusLoading(true);
+    const res = await updateTeacherStatus(teacher.id, status);
+    setStatusLoading(false);
+    if (res.success) {
+      showToast.success("Status updated");
+      onSuccess();
+    } else {
+      showToast.error(res.message || "Failed to update status");
     }
   };
 
@@ -123,6 +143,30 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
         </div>
 
         <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
+          <div className="relative flex-1">
+            <select
+              value={teacher.status ?? "active"}
+              disabled={statusLoading}
+              onChange={e => handleStatusChange(e.target.value)}
+              className={`w-full cursor-pointer py-2 pl-3 pr-7 text-xs font-semibold rounded-[var(--radius-sm)] border transition appearance-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                (teacher.status ?? "active") === "active"
+                  ? "border-[var(--green)] text-[var(--green)] hover:bg-[var(--green-light)]"
+                  : "border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)]"
+              }`}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <ChevronDown
+              size={12}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${
+                (teacher.status ?? "active") === "active"
+                  ? "text-[var(--green)]"
+                  : "text-[var(--rose)]"
+              }`}
+            />
+          </div>
+
           <button
             onClick={() => setOpenEdit(true)}
             className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"

@@ -55,7 +55,7 @@ export default function TeacherForm({
   } = useForm<TeacherFormData>({
     resolver: zodResolver(schema) as Resolver<TeacherFormData>,
     defaultValues,
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
@@ -249,7 +249,23 @@ export default function TeacherForm({
               />
               <input
                 {...register("phone")}
-                placeholder="98765 43210"
+                type="tel"
+                placeholder="9876543210"
+                maxLength={10}
+                onKeyDown={e => {
+                  if (
+                    !/[0-9]/.test(e.key) &&
+                    ![
+                      "Backspace",
+                      "Delete",
+                      "Tab",
+                      "ArrowLeft",
+                      "ArrowRight",
+                    ].includes(e.key)
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
                 className={`input-base pl-9 ${errors.phone ? "error" : ""}`}
               />
             </div>
