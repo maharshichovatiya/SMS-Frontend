@@ -34,6 +34,7 @@ export default function SchoolForm() {
     address: "",
     establishmentYear: "",
     emailOfficial: "",
+    emailAdmin: "",
     contact: "",
     schoolCode: "",
     mediumOfInstruction: "",
@@ -63,13 +64,14 @@ export default function SchoolForm() {
         const id = localStorage.getItem("schoolId") ?? "";
         setSchoolId(id);
         const data = await getSchoolById(id);
-        const mapped = {
+        const mapped: SchoolFormData = {
           name: data.name ?? "",
           type: data.type ?? "",
           affiliationBoard: data.affiliationBoard ?? "",
           address: data.address ?? "",
           establishmentYear: data.establishmentYear?.toString() ?? "",
           emailOfficial: data.emailOfficial ?? "",
+          emailAdmin: data.emailAdmin ?? "",
           contact: data.contact ?? "",
           schoolCode: data.schoolCode ?? "",
           mediumOfInstruction: data.mediumOfInstruction ?? "",
@@ -106,6 +108,7 @@ export default function SchoolForm() {
         schoolCode: toNullable(data.schoolCode),
         contact: toNullable(data.contact),
         emailOfficial: toNullable(data.emailOfficial),
+        emailAdmin: toNullable(data.emailAdmin),
         websiteUrl: toNullable(data.websiteUrl),
         schoolTimingStart: toNullable(data.schoolTimingStart),
         schoolTimingEnd: toNullable(data.schoolTimingEnd),
@@ -131,15 +134,7 @@ export default function SchoolForm() {
 
   return (
     <>
-      <div
-        className="
-          bg-[var(--surface)]
-          border border-[var(--border)]
-          rounded-[var(--radius-xl)]
-          shadow-[var(--shadow)]
-          overflow-hidden
-        "
-      >
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-xl)] shadow-[var(--shadow)] overflow-hidden">
         <div className="px-8 py-5 border-b border-[var(--border)] bg-[var(--surface-2)] flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--text)]">
             School Information
@@ -249,6 +244,21 @@ export default function SchoolForm() {
               </div>
             </div>
             <div className="w-full">
+              <label className="label-base">Admin Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.emailAdmin}
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
               <label className="label-base">Contact</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
@@ -260,9 +270,6 @@ export default function SchoolForm() {
                 />
               </div>
             </div>
-          </div>
-
-          <div className="flex items-start gap-3">
             <div className="w-full">
               <label className="label-base">School Code</label>
               <div className="relative">
@@ -275,6 +282,9 @@ export default function SchoolForm() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="flex items-start gap-3">
             <div className="w-full">
               <label className="label-base">School Timing Start</label>
               <div className="relative">
@@ -282,6 +292,18 @@ export default function SchoolForm() {
                 <input
                   type="text"
                   value={savedData.schoolTimingStart}
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              <label className="label-base">School Timing End</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.schoolTimingEnd}
                   disabled
                   className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
                 />
@@ -302,18 +324,7 @@ export default function SchoolForm() {
                 />
               </div>
             </div>
-            <div className="w-full">
-              <label className="label-base">School Timing End</label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-                <input
-                  type="text"
-                  value={savedData.schoolTimingEnd}
-                  disabled
-                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
-                />
-              </div>
-            </div>
+            <div className="w-full" />
           </div>
         </div>
       </div>
@@ -329,17 +340,7 @@ export default function SchoolForm() {
               type="button"
               onClick={() => setIsEditOpen(false)}
               disabled={isSubmitting}
-              className="
-                px-5 py-3
-                rounded-[var(--radius-sm)]
-                cursor-pointer
-                border border-[var(--border)]
-                bg-[var(--surface)]
-                text-sm font-medium text-[var(--text-2)]
-                hover:bg-[var(--bg-2)]
-                transition
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+              className="px-5 py-3 rounded-[var(--radius-sm)] cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--text-2)] hover:bg-[var(--bg-2)] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -361,7 +362,9 @@ export default function SchoolForm() {
         >
           <div className="flex items-start gap-3">
             <div className="w-full">
-              <label className="label-base">School Name</label>
+              <label className="label-base">
+                School Name <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
@@ -371,12 +374,14 @@ export default function SchoolForm() {
                   className={`input-base pl-9 ${errors.name ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.name?.message}
               </span>
             </div>
             <div className="w-full">
-              <label className="label-base">Type</label>
+              <label className="label-base">
+                Type <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
                 <select
@@ -389,7 +394,7 @@ export default function SchoolForm() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.type?.message}
               </span>
             </div>
@@ -397,7 +402,10 @@ export default function SchoolForm() {
 
           <div className="flex items-start gap-3">
             <div className="w-full">
-              <label className="label-base">Affiliation Board</label>
+              <label className="label-base">
+                Affiliation Board{" "}
+                <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <BookMarked className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
                 <select
@@ -411,12 +419,15 @@ export default function SchoolForm() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.affiliationBoard?.message}
               </span>
             </div>
             <div className="w-full">
-              <label className="label-base">Medium of Instruction</label>
+              <label className="label-base">
+                Medium of Instruction{" "}
+                <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
                 <select
@@ -431,7 +442,7 @@ export default function SchoolForm() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.mediumOfInstruction?.message}
               </span>
             </div>
@@ -439,7 +450,9 @@ export default function SchoolForm() {
 
           <div className="flex items-start gap-3">
             <div className="flex-1">
-              <label className="label-base">Address</label>
+              <label className="label-base">
+                Address <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 w-4 h-4 text-[var(--text-3)]" />
                 <textarea
@@ -448,11 +461,11 @@ export default function SchoolForm() {
                   className={`input-base pl-9 resize-none py-2 w-full min-h-[120px] ${errors.address ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.address?.message}
               </span>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 mt-3">
               <label className="label-base">Establishment Year</label>
               <div className="relative">
                 <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
@@ -472,7 +485,7 @@ export default function SchoolForm() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)] pointer-events-none z-10" />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.establishmentYear?.message}
               </span>
             </div>
@@ -490,10 +503,28 @@ export default function SchoolForm() {
                   className={`input-base pl-9 ${errors.emailOfficial ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.emailOfficial?.message}
               </span>
             </div>
+            <div className="w-full">
+              <label className="label-base">Admin Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("emailAdmin")}
+                  type="email"
+                  placeholder="admin@school.com"
+                  className={`input-base pl-9 ${errors.emailAdmin ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.emailAdmin?.message}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
             <div className="w-full">
               <label className="label-base">Contact</label>
               <div className="relative">
@@ -501,7 +532,7 @@ export default function SchoolForm() {
                 <input
                   {...register("contact")}
                   type="tel"
-                  placeholder="98765 43210"
+                  placeholder="9876543210"
                   maxLength={10}
                   onKeyDown={e => {
                     if (
@@ -520,13 +551,10 @@ export default function SchoolForm() {
                   className={`input-base pl-9 ${errors.contact ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.contact?.message}
               </span>
             </div>
-          </div>
-
-          <div className="flex items-start gap-3">
             <div className="w-full">
               <label className="label-base">School Code</label>
               <div className="relative">
@@ -538,10 +566,13 @@ export default function SchoolForm() {
                   className={`input-base pl-9 ${errors.schoolCode ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.schoolCode?.message}
               </span>
             </div>
+          </div>
+
+          <div className="flex items-start gap-3">
             <div className="w-full">
               <label className="label-base">School Timing Start</label>
               <div className="relative">
@@ -560,26 +591,8 @@ export default function SchoolForm() {
                   className={`input-base pl-9 ${errors.schoolTimingStart ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.schoolTimingStart?.message}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-full">
-              <label className="label-base">Website URL</label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-                <input
-                  {...register("websiteUrl")}
-                  type="url"
-                  placeholder="https://www.school.com"
-                  className={`input-base pl-9 ${errors.websiteUrl ? "error" : ""}`}
-                />
-              </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
-                {errors.websiteUrl?.message}
               </span>
             </div>
             <div className="w-full">
@@ -603,10 +616,29 @@ export default function SchoolForm() {
                   } ${errors.schoolTimingEnd ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.schoolTimingEnd?.message}
               </span>
             </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">Website URL</label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("websiteUrl")}
+                  type="url"
+                  placeholder="https://www.school.com"
+                  className={`input-base pl-9 ${errors.websiteUrl ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.websiteUrl?.message}
+              </span>
+            </div>
+            <div className="w-full" />
           </div>
         </form>
       </Modal>

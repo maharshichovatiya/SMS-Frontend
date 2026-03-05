@@ -8,11 +8,11 @@ import {
   ChevronRight,
   Users,
   Briefcase,
-  DollarSign,
   Calendar,
   Clock,
   UserCheck,
   Building2,
+  IndianRupee,
 } from "lucide-react";
 import {
   AGE_OPTIONS,
@@ -274,7 +274,7 @@ export default function TeacherFilters({
 
               <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
-                  <DollarSign size={16} />
+                  <IndianRupee size={16} />
                   Salary Package
                 </label>
                 <div className="space-y-1">

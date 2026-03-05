@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getProfile, updateProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
-import { User, Shield, Lock, Eye, EyeOff, Pencil } from "lucide-react";
+import { User, Shield, Lock, Eye, EyeOff, Pencil, Phone } from "lucide-react";
 import {
   ProfileFormData,
   profileSchema,
@@ -18,7 +18,12 @@ export default function ProfileForm() {
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [savedName, setSavedName] = useState({ firstName: "", lastName: "" });
+  const [savedData, setSavedData] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    phone: "",
+  });
 
   const {
     register,
@@ -29,7 +34,9 @@ export default function ProfileForm() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: "",
+      middleName: "",
       lastName: "",
+      phone: "",
       password: "",
     },
     mode: "onSubmit",
@@ -41,15 +48,14 @@ export default function ProfileForm() {
         const data = await getProfile();
         setProfileId(data.id ?? "");
         setEmail(data.email ?? "");
-        reset({
+        const profileData = {
           firstName: data.firstName ?? "",
+          middleName: data.middleName ?? "",
           lastName: data.lastName ?? "",
-          password: "",
-        });
-        setSavedName({
-          firstName: data.firstName ?? "",
-          lastName: data.lastName ?? "",
-        });
+          phone: data.phone ?? "",
+        };
+        reset({ ...profileData, password: "" });
+        setSavedData(profileData);
       } catch (error) {
         const err = error as Error;
         showToast.error(err.message);
@@ -65,28 +71,30 @@ export default function ProfileForm() {
     try {
       await updateProfile(profileId, {
         firstName: data.firstName,
+        middleName: data.middleName,
         lastName: data.lastName,
+        phone: data.phone,
         password: data.password,
       });
       showToast.success("Profile updated successfully");
+      const updated = {
+        firstName: data.firstName,
+        middleName: data.middleName ?? "",
+        lastName: data.lastName,
+        phone: data.phone ?? "",
+      };
       reset({ ...data, password: "" });
-      setSavedName({ firstName: data.firstName, lastName: data.lastName });
+      setSavedData(updated);
       setIsEditOpen(false);
     } catch (error: unknown) {
       let message = "Profile not updated";
-      if (error instanceof Error) {
-        message = error.message;
-      }
+      if (error instanceof Error) message = error.message;
       showToast.error(message);
     }
   };
 
   const handleOpenEdit = () => {
-    reset({
-      firstName: savedName.firstName,
-      lastName: savedName.lastName,
-      password: "",
-    });
+    reset({ ...savedData, password: "" });
     setShowPassword(false);
     setIsEditOpen(true);
   };
@@ -96,23 +104,8 @@ export default function ProfileForm() {
 
   return (
     <>
-      <div
-        className="
-          bg-[var(--surface)]
-          border border-[var(--border)]
-          rounded-[var(--radius-xl)]
-          shadow-[var(--shadow)]
-          overflow-hidden
-        "
-      >
-        <div
-          className="
-            px-8 py-4
-            border-b border-[var(--border)]
-            bg-[var(--surface-2)]
-            flex items-center justify-between
-          "
-        >
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-xl)] shadow-[var(--shadow)] overflow-hidden">
+        <div className="px-8 py-4 border-b border-[var(--border)] bg-[var(--surface-2)] flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--text)]">
             Admin Profile
           </h2>
@@ -126,33 +119,20 @@ export default function ProfileForm() {
         </div>
 
         <div className="p-4 space-y-4">
-          <div
-            className="
-              flex items-center justify-between
-              bg-[var(--bg-2)]
-              rounded-[var(--radius-lg)]
-              p-6
-            "
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className="
-                  w-12 h-12
-                  rounded-full
-                  flex items-center justify-center
-                  text-white font-bold text-xl
-                "
-                style={{ background: "var(--grad-primary)" }}
-              >
-                {savedName.firstName?.charAt(0).toUpperCase()}
-                {savedName.lastName?.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="font-semibold text-[var(--text)]">
-                  {savedName.firstName} {savedName.lastName}
-                </p>
-                <p className="text-sm text-[var(--text-2)]">{email}</p>
-              </div>
+          <div className="flex items-center gap-4 bg-[var(--bg-2)] rounded-[var(--radius-lg)] p-6">
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0"
+              style={{ background: "var(--grad-primary)" }}
+            >
+              {savedData.firstName?.charAt(0).toUpperCase()}
+              {savedData.lastName?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">
+                {savedData.firstName} {savedData.middleName}{" "}
+                {savedData.lastName}
+              </p>
+              <p className="text-sm text-[var(--text-2)]">{email}</p>
             </div>
           </div>
 
@@ -163,20 +143,49 @@ export default function ProfileForm() {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
                   type="text"
-                  value={savedName.firstName}
+                  value={savedData.firstName}
                   disabled
                   className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
                 />
               </div>
             </div>
             <div className="w-full">
+              <label className="label-base">Middle Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.middleName}
+                  placeholder="Middle name"
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
               <label className="label-base">Last Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
                   type="text"
-                  value={savedName.lastName}
+                  value={savedData.lastName}
                   disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              <label className="label-base">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.phone}
+                  disabled
+                  placeholder="Phone number"
                   className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
                 />
               </div>
@@ -223,17 +232,7 @@ export default function ProfileForm() {
               type="button"
               onClick={() => setIsEditOpen(false)}
               disabled={isSubmitting}
-              className="
-                px-5 py-3
-                rounded-[var(--radius-sm)]
-                cursor-pointer
-                border border-[var(--border)]
-                bg-[var(--surface)]
-                text-sm font-medium text-[var(--text-2)]
-                hover:bg-[var(--bg-2)]
-                transition
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
+              className="px-5 py-3 rounded-[var(--radius-sm)] cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--text-2)] hover:bg-[var(--bg-2)] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -255,7 +254,9 @@ export default function ProfileForm() {
         >
           <div className="flex items-start gap-3">
             <div className="w-full">
-              <label className="label-base">First Name</label>
+              <label className="label-base">
+                First Name <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
@@ -265,12 +266,32 @@ export default function ProfileForm() {
                   className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.firstName?.message}
               </span>
             </div>
+            <div className="w-full mt-3">
+              <label className="label-base">Middle Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("middleName")}
+                  type="text"
+                  placeholder="Middle Name"
+                  className={`input-base pl-9 ${errors.middleName ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.middleName?.message}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
             <div className="w-full">
-              <label className="label-base">Last Name</label>
+              <label className="label-base">
+                Last Name <span className="text-red-500 text-lg">*</span>
+              </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
@@ -280,8 +301,38 @@ export default function ProfileForm() {
                   className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
                 />
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.lastName?.message}
+              </span>
+            </div>
+            <div className="w-full mt-3">
+              <label className="label-base">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("phone")}
+                  type="tel"
+                  maxLength={10}
+                  placeholder="9876543210"
+                  onKeyDown={e => {
+                    if (
+                      !/[0-9]/.test(e.key) &&
+                      ![
+                        "Backspace",
+                        "Delete",
+                        "Tab",
+                        "ArrowLeft",
+                        "ArrowRight",
+                      ].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className={`input-base pl-9 ${errors.phone ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.phone?.message}
               </span>
             </div>
           </div>
@@ -298,6 +349,7 @@ export default function ProfileForm() {
                   className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
                 />
               </div>
+              <span className="min-h-[16px] block" />
             </div>
             <div className="w-full">
               <label className="label-base">New Password</label>
@@ -321,7 +373,7 @@ export default function ProfileForm() {
                   )}
                 </button>
               </div>
-              <span className="text-xs text-[var(--rose)] min-h-[16px]">
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
                 {errors.password?.message}
               </span>
             </div>

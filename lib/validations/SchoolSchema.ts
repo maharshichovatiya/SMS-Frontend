@@ -3,8 +3,11 @@ import z from "zod";
 export const schoolSchema = z
   .object({
     name: z.string().min(1, "School name is required").max(200, "Too long"),
-    affiliationBoard: z.string().optional(),
-    address: z.string().max(100, "Address is too long").optional(),
+    affiliationBoard: z.string().min(1, "Affiliation board is required"),
+    address: z
+      .string()
+      .min(1, "Address is required")
+      .max(100, "Address is too long"),
     establishmentYear: z
       .string()
       .refine(
@@ -23,7 +26,14 @@ export const schoolSchema = z
       })
       .max(50, "Email is too long")
       .optional(),
-    type: z.string().optional(),
+    emailAdmin: z
+      .string()
+      .refine(val => val === "" || z.string().email().safeParse(val).success, {
+        message: "Please enter a valid email address",
+      })
+      .max(50, "Email is too long")
+      .optional(),
+    type: z.string().min(1, "Type is required"),
     contact: z
       .string()
       .trim()
@@ -33,7 +43,7 @@ export const schoolSchema = z
         message: "Contact number must be exactly 10 digits",
       }),
     schoolCode: z.string().max(20, "School code is too long").optional(),
-    mediumOfInstruction: z.string().optional(),
+    mediumOfInstruction: z.string().min(1, "Medium of instruction is required"),
     schoolTimingStart: z
       .string()
       .refine(
