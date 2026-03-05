@@ -43,7 +43,7 @@ export default function ClassForm({
   useEffect(() => {
     if (defaultValues) {
       reset({
-        classNo: String(defaultValues.classNo ?? ""),
+        className: String(defaultValues.className ?? ""),
         section: defaultValues.section ?? "",
         classTeacherId: defaultValues.classTeacherId ?? null,
         studentCapacity: defaultValues.studentCapacity ?? undefined,
@@ -116,7 +116,7 @@ export default function ClassForm({
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Class No <span className="text-red-500 text-lg">*</span>
+              Class Name <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">
               <Hash
@@ -124,15 +124,21 @@ export default function ClassForm({
                 style={{ color: "var(--text-3)" }}
               />
               <select
-                {...register("classNo")}
-                className={`input-base pl-9 pr-9 appearance-none ${errors.classNo ? "error" : ""}`}
+                {...register("className")}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.className ? "error" : ""}`}
               >
                 <option value="">Select class</option>
+                <option value="LKG">class LKG</option>
+                <option value="UKG">class UKG</option>
                 {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
                   <option key={num} value={String(num)}>
-                    Class {num}
+                    class {num}
                   </option>
                 ))}
+                <option value="11-science">class 11 Science</option>
+                <option value="11-commerce">class 11 Commerce</option>
+                <option value="12-science">class 12 Science</option>
+                <option value="12-commerce">class 12 Commerce</option>
               </select>
               <ChevronDown
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -140,7 +146,7 @@ export default function ClassForm({
               />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
-              {errors.classNo?.message}
+              {errors.className?.message}
             </span>
           </div>
 
@@ -158,7 +164,7 @@ export default function ClassForm({
                 className={`input-base pl-9 pr-9 appearance-none ${errors.section ? "error" : ""}`}
               >
                 <option value="">Select section</option>
-                {["A", "B", "C", "D", "E"].map(s => (
+                {["A", "B", "C", "D"].map(s => (
                   <option key={s} value={s}>
                     {s}
                   </option>

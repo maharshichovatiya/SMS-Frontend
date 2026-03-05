@@ -10,12 +10,20 @@ import api from "../Axios";
 
 export const getClassSummary = async (
   search?: string,
+  availability?: string,
   type?: string,
+  section?: string,
+  capacity?: string,
+  studentCount?: string,
 ): Promise<GetClassesResponse> => {
   try {
     const params: Record<string, string> = {};
     if (search) params.search = search;
+    if (availability) params.availability = availability;
     if (type) params.type = type;
+    if (section) params.section = section;
+    if (capacity) params.capacity = capacity;
+    if (studentCount) params.studentCount = studentCount;
 
     const res = await api.get("/classes/class-summary", { params });
     return {

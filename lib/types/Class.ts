@@ -48,7 +48,7 @@ export interface ClassSubject {
 
 export interface ClassItem {
   id: string;
-  classNo: number | string;
+  className: number | string;
   section: string;
   classTeacherId: string | null;
   studentCapacity: number;

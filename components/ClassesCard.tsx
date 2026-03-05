@@ -13,12 +13,13 @@ interface Props {
   onSuccess?: () => void;
 }
 
-const getClassLevel = (classNo: string | number) => {
-  const num = parseInt(String(classNo));
-  if (num >= 1 && num <= 5) return "Primary";
-  if (num >= 6 && num <= 8) return "Upper Primary";
+const getClassLevel = (className: string | number) => {
+  const str = String(className).trim().toLowerCase();
+  if (str === "lkg" || str === "ukg") return "Pre-Primary";
+  const num = parseInt(str);
+  if (num >= 1 && num <= 8) return "Primary";
   if (num >= 9 && num <= 10) return "Secondary";
-  // if (num >= 11 && num <= 12) return "Senior";
+  if (num >= 11 && num <= 12) return "Higher Secondary";
   return "Unknown";
 };
 
@@ -36,7 +37,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
     ? `${cls.classTeacher.user.firstName?.charAt(0)}${cls.classTeacher.user.lastName?.charAt(0)}`
     : "?";
 
-  const level = getClassLevel(cls.classNo);
+  const level = getClassLevel(cls.className);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -70,7 +71,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h2 className="text-2xl sm:text-3xl font-black leading-none text-[var(--blue)]">
-              {cls.classNo}
+              {cls.className}
               <span className="text-xl sm:text-2xl font-extrabold">
                 -{cls.section}
               </span>
@@ -89,7 +90,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         <div className="border-t border-[var(--border)] my-3" />
 
         <p className="text-sm font-bold text-[var(--text)] mb-1.5">
-          Class {cls.classNo} · Section {cls.section}
+          Class {cls.className} · Section {cls.section}
         </p>
 
         <div className="flex items-center gap-1.5 mb-3 min-w-0">
@@ -213,7 +214,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
       <Modal
         isOpen={openDetail}
         onClose={() => setOpenDetail(false)}
-        title={`Class ${cls.classNo} — Section ${cls.section}`}
+        title={`Class ${cls.className} — Section ${cls.section}`}
         description={`${level} · ${academicYear} · ${cls.status}`}
       >
         <div className="space-y-4">
@@ -335,7 +336,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
             onSuccess?.();
           }}
           defaultValues={{
-            classNo: String(cls.classNo),
+            className: String(cls.className),
             section: cls.section,
             studentCapacity: cls.studentCapacity,
             classTeacherId: cls.classTeacherId ?? undefined,
@@ -369,7 +370,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         <p className="text-sm text-[var(--text-2)]">
           Are you sure you want to delete{" "}
           <strong className="text-[var(--text)]">
-            Class {cls.classNo} — Section {cls.section}
+            Class {cls.className} — Section {cls.section}
           </strong>
           ?
         </p>

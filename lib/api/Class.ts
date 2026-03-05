@@ -27,7 +27,7 @@ export interface ClassSubject {
 
 export interface Class {
   id: string;
-  classNo: number;
+  className: number;
   section: string;
   classTeacherId: string | null;
   studentCapacity: number | null;
