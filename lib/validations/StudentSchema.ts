@@ -40,11 +40,6 @@ export const createStudentSchema = z.object({
     .max(10, "Phone cannot exceed 10 digits")
     .min(10, "Phone must be exactly 10 digits")
     .regex(/^\d{10}$/, "Phone must be a 10-digit number"),
-  admissionNo: z
-    .string()
-    .min(1, "Admission No is required")
-    .max(20, "Admission No cannot exceed 20 characters")
-    .regex(/^\d+$/, "Must be a number"),
   rollNo: z
     .string()
     .min(1, "Roll No is required")
@@ -119,11 +114,7 @@ export const createStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || val.length <= 15,
-      "Family income cannot exceed 15 characters",
-    )
-    .refine(
-      val => !val || /^\d+$/.test(val),
+      val => !val || /^\d*$/.test(val),
       "Family income must contain only numbers",
     )
     .refine(
@@ -138,6 +129,7 @@ export const createStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for create student
   classId: z.string().optional(),
   academicYearId: z.string().optional(),
@@ -184,11 +176,6 @@ export const updateStudentSchema = z.object({
     .regex(/^\d{10}$/, "Phone must be a 10-digit number")
     .or(z.literal(""))
     .optional(),
-  admissionNo: z
-    .string()
-    .min(1, "Admission No is required")
-    .max(20, "Admission No cannot exceed 20 characters")
-    .regex(/^\d+$/, "Admission No must contain only numbers"),
   rollNo: z
     .string()
     .min(1, "Roll No is required")
@@ -263,11 +250,7 @@ export const updateStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || val.length <= 15,
-      "Family income cannot exceed 15 characters",
-    )
-    .refine(
-      val => !val || /^\d+$/.test(val),
+      val => !val || /^\d*$/.test(val),
       "Family income must contain only numbers",
     )
     .refine(
@@ -282,6 +265,7 @@ export const updateStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for update student
   classId: z.string().optional(),
   academicYearId: z.string().optional(),
@@ -294,10 +278,10 @@ export type StudentFormValues = {
   email: string;
   password?: string;
   phone?: string;
-  admissionNo: string;
   rollNo: string;
   admissionDate: string;
   dob?: string;
+  gender?: "male" | "female" | "other" | "";
   status?: "active" | "inactive";
   fatherName?: string;
   fatherPhone?: string;
@@ -368,6 +352,16 @@ export const STUDENT_FIELDS: {
     label: "Date of Birth",
     type: "date",
     placeholder: "",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "gender",
+    label: "Gender",
+    type: "select",
+    placeholder: "Select gender",
     optional: true,
     fullWidth: true,
     section: "Personal Details",

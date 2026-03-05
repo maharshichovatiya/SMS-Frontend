@@ -10,7 +10,12 @@ export enum RecordStatus {
 }
 
 const filterEmptyOptionalFields = (
-  data: StudentFormValues | Partial<StudentFormValues>,
+  data:
+    | StudentFormValues
+    | Partial<StudentFormValues>
+    | (Omit<StudentFormValues, "familyAnnualIncome"> & {
+        familyAnnualIncome?: number;
+      }),
 ) => {
   const filteredData: Record<string, string | number> = {};
 
@@ -137,6 +142,12 @@ export interface StudentQueryParams {
   classId?: string;
   sectionId?: string;
   schoolId?: string;
+  gender?: string;
+  academicYearId?: string;
+  fromDate?: string;
+  toDate?: string;
+  fromFamilyIncome?: number;
+  toFamilyIncome?: number;
 }
 
 export const studentApis = {
@@ -147,7 +158,11 @@ export const studentApis = {
     return res.data;
   },
   addStudent: async (
-    data: (StudentFormValues & { roleId: string; schoolId: string }) & {
+    data: (Omit<StudentFormValues, "familyAnnualIncome"> & {
+      familyAnnualIncome?: number;
+      roleId: string;
+      schoolId: string;
+    }) & {
       academic?: {
         classId: string;
         academicYearId: string;

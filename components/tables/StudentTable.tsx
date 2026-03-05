@@ -20,7 +20,6 @@ interface Student {
   lastName: string;
   email: string;
   phone: string | null;
-  admissionNo: string;
   rollNo: string;
   admissionDate: string;
   class: string;
@@ -28,6 +27,7 @@ interface Student {
   academicYear?: string;
   academicYearId?: string;
   dob: string | null;
+  gender: string | null;
   guardian: string;
   status: string;
 
@@ -83,6 +83,12 @@ export default function StudentsTable({
     status?: RecordStatus;
     classId?: string;
     sectionId?: string;
+    gender?: string;
+    academicYearId?: string;
+    fromDate?: string;
+    toDate?: string;
+    fromFamilyIncome?: number;
+    toFamilyIncome?: number;
   };
   onTotalCountChange?: (count: number) => void;
 }) {
@@ -115,6 +121,12 @@ export default function StudentsTable({
         status: searchParams?.status,
         classId: searchParams?.classId,
         sectionId: searchParams?.sectionId,
+        gender: searchParams?.gender,
+        academicYearId: searchParams?.academicYearId,
+        fromDate: searchParams?.fromDate,
+        toDate: searchParams?.toDate,
+        fromFamilyIncome: searchParams?.fromFamilyIncome,
+        toFamilyIncome: searchParams?.toFamilyIncome,
       });
 
       if (response.data && response.data.data) {
@@ -138,7 +150,6 @@ export default function StudentsTable({
               lastName: apiStudent.user.lastName,
               email: apiStudent.user.email,
               phone: apiStudent.user.phone,
-              admissionNo: apiStudent.admissionNo,
               rollNo: apiStudent.rollNo,
               admissionDate: apiStudent.admissionDate,
               class: currentAcademic
@@ -148,6 +159,7 @@ export default function StudentsTable({
               academicYear: currentAcademic?.academicYear.yearName,
               academicYearId: currentAcademic?.academicYear.id,
               dob: apiStudent.user.dob || "N/A",
+              gender: apiStudent.user.gender || null,
               guardian: apiStudent.guardianName || "N/A",
               status: apiStudent.status
                 ? apiStudent.status.charAt(0).toUpperCase() +
@@ -184,10 +196,16 @@ export default function StudentsTable({
   }, [
     currentPage,
     pageSize,
-    searchParams?.search,
-    searchParams?.status,
-    searchParams?.classId,
-    searchParams?.sectionId,
+    searchParams?.search ?? null,
+    searchParams?.status ?? null,
+    searchParams?.classId ?? null,
+    searchParams?.sectionId ?? null,
+    searchParams?.gender ?? null,
+    searchParams?.academicYearId ?? null,
+    searchParams?.fromDate ?? null,
+    searchParams?.toDate ?? null,
+    searchParams?.fromFamilyIncome ?? null,
+    searchParams?.toFamilyIncome ?? null,
     onTotalCountChange,
   ]);
 
@@ -197,7 +215,18 @@ export default function StudentsTable({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchParams?.status, pageSize]);
+  }, [
+    searchParams?.status ?? null,
+    searchParams?.classId ?? null,
+    searchParams?.sectionId ?? null,
+    searchParams?.gender ?? null,
+    searchParams?.academicYearId ?? null,
+    searchParams?.fromDate ?? null,
+    searchParams?.toDate ?? null,
+    searchParams?.fromFamilyIncome ?? null,
+    searchParams?.toFamilyIncome ?? null,
+    pageSize,
+  ]);
 
   const totalPages = Math.ceil(totalStudents / pageSize);
   const paginatedStudents = students;
@@ -268,13 +297,15 @@ export default function StudentsTable({
                 lastName: editingStudent.lastName,
                 email: editingStudent.email,
                 phone: editingStudent.phone || "",
-                admissionNo: editingStudent.admissionNo,
                 rollNo: editingStudent.rollNo,
                 admissionDate: editingStudent.admissionDate,
                 dob:
                   editingStudent.dob === "N/A" || editingStudent.dob === null
                     ? ""
                     : editingStudent.dob,
+                gender:
+                  (editingStudent.gender as "male" | "female" | "other" | "") ||
+                  "",
                 status: editingStudent.status.toLowerCase() as
                   | "active"
                   | "inactive",
@@ -307,7 +338,7 @@ export default function StudentsTable({
               type="button"
               onClick={() => setDeletingStudent(null)}
               disabled={isDeleting}
-              className="px-5 cursor-pointer py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors h-[52px]"
+              className="px-5 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -315,7 +346,7 @@ export default function StudentsTable({
               type="button"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="px-5 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--rose)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-5 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--rose)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Yes, Delete"}
             </button>
@@ -327,9 +358,8 @@ export default function StudentsTable({
             Are you sure you want to delete{" "}
             <span className="font-semibold text-[var(--text)]">
               {deletingStudent?.firstName} {deletingStudent?.lastName}
-            </span>{" "}
-            (ST-2026-{String(deletingStudent?.admissionNo).padStart(3, "0")})?{" "}
-            This action cannot be undone.
+            </span>
+            ? This action cannot be undone.
           </p>
         </div>
       </Modal>
@@ -346,9 +376,6 @@ export default function StudentsTable({
               <p className="text-sm font-semibold text-[var(--text)]">
                 {assigningClassStudent.firstName}{" "}
                 {assigningClassStudent.lastName}
-              </p>
-              <p className="text-xs text-[var(--text-3)]">
-                Admission No: {assigningClassStudent.admissionNo}
               </p>
             </div>
           )}
@@ -419,7 +446,6 @@ export default function StudentsTable({
                     student.firstName,
                     student.lastName,
                   );
-                  const studentCode = `ST-2026-${String(student.admissionNo).padStart(3, "0")}`;
 
                   return (
                     <tr
@@ -436,7 +462,7 @@ export default function StudentsTable({
                               {fullName}
                             </p>
                             <p className="text-xs text-[var(--text-3)]">
-                              {studentCode}
+                              Roll No: {student.rollNo}
                             </p>
                           </div>
                         </div>

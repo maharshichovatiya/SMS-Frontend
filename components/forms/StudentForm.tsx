@@ -23,6 +23,11 @@ import {
 import { studentApis } from "@/lib/api/Student";
 import { classApis, Class, AcademicYear } from "@/lib/api/Class";
 import { showToast } from "@/lib/utils/Toast";
+import {
+  handleStringField,
+  handleNonStringField,
+  handleStatusField,
+} from "@/lib/utils/FieldHandlers";
 import DateInput from "@/components/ui/DateInput";
 
 interface StudentFormProps {
@@ -32,6 +37,9 @@ interface StudentFormProps {
     academicYearId?: string;
     isAssigned?: boolean;
     className?: string;
+    user?: {
+      gender?: string;
+    };
   };
   onSubmitSuccess?: () => void;
   onClose: () => void;
@@ -57,7 +65,8 @@ export default function StudentForm({
       case "firstName":
       case "middleName":
       case "lastName":
-        return User;
+      case "gender":
+        return Users;
       case "email":
         return Mail;
       case "phone":
@@ -88,6 +97,7 @@ export default function StudentForm({
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<StudentFormValues>({
     resolver: zodResolver(
@@ -110,13 +120,70 @@ export default function StudentForm({
       guardianName: "",
       familyAnnualIncome: "",
       medicalConditions: "",
+      gender: "",
+      classId: "",
+      academicYearId: "",
     },
-    mode: "onChange",
+    mode: "onSubmit",
   });
+
+  const [hasChanges, setHasChanges] = useState(false);
+  const formData = watch();
+
+  // Monitor form changes to enable/disable submit button
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      const changedStudentFields = getChangedFields(formData, initialData);
+
+      // Check academic assignment changes (normalize undefined/null to "" for comparison)
+      const academicChanged =
+        (formData.classId || "") !== (initialData.classId || "") ||
+        (formData.academicYearId || "") !== (initialData.academicYearId || "");
+
+      const rollNoChanged =
+        (formData.rollNo || "") !== (initialData.rollNo || "");
+
+      const hasAnyChanges =
+        Object.keys(changedStudentFields).length > 0 ||
+        academicChanged ||
+        rollNoChanged;
+
+      setHasChanges(hasAnyChanges);
+    } else {
+      // For create mode, always enable if form has required fields
+      setHasChanges(
+        !!formData.firstName && !!formData.lastName && !!formData.email,
+      );
+    }
+  }, [formData, initialData, isEditMode]);
 
   useEffect(() => {
     if (initialData) {
-      reset({ ...initialData });
+      // Create a clean form data object without user property
+      const formDataToReset: Partial<StudentFormValues> = {
+        firstName: initialData.firstName,
+        middleName: initialData.middleName,
+        lastName: initialData.lastName,
+        email: initialData.email,
+        password: initialData.password,
+        phone: initialData.phone,
+        rollNo: initialData.rollNo,
+        admissionDate: initialData.admissionDate,
+        dob: initialData.dob,
+        gender: (initialData.gender as "male" | "female" | "other" | "") || "",
+        status: initialData.status,
+        fatherName: initialData.fatherName,
+        fatherPhone: initialData.fatherPhone,
+        motherName: initialData.motherName,
+        guardianName: initialData.guardianName,
+        familyAnnualIncome: initialData.familyAnnualIncome
+          ? Math.floor(Number(initialData.familyAnnualIncome)).toString()
+          : "",
+        medicalConditions: initialData.medicalConditions,
+        classId: initialData.classId,
+        academicYearId: initialData.academicYearId,
+      };
+      reset(formDataToReset);
     }
   }, [initialData, reset]);
 
@@ -173,6 +240,35 @@ export default function StudentForm({
     fetchData();
   }, [isEditMode, initialData, setValue]);
 
+  // Define proper interface for student creation payload
+  interface CreateStudentPayload {
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    email: string;
+    password?: string;
+    phone?: string;
+    rollNo: string;
+    admissionDate: string;
+    dob?: string;
+    status?: "active" | "inactive";
+    fatherName?: string;
+    fatherPhone?: string;
+    motherName?: string;
+    guardianName?: string;
+    familyAnnualIncome?: number;
+    medicalConditions?: string;
+    classId?: string;
+    academicYearId?: string;
+    roleId: string;
+    schoolId: string;
+    academic?: {
+      classId: string;
+      academicYearId: string;
+      rollNo?: string | null;
+    };
+  }
+
   // Function to get only changed fields
   const getChangedFields = (
     formData: StudentFormValues,
@@ -191,177 +287,49 @@ export default function StudentForm({
       const formValue = formData[key as keyof StudentFormValues];
       const initialValue = initialData?.[key as keyof typeof initialData];
 
-      // Handle different types of comparisons
-      if (formValue !== initialValue) {
+      // Special handling for familyAnnualIncome due to number/string conversion
+      if (key === "familyAnnualIncome") {
+        const formNum = formValue ? parseInt(formValue) : undefined;
+        const initialNum =
+          initialValue !== undefined && initialValue !== ""
+            ? Math.floor(Number(initialValue))
+            : undefined;
+
+        if (formNum !== initialNum) {
+          if (formValue !== undefined && formValue !== "") {
+            changedFields.familyAnnualIncome = formValue;
+          }
+        }
+        return;
+      }
+
+      // Normalize undefined/null to "" for consistent comparison
+      const normalizedFormValue = formValue ?? "";
+      const normalizedInitialValue = initialValue ?? "";
+
+      // Handle different types of comparisons for other fields
+      if (normalizedFormValue !== normalizedInitialValue) {
         // For string fields, check if both are empty/null/undefined
-        if (typeof formValue === "string" && typeof initialValue === "string") {
-          if (formValue.trim() !== initialValue.trim()) {
-            // Special handling for status field to ensure proper type
-            if (
-              key === "status" &&
-              (formValue === "active" || formValue === "inactive")
-            ) {
-              const typedChangedFields =
-                changedFields as Partial<StudentFormValues> & {
-                  status?: "active" | "inactive";
-                };
-              typedChangedFields.status = formValue;
-            } else if (key !== "status") {
-              // Handle each non-status field explicitly with proper typing
-              switch (key) {
-                case "firstName":
-                  changedFields.firstName = formValue;
-                  break;
-                case "lastName":
-                  changedFields.lastName = formValue;
-                  break;
-                case "email":
-                  changedFields.email = formValue;
-                  break;
-                case "phone":
-                  changedFields.phone = formValue;
-                  break;
-                case "admissionNo":
-                  changedFields.admissionNo = formValue;
-                  break;
-                case "rollNo":
-                  changedFields.rollNo = formValue;
-                  break;
-                case "admissionDate":
-                  changedFields.admissionDate = formValue;
-                  break;
-                case "dob":
-                  changedFields.dob = formValue;
-                  break;
-                case "fatherName":
-                  changedFields.fatherName = formValue;
-                  break;
-                case "fatherPhone":
-                  changedFields.fatherPhone = formValue;
-                  break;
-                case "motherName":
-                  changedFields.motherName = formValue;
-                  break;
-                case "guardianName":
-                  changedFields.guardianName = formValue;
-                  break;
-                case "familyAnnualIncome":
-                  changedFields.familyAnnualIncome = formValue;
-                  break;
-                case "medicalConditions":
-                  changedFields.medicalConditions = formValue;
-                  break;
-                case "middleName":
-                  changedFields.middleName = formValue;
-                  break;
-                case "password":
-                  changedFields.password = formValue;
-                  break;
-                case "classId":
-                  changedFields.classId = formValue;
-                  break;
-                case "academicYearId":
-                  changedFields.academicYearId = formValue;
-                  break;
-                default:
-                  // For any other fields, handle status field separately
-                  if (key === "status") {
-                    // This should not reach here due to earlier check, but just in case
-                    const typedChangedFields =
-                      changedFields as Partial<StudentFormValues> & {
-                        status?: "active" | "inactive";
-                      };
-                    if (formValue === "active" || formValue === "inactive") {
-                      typedChangedFields.status = formValue;
-                    }
-                  } else {
-                    // Handle other fields with proper typing
-                    const fieldKey = key as keyof StudentFormValues;
-                    if (fieldKey === "status") {
-                      // Type assertion for status field
-                      const statusTypedFields =
-                        changedFields as Partial<StudentFormValues>;
-                      statusTypedFields.status = formValue as
-                        | "active"
-                        | "inactive";
-                    } else {
-                      changedFields[fieldKey] =
-                        formValue as StudentFormValues[keyof StudentFormValues];
-                    }
-                  }
-              }
+        if (
+          typeof normalizedFormValue === "string" &&
+          typeof normalizedInitialValue === "string"
+        ) {
+          if (normalizedFormValue.trim() !== normalizedInitialValue.trim()) {
+            // Handle status field with proper type checking
+            if (key === "status") {
+              handleStatusField(normalizedFormValue, changedFields);
+            } else {
+              // Handle other string fields
+              handleStringField(key, normalizedFormValue, changedFields);
             }
           }
         } else {
-          // Special handling for status field to ensure proper type
-          if (
-            key === "status" &&
-            typeof formValue === "string" &&
-            (formValue === "active" || formValue === "inactive")
-          ) {
-            const typedChangedFields =
-              changedFields as Partial<StudentFormValues> & {
-                status?: "active" | "inactive";
-              };
-            typedChangedFields.status = formValue;
+          // Handle status field with proper type checking
+          if (key === "status" && typeof normalizedFormValue === "string") {
+            handleStatusField(normalizedFormValue, changedFields);
           } else if (key !== "status") {
-            // Handle each non-status field explicitly for non-string types
-            switch (key) {
-              case "firstName":
-                changedFields.firstName = formValue as string;
-                break;
-              case "middleName":
-                changedFields.middleName = formValue as string;
-                break;
-              case "lastName":
-                changedFields.lastName = formValue as string;
-                break;
-              case "email":
-                changedFields.email = formValue as string;
-                break;
-              case "phone":
-                changedFields.phone = formValue as string;
-                break;
-              case "admissionNo":
-                changedFields.admissionNo = formValue as string;
-                break;
-              case "rollNo":
-                changedFields.rollNo = formValue as string;
-                break;
-              case "admissionDate":
-                changedFields.admissionDate = formValue as string;
-                break;
-              case "dob":
-                changedFields.dob = formValue as string;
-                break;
-              case "fatherName":
-                changedFields.fatherName = formValue as string;
-                break;
-              case "fatherPhone":
-                changedFields.fatherPhone = formValue as string;
-                break;
-              case "motherName":
-                changedFields.motherName = formValue as string;
-                break;
-              case "guardianName":
-                changedFields.guardianName = formValue as string;
-                break;
-              case "familyAnnualIncome":
-                changedFields.familyAnnualIncome = formValue as string;
-                break;
-              case "medicalConditions":
-                changedFields.medicalConditions = formValue as string;
-                break;
-              case "password":
-                changedFields.password = formValue as string;
-                break;
-              case "classId":
-                changedFields.classId = formValue as string;
-                break;
-              case "academicYearId":
-                changedFields.academicYearId = formValue as string;
-                break;
-            }
+            // Handle non-string fields
+            handleNonStringField(key, normalizedFormValue, changedFields);
           }
         }
       }
@@ -378,6 +346,14 @@ export default function StudentForm({
         return;
       }
 
+      // Convert familyAnnualIncome from string to number if present
+      const processedData = {
+        ...data,
+        familyAnnualIncome: data.familyAnnualIncome
+          ? parseInt(data.familyAnnualIncome)
+          : undefined,
+      };
+
       if (isEditMode) {
         if (!initialData?.id) {
           showToast.error("Student ID is required for update");
@@ -385,7 +361,8 @@ export default function StudentForm({
         }
 
         // Prepare update payload with only student data changes (exclude academic fields)
-        const { classId, academicYearId, rollNo, ...studentFieldsOnly } = data;
+        const { classId, academicYearId, rollNo, ...studentFieldsOnly } =
+          processedData;
         const {
           classId: initialClassId,
           academicYearId: initialAcademicYearId,
@@ -403,16 +380,6 @@ export default function StudentForm({
           studentFieldsOnly as StudentFormValues,
           initialData,
         );
-
-        // If no fields changed, show message and return
-        if (
-          Object.keys(changedStudentFields).length === 0 &&
-          !academicChanged &&
-          !rollNoChanged
-        ) {
-          showToast.info("No changes detected");
-          return;
-        }
 
         // Prepare update payload with only student data changes (exclude academic fields)
         const updatePayload: Partial<StudentFormValues> & {
@@ -467,19 +434,15 @@ export default function StudentForm({
         await studentApis.updateStudent(initialData.id, updatePayload);
         showToast.success("Student updated successfully!");
       } else {
-        // For create student, include class assignment if provided
-        const { classId, academicYearId, ...studentData } = data;
+        // Create payload with converted familyAnnualIncome
+        const { classId, academicYearId, rollNo, ...studentData } = data;
 
-        const payload: StudentFormValues & {
-          roleId: string;
-          schoolId: string;
-          academic?: {
-            classId: string;
-            academicYearId: string;
-            rollNo?: string | null;
-          };
-        } = {
+        const payload: CreateStudentPayload = {
           ...studentData,
+          rollNo: rollNo || "",
+          familyAnnualIncome: data.familyAnnualIncome
+            ? parseInt(data.familyAnnualIncome)
+            : undefined,
           roleId,
           schoolId,
         };
@@ -489,7 +452,7 @@ export default function StudentForm({
           payload.academic = {
             classId,
             academicYearId,
-            rollNo: data.rollNo || null,
+            rollNo: rollNo || null,
           };
         }
         await studentApis.addStudent(payload);
@@ -669,20 +632,47 @@ export default function StudentForm({
                         <div className="relative">
                           <select
                             {...register(field.name)}
+                            value={watch(field.name) || ""}
                             className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer ${
                               error
                                 ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                                 : "border-[var(--border)]"
                             }`}
                           >
-                            <option value="">Select status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            {/* Hide placeholder if in edit mode and gender already exists in original data */}
+                            {!(
+                              isEditMode &&
+                              field.name === "gender" &&
+                              initialData?.gender
+                            ) && (
+                              <option value="">
+                                {field.name === "gender"
+                                  ? "Select gender"
+                                  : "Select status"}
+                              </option>
+                            )}
+                            {field.name === "gender" ? (
+                              <>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                              </>
+                            )}
                           </select>
                           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] pointer-events-none">
                             <Users className="w-4 h-4" />
                           </div>
                         </div>
+                        {error && (
+                          <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+                            {error.message}
+                          </p>
+                        )}
                       </div>
                     );
                   }
@@ -781,8 +771,14 @@ export default function StudentForm({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || fetchingData}
-            className="btn-primary cursor-pointer px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              isSubmitting || fetchingData || (isEditMode && !hasChanges)
+            }
+            className={`btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] ${
+              isSubmitting || fetchingData || (isEditMode && !hasChanges)
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
           >
             {isSubmitting
               ? "Saving..."

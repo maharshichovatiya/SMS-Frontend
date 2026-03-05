@@ -1,6 +1,8 @@
 "use client";
 import StudentForm from "@/components/forms/StudentForm";
 import StudentsTable from "@/components/tables/StudentTable";
+import StudentFilters from "@/components/students/StudentFilters";
+import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
 import Modal from "@/components/ui/Modal";
 import PageHeader from "@/components/layout/PageHeader";
 import { authApi, Role } from "@/lib/api/Auth";
@@ -8,6 +10,17 @@ import { RecordStatus } from "@/lib/api/Student";
 import { showToast } from "@/lib/utils/Toast";
 import { Users, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+
+interface StudentFilters {
+  classId?: string;
+  academicYearId?: string;
+  gender?: string;
+  fromDate?: string;
+  toDate?: string;
+  fromFamilyIncome?: string;
+  toFamilyIncome?: string;
+}
+
 function Page() {
   const [status, setStatus] = useState<RecordStatus | "all">("all");
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +30,7 @@ function Page() {
   const [studentCount, setStudentCount] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [filters, setFilters] = useState<StudentFilters>({});
 
   // Debounce search query (500ms delay)
   useEffect(() => {
@@ -29,6 +43,14 @@ function Page() {
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handleFiltersChange = (newFilters: StudentFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
   };
   useEffect(() => {
     async function getStudentRoleID() {
@@ -92,32 +114,33 @@ function Page() {
           ))}
         </div>
 
-        {/* Search Bar - Right side like teachers page */}
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: "var(--text-3)" }}
+        {/* Search Bar and Filter Button - Right side */}
+        <div className="flex items-center gap-3">
+          <StudentFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onClearFilters={handleClearFilters}
           />
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
-          />
+
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+              style={{ color: "var(--text-3)" }}
+            />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
+            />
+          </div>
         </div>
       </div>
 
       <div className="mt-3">
         {rolesLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-[var(--text-3)]">
-                Loading student data...
-              </span>
-            </div>
-          </div>
+          <StudentTableSkeleton />
         ) : (
           <StudentsTable
             key={refreshKey}
@@ -127,6 +150,17 @@ function Page() {
             searchParams={{
               search: debouncedSearch || undefined,
               status: status === "all" ? undefined : status,
+              classId: filters.classId,
+              academicYearId: filters.academicYearId,
+              gender: filters.gender,
+              fromDate: filters.fromDate,
+              toDate: filters.toDate,
+              fromFamilyIncome: filters.fromFamilyIncome
+                ? parseInt(filters.fromFamilyIncome)
+                : undefined,
+              toFamilyIncome: filters.toFamilyIncome
+                ? parseInt(filters.toFamilyIncome)
+                : undefined,
             }}
           />
         )}
