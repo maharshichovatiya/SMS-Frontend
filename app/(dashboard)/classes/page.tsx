@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Building2, Plus } from "lucide-react";
-import ClassCard from "@/components/ClassesCard";
+import ClassCard from "@/components/classes/ClassesCard";
 import ClassForm from "@/components/forms/ClassForm";
 import Modal from "@/components/ui/Modal";
-import ClassFilters, { ClassFilterValues } from "@/components/ClassFilters";
+import ClassFilters, {
+  ClassFilterValues,
+} from "@/components/classes/ClassFilters";
 import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";

@@ -140,7 +140,7 @@ export default function TeacherForm({
               />
               <input
                 {...register("email")}
-                type="email"
+                type="text"
                 placeholder="example@school.com"
                 className={`input-base pl-9 ${errors.email ? "error" : ""}`}
               />
@@ -538,7 +538,7 @@ export default function TeacherForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 cursor-pointer py-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
+          className="px-7 cursor-pointer py-3 rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
         >
           Cancel
         </button>

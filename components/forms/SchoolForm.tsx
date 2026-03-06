@@ -498,7 +498,7 @@ export default function SchoolForm() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
                   {...register("emailOfficial")}
-                  type="email"
+                  type="text"
                   placeholder="school@example.com"
                   className={`input-base pl-9 ${errors.emailOfficial ? "error" : ""}`}
                 />
@@ -513,7 +513,7 @@ export default function SchoolForm() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
                 <input
                   {...register("emailAdmin")}
-                  type="email"
+                  type="text"
                   placeholder="admin@school.com"
                   className={`input-base pl-9 ${errors.emailAdmin ? "error" : ""}`}
                 />
