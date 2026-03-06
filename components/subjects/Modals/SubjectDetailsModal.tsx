@@ -1,12 +1,12 @@
 import React from "react";
 import { Book, Trash2 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface SubjectDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  subject: SubjectWithClasses | null;
+  subject: SubjectWithClassSubjects | null;
   activeTab: "classes" | "chapters";
   setActiveTab: (tab: "classes" | "chapters") => void;
   onDeleteClass: (classId: string) => void;
@@ -43,8 +43,9 @@ export function SubjectDetailsModal({
               </h2>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-[var(--text-3)] text-sm">
-                  {subject.classSubjects.length} class
-                  {subject.classSubjects.length !== 1 ? "es" : ""} assigned
+                  {subject.classSubjects?.length || 0} class
+                  {(subject.classSubjects?.length || 0) !== 1 ? "es" : ""}{" "}
+                  assigned
                 </span>
               </div>
             </div>
@@ -61,7 +62,7 @@ export function SubjectDetailsModal({
                     : "border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]"
                 }`}
               >
-                Classes ({subject.classSubjects.length})
+                Classes ({subject.classSubjects?.length || 0})
               </button>
               <button
                 onClick={() => setActiveTab("chapters")}
@@ -83,7 +84,7 @@ export function SubjectDetailsModal({
           {/* Tab Content */}
           <div className="space-y-6">
             {activeTab === "classes" ? (
-              subject.classSubjects.length === 0 ? (
+              !subject.classSubjects || subject.classSubjects.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 rounded-full bg-[var(--surface-3)] flex items-center justify-center mx-auto mb-3">
                     <Book className="w-6 h-6 text-[var(--text-3)]" />
@@ -93,36 +94,38 @@ export function SubjectDetailsModal({
                   </p>
                 </div>
               ) : (
-                subject.classSubjects.map(cls => (
-                  <div
-                    key={cls.id}
-                    className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden"
-                  >
-                    <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold">
-                            {cls.class.className}
+                <div>
+                  {subject.classSubjects?.map(cls => (
+                    <div
+                      key={cls.id}
+                      className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden"
+                    >
+                      <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold">
+                              {cls.class.className}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-[var(--text)]">
+                                Class {cls.class.className}-{cls.class.section}
+                              </h3>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-[var(--text)]">
-                              Class {cls.class.className}-{cls.class.section}
-                            </h3>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => onDeleteClass(cls.id)}
+                              className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
+                              title="Remove Class Assignment"
+                            >
+                              <Trash2 size={14} strokeWidth={1.8} />
+                            </button>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => onDeleteClass(cls.id)}
-                            className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
-                            title="Remove Class Assignment"
-                          >
-                            <Trash2 size={14} strokeWidth={1.8} />
-                          </button>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )
             ) : (
               /* Chapters Tab */

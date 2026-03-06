@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import { subjectApis } from "@/lib/api/Subject";
 import { showToast } from "@/lib/utils/Toast";
 import { Plus, Trash2 } from "lucide-react";
 
 interface CreateChapterFormProps {
-  subject: SubjectWithClasses;
-  classInfo: SubjectWithClasses["classSubjects"][0];
+  subject: SubjectWithClassSubjects;
+  classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
   chaptersCount?: number;
   onClose: () => void;
   onSubmitSuccess: () => void;
@@ -111,7 +111,7 @@ export default function CreateChapterForm({
       }
 
       // Make API call to add multiple chapters
-      const response = await subjectApis.addChaptersToSubject(subject.id, {
+      await subjectApis.addChaptersToSubject(subject.id, {
         chapters: validChapters,
       });
 

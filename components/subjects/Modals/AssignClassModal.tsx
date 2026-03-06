@@ -2,7 +2,7 @@ import React from "react";
 import Modal from "@/components/ui/Modal";
 import { Class } from "@/lib/api/Class";
 import { GetTeachers } from "@/lib/types/Teacher";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface AssignClassModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface AssignClassModalProps {
   setSelectedClassId: (id: string) => void;
   setSelectedTeacherId: (id: string) => void;
   onAssign: () => void;
-  subjects: SubjectWithClasses[];
+  subjects: SubjectWithClassSubjects[];
 }
 
 export function AssignClassModal({

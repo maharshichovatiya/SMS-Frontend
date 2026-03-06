@@ -1,16 +1,16 @@
 import React from "react";
 import { Book, Plus, Pencil, Trash2 } from "lucide-react";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import { showToast } from "@/lib/utils/Toast";
 
 interface SubjectCardProps {
-  subject: SubjectWithClasses;
+  subject: SubjectWithClassSubjects;
   index: number;
-  onViewDetails: (subject: SubjectWithClasses) => void;
+  onViewDetails: (subject: SubjectWithClassSubjects) => void;
   onAssignClass: (subjectId: string) => void;
-  onAddChapter: (subject: SubjectWithClasses) => void;
-  onEditSubject: (subject: SubjectWithClasses) => void;
-  onDeleteSubject: (subject: SubjectWithClasses) => void;
+  onAddChapter: (subject: SubjectWithClassSubjects) => void;
+  onEditSubject: (subject: SubjectWithClassSubjects) => void;
+  onDeleteSubject: (subject: SubjectWithClassSubjects) => void;
 }
 
 export function SubjectCard({
@@ -54,15 +54,16 @@ export function SubjectCard({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[12px] text-[var(--text-3)]">
-                {subject.classSubjects.length} class
-                {subject.classSubjects.length !== 1 ? "es" : ""} assigned
+                {subject.classSubjects?.length || 0} class
+                {(subject.classSubjects?.length || 0) !== 1 ? "es" : ""}{" "}
+                assigned
               </span>
             </div>
           </div>
         </div>
 
         <div className="space-y-1.5 sm:space-y-2 mb-1">
-          {subject.classSubjects.slice(0, 2).map(cls => (
+          {subject.classSubjects?.slice(0, 2).map(cls => (
             <div
               key={cls.id}
               className="bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] p-2 sm:p-3"
@@ -74,7 +75,7 @@ export function SubjectCard({
               </div>
             </div>
           ))}
-          {subject.classSubjects.length > 2 && (
+          {(subject.classSubjects?.length || 0) > 2 && (
             <button
               onClick={e => {
                 e.stopPropagation();
@@ -82,7 +83,7 @@ export function SubjectCard({
               }}
               className="w-full text-center text-xs text-[var(--blue)] hover:text-[var(--blue-dark)] font-medium py-1.5 sm:py-2 bg-[var(--surface-2)] rounded-[var(--radius-sm)] border border-[var(--border)] hover:bg-[var(--surface-3)] transition-colors"
             >
-              +{subject.classSubjects.length - 2} more classes
+              +{(subject.classSubjects?.length || 0) - 2} more classes
             </button>
           )}
         </div>
@@ -100,7 +101,7 @@ export function SubjectCard({
             onClick={e => {
               e.stopPropagation();
               // Find first class for this subject to add chapters
-              if (subject.classSubjects.length > 0) {
+              if (subject.classSubjects && subject.classSubjects.length > 0) {
                 onAddChapter(subject);
               } else {
                 showToast.error(

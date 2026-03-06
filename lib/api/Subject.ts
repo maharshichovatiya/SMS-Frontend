@@ -40,7 +40,7 @@ export const subjectApis = {
     maxPassingMarks?: number,
     minTotalMarks?: number,
     maxTotalMarks?: number,
-  ): Promise<{ data: SubjectWithClasses[]; meta: PaginationMeta }> => {
+  ): Promise<{ data: SubjectWithClassSubjects[]; meta: PaginationMeta }> => {
     const params: Record<string, string | number> = { page, limit };
     if (search) params.search = search;
     if (minPassingMarks !== undefined) params.minPassingMarks = minPassingMarks;
@@ -52,38 +52,8 @@ export const subjectApis = {
       params,
     });
 
-    // Transform SubjectWithClassSubjects[] to SubjectWithClasses[] format
-    const transformedData = res.data.data.data.map(
-      (subject: SubjectWithClassSubjects) => ({
-        id: subject.id,
-        subjectName: subject.subjectName,
-        subjectCode: subject.subjectCode,
-        passingMarks: subject.passingMarks,
-        maxMarks: subject.maxMarks,
-        status: subject.status,
-        createdAt: subject.createdAt,
-        updatedAt: subject.updatedAt,
-        chapters: subject.chapters || [], // Include chapters from API response
-        classSubjects:
-          subject.classSubjects?.map(classSubject => ({
-            id: classSubject.id,
-            class: {
-              id: classSubject.class.id,
-              className: classSubject.class.className,
-              section: classSubject.class.section,
-              classTeacherId: classSubject.class.classTeacherId || null,
-              studentCapacity: classSubject.class.studentCapacity || 0,
-              status: classSubject.class.status,
-              createdAt: classSubject.class.createdAt,
-              updatedAt: classSubject.class.updatedAt,
-            },
-            teacher: classSubject.teacher,
-          })) || [], // Use classSubjects directly as required by SubjectWithClasses
-      }),
-    );
-
     return {
-      data: transformedData,
+      data: res.data.data.data,
       meta: res.data.data.meta,
     };
   },

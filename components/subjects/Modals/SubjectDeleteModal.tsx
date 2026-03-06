@@ -1,12 +1,12 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface SubjectDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   isDeleting: boolean;
-  deletingSubject: SubjectWithClasses | null;
+  deletingSubject: SubjectWithClassSubjects | null;
   handleDeleteSubject: () => void;
 }
 

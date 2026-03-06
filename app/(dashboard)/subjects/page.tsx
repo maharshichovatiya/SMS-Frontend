@@ -14,7 +14,7 @@ import { CreateChaptersModal } from "@/components/subjects/Modals/CreateChapters
 import { ChapterDeleteModal } from "@/components/subjects/Modals/ChapterDeleteModal";
 import SubjectFilters from "@/components/subjects/SubjectFilters";
 import { useSubjects } from "@/lib/hooks/UseSubjects";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 export default function Subjects() {
   const PAGE_SIZE_OPTIONS = [6, 9, 12];
@@ -78,8 +78,8 @@ export default function Subjects() {
     handleAssignModalOpen();
   };
 
-  const handleAddChapter = (subject: SubjectWithClasses) => {
-    if (subject.classSubjects.length > 0) {
+  const handleAddChapter = (subject: SubjectWithClassSubjects) => {
+    if (subject.classSubjects && subject.classSubjects.length > 0) {
       setCreatingChapters({
         subject: subject,
         classInfo: subject.classSubjects[0],
@@ -113,7 +113,7 @@ export default function Subjects() {
         iconBgColor="--amber-light"
         iconColor="--amber"
         buttonText="Add Subject"
-        onButtonClick={() => setEditingSubject({} as SubjectWithClasses)}
+        onButtonClick={() => setEditingSubject({} as SubjectWithClassSubjects)}
         buttonIcon={Plus}
       />
 
