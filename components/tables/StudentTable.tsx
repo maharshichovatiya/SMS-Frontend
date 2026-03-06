@@ -82,9 +82,9 @@ export default function StudentsTable({
   searchParams?: {
     search?: string;
     status?: RecordStatus;
-    classId?: string;
+    classId?: string | string[];
     sectionId?: string;
-    gender?: string;
+    gender?: string | string[];
     academicYearId?: string;
     fromDate?: string;
     toDate?: string;

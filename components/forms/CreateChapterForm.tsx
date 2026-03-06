@@ -5,6 +5,10 @@ import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import { subjectApis } from "@/lib/api/Subject";
 import { showToast } from "@/lib/utils/Toast";
 import { Plus, Trash2 } from "lucide-react";
+import {
+  createChaptersFormSchema,
+  CreateChaptersFormValues,
+} from "@/lib/validations/SubjectSchema";
 
 interface CreateChapterFormProps {
   subject: SubjectWithClassSubjects;
@@ -43,6 +47,7 @@ export default function CreateChapterForm({
   const [currentChaptersCount, setCurrentChaptersCount] = useState(
     chaptersCount || subject.chapters?.length || 0,
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const addChapter = () => {
     const nextChapterNo =
@@ -80,37 +85,40 @@ export default function CreateChapterForm({
     if (e) {
       e.preventDefault();
     }
+
     try {
       setIsSubmitting(true);
+      setErrors({});
 
-      // Validate all chapters
-      const validChapters = chapters.filter(
-        chapter =>
-          chapter.chapterName.trim() !== "" &&
-          chapter.chapterNo >= 1 &&
-          chapter.chapterName.length <= 15,
-      );
+      // Prepare form data for Zod validation
+      const formData: CreateChaptersFormValues = {
+        chapters: chapters.map(chapter => ({
+          chapterName: chapter.chapterName.trim(),
+          chapterNo: chapter.chapterNo,
+        })),
+      };
 
-      if (validChapters.length === 0) {
-        showToast.error("Please add at least one valid chapter");
+      // Validate with Zod schema
+      const validationResult = createChaptersFormSchema.safeParse(formData);
+
+      if (!validationResult.success) {
+        // Convert Zod errors to a more usable format
+        const fieldErrors: Record<string, string> = {};
+        validationResult.error.issues.forEach(issue => {
+          const fieldPath = issue.path.join(".");
+          fieldErrors[fieldPath] = issue.message;
+        });
+        setErrors(fieldErrors);
+
+        // Show the first error as a toast
+        const firstError = validationResult.error.issues[0];
+        showToast.error(firstError.message);
         return;
       }
 
-      // Check for duplicate chapter numbers
-      const chapterNumbers = validChapters.map(c => c.chapterNo);
-      const uniqueChapterNumbers = new Set(chapterNumbers);
-      if (chapterNumbers.length !== uniqueChapterNumbers.size) {
-        showToast.error("Chapter numbers must be unique");
-        return;
-      }
+      // All validations passed - make API call
+      const validChapters = validationResult.data.chapters;
 
-      // Validate chapter name length
-      if (validChapters.some(chapter => chapter.chapterName.length > 15)) {
-        showToast.error("Chapter name cannot exceed 15 characters");
-        return;
-      }
-
-      // Make API call to add multiple chapters
       await subjectApis.addChaptersToSubject(subject.id, {
         chapters: validChapters,
       });
@@ -185,7 +193,7 @@ export default function CreateChapterForm({
                     }
                   }}
                   className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                    chapter.chapterNo < 1
+                    errors[`chapters.${index}.chapterNo`]
                       ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                       : "border-[var(--border)]"
                   }`}
@@ -198,7 +206,7 @@ export default function CreateChapterForm({
                     updateChapter(index, "chapterName", e.target.value)
                   }
                   className={`flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                    chapter.chapterName.trim() === ""
+                    errors[`chapters.${index}.chapterName`]
                       ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                       : "border-[var(--border)]"
                   }`}
@@ -215,16 +223,21 @@ export default function CreateChapterForm({
             ))}
           </div>
 
-          {chapters.some(chapter => chapter.chapterName.trim() === "") && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              All chapter names must be filled
-            </p>
-          )}
-          {chapters.some(chapter => chapter.chapterNo < 1) && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              All chapter numbers must be greater than 0
-            </p>
-          )}
+          {/* Individual field error messages */}
+          {chapters.map((chapter, index) => (
+            <div key={index} className="space-y-1">
+              {errors[`chapters.${index}.chapterName`] && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors[`chapters.${index}.chapterName`]}
+                </p>
+              )}
+              {errors[`chapters.${index}.chapterNo`] && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors[`chapters.${index}.chapterNo`]}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 

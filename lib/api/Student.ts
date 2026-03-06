@@ -35,8 +35,21 @@ const filterEmptyOptionalFields = (
 
 export const studentApis = {
   getAll: async (params?: StudentQueryParams) => {
+    // Convert classId and gender arrays to comma-separated strings for API
+    const convertedParams = params
+      ? {
+          ...params,
+          classId: Array.isArray(params.classId)
+            ? params.classId.join(",")
+            : params.classId,
+          gender: Array.isArray(params.gender)
+            ? params.gender.join(",")
+            : params.gender,
+        }
+      : params;
+
     const res = await api.get<ApiResponse<StudentListResponse>>("/student", {
-      params,
+      params: convertedParams,
     });
     return res.data;
   },

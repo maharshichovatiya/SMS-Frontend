@@ -7,6 +7,7 @@ import { subjectApis, Subject, SubjectWithClasses } from "@/lib/api/Subject";
 import {
   createSubjectSchema,
   updateSubjectSchema,
+  createChaptersFormSchema,
   CreateSubjectFormValues,
   UpdateSubjectFormValues,
 } from "@/lib/validations/SubjectSchema";
@@ -32,12 +33,15 @@ export default function SubjectForm({
       : [{ chapterName: "", chapterNo: 1 }],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    trigger,
+    watch,
     formState: { errors },
   } = useForm<CreateSubjectFormValues | UpdateSubjectFormValues>({
     resolver: zodResolver(
@@ -53,6 +57,44 @@ export default function SubjectForm({
         : [{ chapterName: "", chapterNo: 1 }],
     },
   });
+
+  // Watch form values to detect changes
+  const formValues = watch();
+
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      // Check if any field has changed from initial data
+      const subjectNameChanged =
+        formValues.subjectName !== initialData.subjectName;
+      const subjectCodeChanged =
+        formValues.subjectCode !== initialData.subjectCode;
+      const passingMarksChanged =
+        formValues.passingMarks !== initialData.passingMarks;
+      const maxMarksChanged = formValues.maxMarks !== initialData.maxMarks;
+
+      // Check if chapters have changed
+      const initialChapters =
+        (initialData as SubjectWithClasses).chapters || [];
+      const chaptersChanged =
+        initialChapters.length !== chapters.length ||
+        initialChapters.some((initialChapter, index) => {
+          const currentChapter = chapters[index];
+          return (
+            !currentChapter ||
+            initialChapter.chapterNo !== currentChapter.chapterNo ||
+            initialChapter.chapterName !== currentChapter.chapterName
+          );
+        });
+
+      const anyChanges =
+        subjectNameChanged ||
+        subjectCodeChanged ||
+        passingMarksChanged ||
+        maxMarksChanged ||
+        chaptersChanged;
+      setHasChanges(anyChanges);
+    }
+  }, [formValues, chapters, isEditMode, initialData]);
 
   useEffect(() => {
     if (initialData && (initialData as SubjectWithClasses).chapters) {
@@ -79,6 +121,8 @@ export default function SubjectForm({
     };
     setChapters(newChapters);
     setValue("chapters", newChapters);
+    // Trigger validation for chapters field
+    trigger("chapters");
   };
 
   const onSubmit = async (
@@ -87,8 +131,20 @@ export default function SubjectForm({
     try {
       setIsSubmitting(true);
 
+      // Enhanced validation for chapters using createChaptersFormSchema
+      const chaptersData = { chapters };
+      const chapterValidation =
+        createChaptersFormSchema.safeParse(chaptersData);
+
+      if (!chapterValidation.success) {
+        // Show first chapter validation error as toast
+        const firstError = chapterValidation.error.issues[0];
+        showToast.error(firstError.message);
+        return;
+      }
+
       if (isEditMode && initialData?.id) {
-        // For edit mode, include changed fields in the payload
+        // For edit mode, include changed fields in payload
         const changedFields: Partial<UpdateSubjectFormValues> = {};
 
         // Compare each field with initial data and only include if changed
@@ -109,9 +165,7 @@ export default function SubjectForm({
         const initialChapters =
           (initialData as SubjectWithClasses).chapters || [];
 
-        const currentChapters = chapters.filter(
-          chapter => chapter.chapterName.trim() !== "",
-        );
+        const currentChapters = chapterValidation.data.chapters;
 
         // Simple comparison - check if length or any chapter details differ
         const chaptersChanged =
@@ -147,27 +201,9 @@ export default function SubjectForm({
         showToast.success("Subject updated successfully!");
       } else {
         // For create mode, include all fields including chapters
-        const filteredChapters = chapters.filter(
-          chapter => chapter.chapterName.trim() !== "",
-        );
-
-        if (filteredChapters.length === 0) {
-          showToast.error("At least one chapter is required");
-          return;
-        }
-
-        // Validate chapter numbers
-        const invalidChapters = filteredChapters.filter(
-          chapter => chapter.chapterNo < 1,
-        );
-        if (invalidChapters.length > 0) {
-          showToast.error("Chapter numbers must be greater than 0");
-          return;
-        }
-
         const submitData = {
           ...data,
-          chapters: filteredChapters,
+          chapters: chapterValidation.data.chapters,
         };
 
         await subjectApis.create(submitData as CreateSubjectFormValues);
@@ -313,7 +349,7 @@ export default function SubjectForm({
                     }
                   }}
                   className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                    chapter.chapterNo < 1
+                    errors.chapters?.[index]?.chapterNo
                       ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                       : "border-[var(--border)]"
                   }`}
@@ -325,23 +361,31 @@ export default function SubjectForm({
                   onChange={e =>
                     updateChapter(index, "chapterName", e.target.value)
                   }
-                  className="flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] border-[var(--border)]"
+                  className={`flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                    errors.chapters?.[index]?.chapterName
+                      ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                      : "border-[var(--border)]"
+                  }`}
                 />
               </div>
             ))}
           </div>
 
-          {chapters.filter(chapter => chapter.chapterName.trim() !== "")
-            .length === 0 && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              At least one chapter is required
-            </p>
-          )}
-          {chapters.some(chapter => chapter.chapterNo < 1) && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              Chapter numbers must be greater than 0
-            </p>
-          )}
+          {/* Individual chapter error messages */}
+          {chapters.map((chapter, index) => (
+            <div key={index} className="space-y-1">
+              {errors.chapters?.[index]?.chapterName && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors.chapters[index].chapterName.message}
+                </p>
+              )}
+              {errors.chapters?.[index]?.chapterNo && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors.chapters[index].chapterNo.message}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -355,7 +399,7 @@ export default function SubjectForm({
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (isEditMode && !hasChanges)}
           className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting

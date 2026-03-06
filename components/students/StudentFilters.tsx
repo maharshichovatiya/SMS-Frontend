@@ -16,9 +16,9 @@ import FiltersLoadingSkeleton from "@/components/skeletons/FiltersLoadingSkeleto
 
 interface StudentFiltersProps {
   filters: {
-    classId?: string;
+    classId?: string[];
     academicYearId?: string;
-    gender?: string;
+    gender?: string[];
     fromDate?: string;
     toDate?: string;
     fromFamilyIncome?: string;
@@ -85,16 +85,38 @@ export default function StudentFilters({
     value: string,
     checked: boolean,
   ) => {
-    if (checked) {
+    if (filterName === "gender" || filterName === "classId") {
+      // Handle multiple selections for gender and classId
+      const currentValues = filters[filterName] || [];
+      let newValues: string[];
+
+      if (checked) {
+        // Add the value if it's not already selected
+        newValues = currentValues.includes(value)
+          ? currentValues
+          : [...currentValues, value];
+      } else {
+        // Remove the value
+        newValues = currentValues.filter(v => v !== value);
+      }
+
       onFiltersChange({
         ...filters,
-        [filterName]: value,
+        [filterName]: newValues.length > 0 ? newValues : undefined,
       });
     } else {
-      onFiltersChange({
-        ...filters,
-        [filterName]: undefined,
-      });
+      // Handle single selection filters (academicYearId)
+      if (checked) {
+        onFiltersChange({
+          ...filters,
+          [filterName]: value,
+        });
+      } else {
+        onFiltersChange({
+          ...filters,
+          [filterName]: undefined,
+        });
+      }
     }
   };
 
@@ -181,7 +203,7 @@ export default function StudentFilters({
                           <input
                             type="checkbox"
                             id={`class-${cls.id}`}
-                            checked={filters.classId === cls.id}
+                            checked={filters.classId?.includes(cls.id) || false}
                             onChange={e =>
                               handleCheckboxChange(
                                 "classId",
@@ -258,7 +280,9 @@ export default function StudentFilters({
                           <input
                             type="checkbox"
                             id={`gender-${option.value}`}
-                            checked={filters.gender === option.value}
+                            checked={
+                              filters.gender?.includes(option.value) || false
+                            }
                             onChange={e =>
                               handleCheckboxChange(
                                 "gender",

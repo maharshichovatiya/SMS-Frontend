@@ -12,9 +12,9 @@ import { Users, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface StudentFilters {
-  classId?: string;
+  classId?: string[];
   academicYearId?: string;
-  gender?: string;
+  gender?: string[];
   fromDate?: string;
   toDate?: string;
   fromFamilyIncome?: string;
