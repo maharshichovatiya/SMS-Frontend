@@ -484,7 +484,7 @@ export default function TeacherForm({
             )}
           </div>
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 mt-3">
             <label className="label-base">Experience</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
