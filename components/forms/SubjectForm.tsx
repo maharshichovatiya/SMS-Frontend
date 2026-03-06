@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
 import { subjectApis, Subject, SubjectWithClasses } from "@/lib/api/Subject";
 import {
   createSubjectSchema,
@@ -29,9 +28,7 @@ export default function SubjectForm({
     { chapterName: string; chapterNo: number }[]
   >(
     isEditMode && initialData
-      ? ("classes" in initialData && initialData.classes
-          ? initialData.classes.flatMap(c => c.chapters)
-          : (initialData as Subject).chapters) || []
+      ? (initialData as SubjectWithClasses).chapters || []
       : [{ chapterName: "", chapterNo: 1 }],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,48 +49,23 @@ export default function SubjectForm({
       passingMarks: initialData?.passingMarks || 35,
       maxMarks: initialData?.maxMarks || 100,
       chapters: isEditMode
-        ? ("classes" in initialData && initialData.classes
-            ? initialData.classes.flatMap(c => c.chapters)
-            : (initialData as Subject).chapters) || []
+        ? (initialData as SubjectWithClasses).chapters || []
         : [{ chapterName: "", chapterNo: 1 }],
     },
   });
 
   useEffect(() => {
-    if (
-      initialData &&
-      ("classes" in initialData && initialData.classes
-        ? initialData.classes.flatMap(c => c.chapters)
-        : (initialData as Subject).chapters)
-    ) {
+    if (initialData && (initialData as SubjectWithClasses).chapters) {
       reset({
         subjectName: initialData.subjectName || "",
         subjectCode: initialData.subjectCode || "",
         passingMarks: initialData.passingMarks || 35,
         maxMarks: initialData.maxMarks || 100,
-        chapters:
-          "classes" in initialData && initialData.classes
-            ? initialData.classes.flatMap(c => c.chapters)
-            : (initialData as Subject).chapters,
+        chapters: (initialData as SubjectWithClasses).chapters || [],
       });
-      setChapters(
-        ("classes" in initialData && initialData.classes
-          ? initialData.classes.flatMap(c => c.chapters)
-          : (initialData as Subject).chapters) || [],
-      );
+      setChapters((initialData as SubjectWithClasses).chapters || []);
     }
   }, [initialData, reset]);
-
-  const addChapter = () => {
-    const newChapterNo = Math.max(...chapters.map(c => c.chapterNo), 0) + 1;
-    setChapters([...chapters, { chapterName: "", chapterNo: newChapterNo }]);
-  };
-
-  const removeChapter = (index: number) => {
-    const newChapters = chapters.filter((_, i) => i !== index);
-    setChapters(newChapters);
-    setValue("chapters", newChapters);
-  };
 
   const updateChapter = (
     index: number,
@@ -116,7 +88,7 @@ export default function SubjectForm({
       setIsSubmitting(true);
 
       if (isEditMode && initialData?.id) {
-        // For edit mode, only include changed fields in the payload
+        // For edit mode, include changed fields in the payload
         const changedFields: Partial<UpdateSubjectFormValues> = {};
 
         // Compare each field with initial data and only include if changed
@@ -131,6 +103,38 @@ export default function SubjectForm({
         }
         if (data.maxMarks !== initialData.maxMarks) {
           changedFields.maxMarks = data.maxMarks;
+        }
+
+        // Check if chapters have changed
+        const initialChapters =
+          (initialData as SubjectWithClasses).chapters || [];
+
+        const currentChapters = chapters.filter(
+          chapter => chapter.chapterName.trim() !== "",
+        );
+
+        // Simple comparison - check if length or any chapter details differ
+        const chaptersChanged =
+          initialChapters.length !== currentChapters.length ||
+          initialChapters.some((initialChapter, index) => {
+            const currentChapter = currentChapters[index];
+            return (
+              !currentChapter ||
+              initialChapter.chapterNo !== currentChapter.chapterNo ||
+              initialChapter.chapterName !== currentChapter.chapterName
+            );
+          });
+
+        if (chaptersChanged) {
+          changedFields.chapters = currentChapters.map((chapter, index) => {
+            // Find corresponding original chapter to get its ID
+            const originalChapter = initialChapters[index];
+            return {
+              id: originalChapter?.id, // Use ID from original chapter
+              chapterName: chapter.chapterName,
+              chapterNo: chapter.chapterNo,
+            };
+          });
         }
 
         // Only send update if there are actual changes
@@ -285,79 +289,60 @@ export default function SubjectForm({
           </div>
         </div>
 
-        {/* Chapters - Only show in create mode */}
-        {!isEditMode && (
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-[var(--text)] uppercase tracking-wide">
-                Chapters
-                <span className="text-[var(--rose)] ml-0.5">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={addChapter}
-                className="flex cursor-pointer items-center gap-1 px-2 py-1 text-xs font-medium text-[var(--blue)] bg-[var(--blue-light)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-light)]/80 transition-colors duration-[var(--duration)] cursor-pointer"
-              >
-                <Plus className="w-3 h-3 cursor-pointer" />
-                Add Chapter
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {chapters.map((chapter, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="No."
-                    min="1"
-                    value={chapter.chapterNo}
-                    onChange={e => {
-                      const value = parseInt(e.target.value) || 0;
-                      if (value >= 1) {
-                        updateChapter(index, "chapterNo", value);
-                      }
-                    }}
-                    className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                      chapter.chapterNo < 1
-                        ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-                        : "border-[var(--border)]"
-                    }`}
-                  />
-                  <input
-                    type="text"
-                    placeholder={`Chapter ${index + 1} name`}
-                    value={chapter.chapterName}
-                    onChange={e =>
-                      updateChapter(index, "chapterName", e.target.value)
-                    }
-                    className="flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] border-[var(--border)]"
-                  />
-                  {chapters.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeChapter(index)}
-                      className="p-2 text-[var(--rose)] bg-[var(--rose-light)] rounded-[var(--radius-sm)] hover:bg-[var(--rose-light)]/80 transition-colors duration-[var(--duration)] cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {chapters.filter(chapter => chapter.chapterName.trim() !== "")
-              .length === 0 && (
-              <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-                At least one chapter is required
-              </p>
-            )}
-            {chapters.some(chapter => chapter.chapterNo < 1) && (
-              <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-                Chapter numbers must be greater than 0
-              </p>
-            )}
+        {/* Chapters - Show in both create and edit modes */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-bold text-[var(--text)] uppercase tracking-wide">
+              Chapters
+              <span className="text-[var(--rose)] ml-0.5">*</span>
+            </label>
           </div>
-        )}
+
+          <div className="space-y-2">
+            {chapters.map((chapter, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="number"
+                  placeholder="No."
+                  min="1"
+                  value={chapter.chapterNo}
+                  onChange={e => {
+                    const value = parseInt(e.target.value) || 0;
+                    if (value >= 1) {
+                      updateChapter(index, "chapterNo", value);
+                    }
+                  }}
+                  className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                    chapter.chapterNo < 1
+                      ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                      : "border-[var(--border)]"
+                  }`}
+                />
+                <input
+                  type="text"
+                  placeholder={`Chapter ${index + 1} name`}
+                  value={chapter.chapterName}
+                  onChange={e =>
+                    updateChapter(index, "chapterName", e.target.value)
+                  }
+                  className="flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] border-[var(--border)]"
+                />
+              </div>
+            ))}
+          </div>
+
+          {chapters.filter(chapter => chapter.chapterName.trim() !== "")
+            .length === 0 && (
+            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+              At least one chapter is required
+            </p>
+          )}
+          {chapters.some(chapter => chapter.chapterNo < 1) && (
+            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+              Chapter numbers must be greater than 0
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-[var(--border)]">

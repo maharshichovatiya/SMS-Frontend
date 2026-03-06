@@ -1,123 +1,28 @@
 import api from "../Axios";
+import {
+  Chapter,
+  Subject,
+  SubjectWithClassSubjects,
+  SubjectWithClasses,
+  CreateSubjectData,
+  UpdateSubjectData,
+  AssignClassData,
+  SubjectListResponse,
+  AssignClassResponse,
+} from "@/lib/types/SubjectTypes";
 
-export interface Chapter {
-  id?: string;
-  chapterName: string;
-  chapterNo: number;
-}
-
-export interface Teacher {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-export interface Class {
-  id: string;
-  classNo: number;
-  section: string;
-  classTeacherId: string | null;
-  studentCapacity: number | null;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  classSubjects: ClassSubjectItem[];
-}
-
-export interface ClassSubjectItem {
-  id: string;
-  subject: Subject;
-  teacher?: Teacher;
-}
-
-export interface Subject {
-  id: string;
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  chapters?: Chapter[];
-
-  classInfo?: {
-    id: string;
-    classNo: number;
-    section: string;
-  };
-
-  classSubjectId?: string;
-}
-
-export interface SubjectWithClasses {
-  id: string;
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-
-  classes: {
-    classSubjectId: string;
-    classInfo: {
-      id: string;
-      classNo: number;
-      section: string;
-    };
-    chapters: Chapter[];
-    teacher?: Teacher;
-  }[];
-}
-
-/* =========================
-   REQUEST TYPES
-========================= */
-
-export interface CreateSubjectData {
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  chapters: Chapter[];
-}
-
-export interface UpdateSubjectData {
-  subjectName?: string;
-  subjectCode?: string;
-  passingMarks?: number;
-  maxMarks?: number;
-  chapters?: Chapter[];
-  status?: "active" | "inactive";
-}
-
-export interface AssignClassData {
-  subjectId: string;
-  classId: string;
-  teacherId: string;
-}
-
-export interface SubjectListResponse {
-  data: Subject[];
-}
-
-export interface ClassSubjectListResponse {
-  statusCode: number;
-  message: string;
-  data: Class[];
-  Total_Records: number;
-}
-
-export interface AssignClassResponse {
-  id: string;
-  subjectId: string;
-  classId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export types for backward compatibility
+export type {
+  Chapter,
+  Subject,
+  SubjectWithClassSubjects,
+  SubjectWithClasses,
+  CreateSubjectData,
+  UpdateSubjectData,
+  AssignClassData,
+  SubjectListResponse,
+  AssignClassResponse,
+};
 
 export const subjectApis = {
   getAll: async (): Promise<Subject[]> => {
@@ -127,48 +32,40 @@ export const subjectApis = {
 
   getAllForPage: async (search?: string): Promise<SubjectWithClasses[]> => {
     const params = search ? { search } : {};
-    const res = await api.get<ClassSubjectListResponse>("/class-subject", {
-      params,
-    });
+    const res = await api.get<{ data: SubjectWithClassSubjects[] }>(
+      "/subjects",
+      {
+        params,
+      },
+    );
 
-    const subjectMap = new Map<string, SubjectWithClasses>();
-
-    res.data.data.forEach((classItem: Class) => {
-      if (!classItem.classSubjects?.length) return;
-
-      classItem.classSubjects.forEach((classSubject: ClassSubjectItem) => {
-        const subject = classSubject.subject;
-        if (!subject) return;
-
-        // create subject if not exists
-        if (!subjectMap.has(subject.id)) {
-          subjectMap.set(subject.id, {
-            id: subject.id,
-            subjectName: subject.subjectName,
-            subjectCode: subject.subjectCode,
-            passingMarks: subject.passingMarks,
-            maxMarks: subject.maxMarks,
-            status: subject.status,
-            createdAt: subject.createdAt,
-            updatedAt: subject.updatedAt,
-            classes: [],
-          });
-        }
-
-        subjectMap.get(subject.id)!.classes.push({
-          classSubjectId: classSubject.id,
-          classInfo: {
-            id: classItem.id,
-            classNo: classItem.classNo,
-            section: classItem.section,
+    // Transform SubjectWithClassSubjects[] to SubjectWithClasses[] format
+    return res.data.data.map((subject: SubjectWithClassSubjects) => ({
+      id: subject.id,
+      subjectName: subject.subjectName,
+      subjectCode: subject.subjectCode,
+      passingMarks: subject.passingMarks,
+      maxMarks: subject.maxMarks,
+      status: subject.status,
+      createdAt: subject.createdAt,
+      updatedAt: subject.updatedAt,
+      chapters: subject.chapters || [], // Include chapters from API response
+      classSubjects:
+        subject.classSubjects?.map(classSubject => ({
+          id: classSubject.id,
+          class: {
+            id: classSubject.class.id,
+            className: classSubject.class.className,
+            section: classSubject.class.section,
+            classTeacherId: classSubject.class.classTeacherId || null,
+            studentCapacity: classSubject.class.studentCapacity || 0,
+            status: classSubject.class.status,
+            createdAt: classSubject.class.createdAt,
+            updatedAt: classSubject.class.updatedAt,
           },
-          chapters: subject.chapters || [],
           teacher: classSubject.teacher,
-        });
-      });
-    });
-
-    return Array.from(subjectMap.values());
+        })) || [], // Use classSubjects directly as required by SubjectWithClasses
+    }));
   },
 
   getById: async (id: string): Promise<Subject> => {
@@ -213,5 +110,9 @@ export const subjectApis = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/class-subject/${id}`);
+  },
+
+  deleteSubject: async (id: string): Promise<void> => {
+    await api.delete(`/subjects/${id}`);
   },
 };

@@ -316,9 +316,9 @@ export default function DashboardContent() {
                       student.user.lastName,
                     );
                     const academic = student.academics?.[0];
-                    const classNo = academic?.class?.classNo || "-";
+                    const className = academic?.class?.className || "-";
                     const section = academic?.class?.section || "-";
-                    const classStr = `${classNo}-${section}`;
+                    const classStr = `${className}-${section}`;
                     const badgeVariant = getBadgeVariant(section);
                     const gradients: Record<string, string> = {
                       blue: "from-[#3d6cf4] to-[#6c47f5]",

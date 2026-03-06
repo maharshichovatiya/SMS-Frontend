@@ -73,6 +73,11 @@
   --indigo-light: #f0edff;
   --indigo-muted: rgba(108, 71, 245, 0.12);
 
+  --purple: #9333ea;
+  --purple-dark: #7c3aed;
+  --purple-light: #f3e8ff;
+  --purple-muted: rgba(147, 51, 234, 0.12);
+
   --green: #12a47e;
   --green-dark: #0d8464;
   --green-light: #e6faf5;
@@ -213,6 +218,11 @@
   --indigo-dark: #5332d8;
   --indigo-light: #f0edff;
   --indigo-muted: rgba(108, 71, 245, 0.12);
+
+  --purple: #9333ea;
+  --purple-dark: #7c3aed;
+  --purple-light: #f3e8ff;
+  --purple-muted: rgba(147, 51, 234, 0.12);
 
   --green: #12a47e;
   --green-dark: #0d8464;

@@ -195,7 +195,7 @@ export default function StudentFilters({
                             htmlFor={`class-${cls.id}`}
                             className="text-sm text-[var(--text)] cursor-pointer hover:text-[var(--text-2)] transition-colors duration-[var(--duration)] flex-1"
                           >
-                            Class {cls.classNo}-{cls.section}
+                            Class {cls.className}-{cls.section}
                           </label>
                         </div>
                       ))}

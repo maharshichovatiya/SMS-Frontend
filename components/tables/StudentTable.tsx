@@ -12,6 +12,7 @@ import {
   RecordStatus,
 } from "@/lib/api/Student";
 import { showToast } from "@/lib/utils/Toast";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 interface Student {
   id: string;
@@ -64,7 +65,7 @@ function formatAdmissionDate(iso: string) {
 
 function formatPhone(phone: string | undefined | null) {
   if (!phone) return "N/A";
-  return `+91  ${phone.slice(0, 5)}  ${phone.slice(5)}`;
+  return `${phone.slice(0, 5)}  ${phone.slice(5)}`;
 }
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
@@ -103,6 +104,7 @@ export default function StudentsTable({
 
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState<string | null>(null);
 
   const [assigningClassStudent, setAssigningClassStudent] =
     useState<Student | null>(null);
@@ -153,7 +155,7 @@ export default function StudentsTable({
               rollNo: apiStudent.rollNo,
               admissionDate: apiStudent.admissionDate,
               class: currentAcademic
-                ? `${currentAcademic.class.classNo}-${currentAcademic.class.section}`
+                ? `${currentAcademic.class.className}-${currentAcademic.class.section}`
                 : "Unassigned",
               classId: currentAcademic?.class.id,
               academicYear: currentAcademic?.academicYear.yearName,
@@ -279,6 +281,39 @@ export default function StudentsTable({
     }
   };
 
+  const handleStatusToggle = async (student: Student) => {
+    try {
+      setTogglingStatus(student.id);
+      const newStatus = student.status === "Active" ? "inactive" : "active";
+      await studentApis.updateStudentStatus(student.id, newStatus);
+
+      // Update local state
+      setStudents(prev =>
+        prev.map(s =>
+          s.id === student.id
+            ? { ...s, status: newStatus === "active" ? "Active" : "Inactive" }
+            : s,
+        ),
+      );
+
+      showToast.apiSuccess(
+        `Student status updated to ${newStatus === "active" ? "Active" : "Inactive"}`,
+      );
+    } catch (error) {
+      const errorObj = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const errorMessage =
+        errorObj.response?.data?.message ||
+        errorObj.message ||
+        "Failed to update student status";
+      showToast.error(errorMessage);
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
+
   return (
     <>
       <Modal
@@ -306,9 +341,6 @@ export default function StudentsTable({
                 gender:
                   (editingStudent.gender as "male" | "female" | "other" | "") ||
                   "",
-                status: editingStudent.status.toLowerCase() as
-                  | "active"
-                  | "inactive",
                 fatherName: editingStudent.fatherName,
                 fatherPhone: editingStudent.fatherPhone,
                 motherName: editingStudent.motherName,
@@ -509,15 +541,25 @@ export default function StudentsTable({
                       </td>
 
                       <td className="px-5 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
-                          ${student.status === "Active" ? "bg-[var(--green-light)] text-[var(--green)]" : ""}
-                          ${student.status === "Pending" ? "bg-[var(--amber-light)] text-[var(--amber)]" : ""}
-                          ${student.status === "Inactive" ? "bg-[var(--rose-light)]  text-[var(--rose)]" : ""}
-                        `}
-                        >
-                          {student.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <ToggleSwitch
+                            isOn={student.status === "Active"}
+                            onToggle={() => handleStatusToggle(student)}
+                            disabled={togglingStatus === student.id}
+                          />
+                          <span
+                            className={`
+                              px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
+                              ${
+                                student.status === "Active"
+                                  ? "bg-[var(--green-light)] text-[var(--green)]"
+                                  : "bg-[var(--rose-light)] text-[var(--rose)]"
+                              }
+                            `}
+                          >
+                            {student.status}
+                          </span>
+                        </div>
                       </td>
 
                       <td className="px-5 py-4">

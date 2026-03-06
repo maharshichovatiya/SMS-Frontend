@@ -29,7 +29,7 @@ export default function SignUpPage() {
   const [rolesLoading, setRolesLoading] = useState(false);
   const personalForm = useForm<PersonalDetails>({
     resolver: zodResolver(personalDetailsSchema),
-    mode: "onChange",
+    mode: "onSubmit",
     defaultValues: {
       firstName: "",
       middleName: undefined,
@@ -43,7 +43,7 @@ export default function SignUpPage() {
 
   const schoolForm = useForm<SchoolDetails>({
     resolver: zodResolver(schoolDetailsSchema),
-    mode: "onChange",
+    mode: "onSubmit",
     defaultValues: {
       schoolName: "",
       schoolType: undefined,

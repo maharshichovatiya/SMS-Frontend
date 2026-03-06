@@ -26,7 +26,6 @@ import { showToast } from "@/lib/utils/Toast";
 import {
   handleStringField,
   handleNonStringField,
-  handleStatusField,
 } from "@/lib/utils/FieldHandlers";
 import DateInput from "@/components/ui/DateInput";
 
@@ -113,7 +112,6 @@ export default function StudentForm({
       rollNo: "",
       admissionDate: "",
       dob: undefined,
-      status: "active",
       fatherName: "",
       fatherPhone: "",
       motherName: "",
@@ -171,7 +169,6 @@ export default function StudentForm({
         admissionDate: initialData.admissionDate,
         dob: initialData.dob,
         gender: (initialData.gender as "male" | "female" | "other" | "") || "",
-        status: initialData.status,
         fatherName: initialData.fatherName,
         fatherPhone: initialData.fatherPhone,
         motherName: initialData.motherName,
@@ -180,12 +177,10 @@ export default function StudentForm({
           ? Math.floor(Number(initialData.familyAnnualIncome)).toString()
           : "",
         medicalConditions: initialData.medicalConditions,
-        classId: initialData.classId,
-        academicYearId: initialData.academicYearId,
       };
       reset(formDataToReset);
     }
-  }, [initialData, reset]);
+  }, [initialData, reset, setValue]);
 
   // Handle academic year change
   const handleAcademicYearChange = (academicYearId: string) => {
@@ -251,7 +246,6 @@ export default function StudentForm({
     rollNo: string;
     admissionDate: string;
     dob?: string;
-    status?: "active" | "inactive";
     fatherName?: string;
     fatherPhone?: string;
     motherName?: string;
@@ -315,22 +309,12 @@ export default function StudentForm({
           typeof normalizedInitialValue === "string"
         ) {
           if (normalizedFormValue.trim() !== normalizedInitialValue.trim()) {
-            // Handle status field with proper type checking
-            if (key === "status") {
-              handleStatusField(normalizedFormValue, changedFields);
-            } else {
-              // Handle other string fields
-              handleStringField(key, normalizedFormValue, changedFields);
-            }
+            // Handle other string fields
+            handleStringField(key, normalizedFormValue, changedFields);
           }
         } else {
-          // Handle status field with proper type checking
-          if (key === "status" && typeof normalizedFormValue === "string") {
-            handleStatusField(normalizedFormValue, changedFields);
-          } else if (key !== "status") {
-            // Handle non-string fields
-            handleNonStringField(key, normalizedFormValue, changedFields);
-          }
+          // Handle non-string fields
+          handleNonStringField(key, normalizedFormValue, changedFields);
         }
       }
     });
@@ -585,7 +569,7 @@ export default function StudentForm({
                               {field.name === "classId" &&
                                 filteredClasses.map(cls => (
                                   <option key={cls.id} value={cls.id}>
-                                    Class {cls.classNo} - {cls.section}
+                                    Class {cls.className} - {cls.section}
                                     {cls.studentCapacity &&
                                       ` (Capacity: ${cls.studentCapacity})`}
                                     {cls.status === "inactive" && " (Inactive)"}
@@ -648,7 +632,7 @@ export default function StudentForm({
                               <option value="">
                                 {field.name === "gender"
                                   ? "Select gender"
-                                  : "Select status"}
+                                  : field.placeholder}
                               </option>
                             )}
                             {field.name === "gender" ? (
@@ -657,12 +641,7 @@ export default function StudentForm({
                                 <option value="female">Female</option>
                                 <option value="other">Other</option>
                               </>
-                            ) : (
-                              <>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                              </>
-                            )}
+                            ) : null}
                           </select>
                           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] pointer-events-none">
                             <Users className="w-4 h-4" />

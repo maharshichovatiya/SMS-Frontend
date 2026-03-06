@@ -7,7 +7,7 @@ import { showToast } from "@/lib/utils/Toast";
 
 interface CreateChapterFormProps {
   subject: SubjectWithClasses;
-  classInfo: SubjectWithClasses["classes"][0];
+  classInfo: SubjectWithClasses["classSubjects"][0];
   chaptersCount?: number;
   onClose: () => void;
   onSubmitSuccess: () => void;
@@ -31,14 +31,14 @@ export default function CreateChapterForm({
   }>({ chapterName: "", chapterNo: 1 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentChaptersCount, setCurrentChaptersCount] = useState(
-    chaptersCount || classInfo.chapters?.length || 0,
+    chaptersCount || subject.chapters?.length || 0,
   );
 
   const updateChapter = (
     field: "chapterName" | "chapterNo",
     value: string | number,
   ) => {
-    setChapter(prev => ({
+    setChapter((prev: { chapterName: string; chapterNo: number }) => ({
       ...prev,
       [field]: field === "chapterNo" ? Number(value) : value,
     }));
@@ -75,7 +75,7 @@ export default function CreateChapterForm({
       showToast.success("Chapter created successfully!");
 
       // Update the local chapters count immediately
-      setCurrentChaptersCount(prev => prev + 1);
+      setCurrentChaptersCount((prev: number) => prev + 1);
 
       // First notify about the new chapter, then handle success
       if (onChapterCreated) {
@@ -101,7 +101,7 @@ export default function CreateChapterForm({
             {subject.subjectName}
           </p>
           <p className="text-xs text-[var(--text-3)]">
-            Class {classInfo.classInfo.classNo}-{classInfo.classInfo.section}
+            Class {classInfo.class.className}-{classInfo.class.section}
           </p>
           <p className="text-xs text-[var(--text-3)] mt-1">
             Existing chapters: {currentChaptersCount}

@@ -76,7 +76,6 @@ export const createStudentSchema = z.object({
         birthDate >= minDate
       );
     }, "Student age must be between 5 and 25 years"),
-  status: z.enum(["active", "inactive"]).optional(),
   fatherName: z
     .string()
     .max(30, "Father name cannot exceed 30 characters")
@@ -212,7 +211,6 @@ export const updateStudentSchema = z.object({
         birthDate >= minDate
       );
     }, "Student age must be between 5 and 25 years"),
-  status: z.enum(["active", "inactive"]).optional(),
   fatherName: z
     .string()
     .max(30, "Father name cannot exceed 30 characters")
@@ -282,7 +280,6 @@ export type StudentFormValues = {
   admissionDate: string;
   dob?: string;
   gender?: "male" | "female" | "other" | "";
-  status?: "active" | "inactive";
   fatherName?: string;
   fatherPhone?: string;
   motherName?: string;
@@ -381,16 +378,6 @@ export const STUDENT_FIELDS: {
     label: "Admission Date",
     type: "date",
     placeholder: "",
-    fullWidth: true,
-    section: "Academic Details",
-  },
-
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    placeholder: "Select status",
-    optional: true,
     fullWidth: true,
     section: "Academic Details",
   },

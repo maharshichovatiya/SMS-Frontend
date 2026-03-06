@@ -199,9 +199,9 @@ export function PersonalDetailsForm({
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-3)] hover:text-[var(--color-text-2)] transition-colors p-1 rounded-lg hover:bg-[var(--color-surface-2)]"
           >
             {showPass ? (
-              <EyeOff className="w-4 h-4" />
+              <EyeOff className="w-4 h-4 cursor-pointer" />
             ) : (
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4 cursor-pointer" />
             )}
           </button>
         </div>
