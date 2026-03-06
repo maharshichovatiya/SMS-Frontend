@@ -5,18 +5,25 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getProfile, updateProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
-import { User, Shield, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Lock, Eye, EyeOff, Pencil, Phone } from "lucide-react";
 import {
   ProfileFormData,
   profileSchema,
 } from "@/lib/validations/ProfileSchema";
+import Modal from "@/components/ui/Modal";
 
 export default function ProfileForm() {
   const [profileId, setProfileId] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [savedName, setSavedName] = useState({ firstName: "", lastName: "" });
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [savedData, setSavedData] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    phone: "",
+  });
 
   const {
     register,
@@ -27,10 +34,12 @@ export default function ProfileForm() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: "",
+      middleName: "",
       lastName: "",
+      phone: "",
       password: "",
     },
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   useEffect(() => {
@@ -39,15 +48,14 @@ export default function ProfileForm() {
         const data = await getProfile();
         setProfileId(data.id ?? "");
         setEmail(data.email ?? "");
-        reset({
+        const profileData = {
           firstName: data.firstName ?? "",
+          middleName: data.middleName ?? "",
           lastName: data.lastName ?? "",
-          password: "",
-        });
-        setSavedName({
-          firstName: data.firstName ?? "",
-          lastName: data.lastName ?? "",
-        });
+          phone: data.phone ?? "",
+        };
+        reset({ ...profileData, password: "" });
+        setSavedData(profileData);
       } catch (error) {
         const err = error as Error;
         showToast.error(err.message);
@@ -63,166 +71,315 @@ export default function ProfileForm() {
     try {
       await updateProfile(profileId, {
         firstName: data.firstName,
+        middleName: data.middleName,
         lastName: data.lastName,
+        phone: data.phone,
         password: data.password,
       });
       showToast.success("Profile updated successfully");
+      const updated = {
+        firstName: data.firstName,
+        middleName: data.middleName ?? "",
+        lastName: data.lastName,
+        phone: data.phone ?? "",
+      };
       reset({ ...data, password: "" });
-      setSavedName({ firstName: data.firstName, lastName: data.lastName });
+      setSavedData(updated);
+      setIsEditOpen(false);
     } catch (error: unknown) {
       let message = "Profile not updated";
-
-      if (error instanceof Error) {
-        message = error.message;
-      }
-
+      if (error instanceof Error) message = error.message;
       showToast.error(message);
     }
+  };
+
+  const handleOpenEdit = () => {
+    reset({ ...savedData, password: "" });
+    setShowPassword(false);
+    setIsEditOpen(true);
   };
 
   if (loading)
     return <div className="p-4 text-[var(--text-2)]">Loading...</div>;
 
   return (
-    <div
-      className="
-        bg-[var(--surface)]
-        border border-[var(--border)]
-        rounded-[var(--radius-xl)]
-        shadow-[var(--shadow)]
-        overflow-hidden
-      "
-    >
-      <div
-        className="
-          px-8 py-4
-          border-b border-[var(--border)]
-          bg-[var(--surface-2)]
-        "
-      >
-        <h2 className="text-lg font-semibold text-[var(--text)]">
-          Admin Profile
-        </h2>
-      </div>
+    <>
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-xl)] shadow-[var(--shadow)] overflow-hidden">
+        <div className="px-8 py-4 border-b border-[var(--border)] bg-[var(--surface-2)] flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            Admin Profile
+          </h2>
+          <button
+            onClick={handleOpenEdit}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--text-2)] hover:bg-[var(--bg-2)] transition cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </button>
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
-        <div
-          className="
-            flex items-center justify-between
-            bg-[var(--bg-2)]
-            rounded-[var(--radius-lg)]
-            p-6
-          "
-        >
-          <div className="flex items-center gap-4">
+        <div className="p-4 space-y-4">
+          <div className="flex items-center gap-4 bg-[var(--bg-2)] rounded-[var(--radius-lg)] p-6">
             <div
-              className="
-                w-12 h-12
-                rounded-full
-                flex items-center justify-center
-                text-white font-bold text-xl
-              "
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0"
               style={{ background: "var(--grad-primary)" }}
             >
-              {savedName.firstName?.charAt(0).toUpperCase()}
-              {savedName.lastName?.charAt(0).toUpperCase()}
+              {savedData.firstName?.charAt(0).toUpperCase()}
+              {savedData.lastName?.charAt(0).toUpperCase()}
             </div>
-
             <div>
               <p className="font-semibold text-[var(--text)]">
-                {savedName.firstName} {savedName.lastName}
+                {savedData.firstName} {savedData.middleName}{" "}
+                {savedData.lastName}
               </p>
               <p className="text-sm text-[var(--text-2)]">{email}</p>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-start gap-3">
-          <div className="w-full">
-            <label className="label-base">First Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-              <input
-                {...register("firstName")}
-                type="text"
-                placeholder="First Name"
-                className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
-              />
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">First Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.firstName}
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
             </div>
-            <span className="text-xs text-[var(--rose)] min-h-[16px]">
-              {errors.firstName?.message}
-            </span>
-          </div>
-
-          <div className="w-full">
-            <label className="label-base">Last Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-              <input
-                {...register("lastName")}
-                type="text"
-                placeholder="Last Name"
-                className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
-              />
-            </div>
-            <span className="text-xs text-[var(--rose)] min-h-[16px]">
-              {errors.lastName?.message}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <div className="w-full">
-            <label className="label-base">Role</label>
-            <div className="relative">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-              <input
-                type="text"
-                value="Admin"
-                disabled
-                className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
-              />
+            <div className="w-full">
+              <label className="label-base">Middle Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.middleName}
+                  placeholder="Middle name"
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="w-full">
-            <label className="label-base">New Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
-              <input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder="Leave blank to keep current"
-                className={`input-base pl-9 pr-10 ${errors.password ? "error" : ""}`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">Last Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.lastName}
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
             </div>
-            <span className="text-xs text-[var(--rose)] min-h-[16px]">
-              {errors.password?.message}
-            </span>
+            <div className="w-full">
+              <label className="label-base">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={savedData.phone}
+                  disabled
+                  placeholder="Phone number"
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">Email</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={email}
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div className="w-full">
+              <label className="label-base">Role</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value="Admin"
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex justify-end pt-2">
-          <button
-            type="submit"
-            disabled={!isDirty || isSubmitting}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
-      </form>
-    </div>
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => !isSubmitting && setIsEditOpen(false)}
+        title="Edit Admin Profile"
+        className="max-w-xl"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsEditOpen(false)}
+              disabled={isSubmitting}
+              className="px-5 py-3 rounded-[var(--radius-sm)] cursor-pointer border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--text-2)] hover:bg-[var(--bg-2)] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              form="profile-edit-form"
+              type="submit"
+              disabled={!isDirty || isSubmitting}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </button>
+          </>
+        }
+      >
+        <form
+          id="profile-edit-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">
+                First Name <span className="text-red-500 text-lg">*</span>
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("firstName")}
+                  type="text"
+                  placeholder="First Name"
+                  className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.firstName?.message}
+              </span>
+            </div>
+            <div className="w-full mt-3">
+              <label className="label-base">Middle Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("middleName")}
+                  type="text"
+                  placeholder="Middle Name"
+                  className={`input-base pl-9 ${errors.middleName ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.middleName?.message}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">
+                Last Name <span className="text-red-500 text-lg">*</span>
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("lastName")}
+                  type="text"
+                  placeholder="Last Name"
+                  className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.lastName?.message}
+              </span>
+            </div>
+            <div className="w-full mt-3">
+              <label className="label-base">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("phone")}
+                  type="tel"
+                  maxLength={10}
+                  placeholder="9876543210"
+                  onKeyDown={e => {
+                    if (
+                      !/[0-9]/.test(e.key) &&
+                      ![
+                        "Backspace",
+                        "Delete",
+                        "Tab",
+                        "ArrowLeft",
+                        "ArrowRight",
+                      ].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className={`input-base pl-9 ${errors.phone ? "error" : ""}`}
+                />
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.phone?.message}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-full">
+              <label className="label-base">Role</label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value="Admin"
+                  disabled
+                  className="input-base pl-9 bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
+                />
+              </div>
+              <span className="min-h-[16px] block" />
+            </div>
+            <div className="w-full">
+              <label className="label-base">New Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-3)]" />
+                <input
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Leave blank to keep current"
+                  className={`input-base pl-9 pr-10 ${errors.password ? "error" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <span className="text-xs text-[var(--rose)] min-h-[16px] block">
+                {errors.password?.message}
+              </span>
+            </div>
+          </div>
+        </form>
+      </Modal>
+    </>
   );
 }

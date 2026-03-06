@@ -13,8 +13,10 @@ export const getProfile = async (): Promise<ProfileData> => {
 };
 
 export interface UpdateProfilePayload {
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  phone?: string;
   password?: string;
 }
 

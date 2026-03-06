@@ -6,11 +6,24 @@ export const profileSchema = z.object({
     .min(1, "First name is required")
     .max(50, "First name is too long")
     .regex(/^[A-Za-z\s]+$/, "First name must contain only letters"),
+  middleName: z
+    .string()
+    .max(50, "Middle name is too long")
+    .regex(/^[A-Za-z\s]*$/, "Middle name must contain only letters")
+    .optional(),
   lastName: z
     .string()
     .min(1, "Last name is required")
     .max(50, "Last name is too long")
     .regex(/^[A-Za-z\s]+$/, "Last name must contain only letters"),
+  phone: z
+    .string()
+    .trim()
+    .transform(val => (val === "" ? undefined : val))
+    .optional()
+    .refine(val => !val || /^[0-9]{10}$/.test(val), {
+      message: "Phone number must be exactly 10 digits",
+    }),
   password: z
     .string()
     .trim()

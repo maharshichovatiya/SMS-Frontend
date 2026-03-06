@@ -55,6 +55,7 @@ api.interceptors.response.use(
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
           { refresh_token: refreshToken },
+          { withCredentials: true },
         );
 
         const newAccessToken = response.data.data.access_token;

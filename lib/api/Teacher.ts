@@ -7,13 +7,27 @@ export type GetTeachersResponse = {
   message: string;
   data: {
     data: GetTeachers[];
-    Total_Records: number;
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
   };
 };
 
 export const getAllTeachers = async (
   search?: string,
   department?: string,
+  gender?: string,
+  staffCategory?: string,
+  status?: string,
+  experience?: string,
+  salary?: string,
+  ageGroup?: string,
+  tenure?: string,
+  page: number = 1,
+  limit: number = 9,
 ): Promise<{
   success: boolean;
   data?: GetTeachers[];
@@ -22,22 +36,47 @@ export const getAllTeachers = async (
 }> => {
   try {
     const params: Record<string, string> = {};
+
     if (search) params.search = search;
     if (department) params.department = department;
+    if (gender) params.gender = gender;
+    if (staffCategory) params.staffType = staffCategory;
+    if (status) params.status = status;
+    if (experience) params.experienceRange = experience;
+    if (salary) params.salaryRange = salary;
+    if (ageGroup) params.ageGroup = ageGroup;
+    if (tenure) params.tenure = tenure;
+    params.page = String(page);
+    params.limit = String(limit);
 
     const res = await api.get<GetTeachersResponse>("/teachers", { params });
 
     return {
       success: true,
       data: res.data.data.data,
-      total: res.data.data.Total_Records,
+      total: res.data.data.meta.total,
     };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-
     return {
       success: false,
       message: err.response?.data?.message || "Failed to fetch teachers.",
+    };
+  }
+};
+
+export const updateTeacherStatus = async (
+  id: string,
+  status: string,
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    await api.patch(`/teachers/status/${id}`, { status });
+    return { success: true };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    return {
+      success: false,
+      message: err.response?.data?.message || "Failed to update status",
     };
   }
 };
