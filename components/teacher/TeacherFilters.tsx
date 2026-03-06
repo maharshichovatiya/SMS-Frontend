@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Users,
   Briefcase,
-  Calendar,
   Clock,
   UserCheck,
   Building2,
@@ -20,21 +19,19 @@ import {
   EXPERIENCE_OPTIONS,
   GENDER_OPTIONS,
   SALARY_OPTIONS,
-  STAFF_CATEGORY_OPTIONS,
   STATUS_OPTIONS,
   TENURE_OPTIONS,
 } from "@/lib/utils/TeacherFilterConstants";
 
 export interface TeacherFilterValues {
   search: string;
-  department: string;
-  experience?: string;
-  salary?: string;
-  ageGroup?: string;
-  tenure?: string;
-  gender?: string;
-  staffCategory?: string;
-  status?: string;
+  department: string[];
+  experience?: string[];
+  salary?: string[];
+  ageGroup?: string[];
+  tenure?: string[];
+  gender?: string[];
+  status?: string[];
 }
 
 interface TeacherFiltersProps {
@@ -51,22 +48,20 @@ export default function TeacherFilters({
   const [isOpen, setIsOpen] = useState(false);
 
   const hasActiveFilters =
-    !!filters.experience ||
-    !!filters.salary ||
-    !!filters.ageGroup ||
-    !!filters.tenure ||
-    !!filters.gender ||
-    !!filters.staffCategory ||
-    (filters.department && filters.department !== "all");
+    (filters.department?.length ?? 0) > 0 ||
+    (filters.experience?.length ?? 0) > 0 ||
+    (filters.salary?.length ?? 0) > 0 ||
+    (filters.ageGroup?.length ?? 0) > 0 ||
+    (filters.tenure?.length ?? 0) > 0 ||
+    (filters.gender?.length ?? 0) > 0;
 
   const activeFilterCount = [
-    filters.experience,
-    filters.salary,
-    filters.ageGroup,
-    filters.tenure,
-    filters.gender,
-    filters.staffCategory,
-    filters.department !== "all" ? filters.department : undefined,
+    ...(filters.department ?? []),
+    ...(filters.experience ?? []),
+    ...(filters.salary ?? []),
+    ...(filters.ageGroup ?? []),
+    ...(filters.tenure ?? []),
+    ...(filters.gender ?? []),
   ].filter(Boolean).length;
 
   const handleCheckbox = (
@@ -74,9 +69,10 @@ export default function TeacherFilters({
     value: string,
     checked: boolean,
   ) => {
+    const current = (filters[key] as string[]) ?? [];
     onFiltersChange({
       ...filters,
-      [key]: checked ? value : undefined,
+      [key]: checked ? [...current, value] : current.filter(v => v !== value),
     });
   };
 
@@ -85,14 +81,14 @@ export default function TeacherFilters({
       <div className="flex items-center justify-between gap-4 mt-6">
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => onFiltersChange({ ...filters, status: undefined })}
+            onClick={() => onFiltersChange({ ...filters, status: [] })}
             className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
-              !filters.status
+              !filters.status?.length
                 ? "text-white border-transparent"
                 : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
             }`}
             style={
-              !filters.status
+              !filters.status?.length
                 ? {
                     background: "var(--grad-primary)",
                     borderColor: "transparent",
@@ -108,16 +104,18 @@ export default function TeacherFilters({
               onClick={() =>
                 onFiltersChange({
                   ...filters,
-                  status: filters.status === s.value ? undefined : s.value,
+                  status: filters.status?.includes(s.value)
+                    ? filters.status.filter(v => v !== s.value)
+                    : [...(filters.status ?? []), s.value],
                 })
               }
               className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
-                filters.status === s.value
+                filters.status?.includes(s.value)
                   ? "text-white border-transparent"
                   : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
               }`}
               style={
-                filters.status === s.value
+                filters.status?.includes(s.value)
                   ? {
                       background: "var(--grad-primary)",
                       borderColor: "transparent",
@@ -214,12 +212,13 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`dept-${opt.key}`}
-                        checked={filters.department === opt.key}
+                        checked={(filters.department ?? []).includes(opt.key)}
                         onChange={e =>
-                          onFiltersChange({
-                            ...filters,
-                            department: e.target.checked ? opt.key : "all",
-                          })
+                          handleCheckbox(
+                            "department",
+                            opt.key,
+                            e.target.checked,
+                          )
                         }
                         className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
                       />
@@ -248,7 +247,7 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`exp-${opt.value}`}
-                        checked={filters.experience === opt.value}
+                        checked={(filters.experience ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox(
                             "experience",
@@ -286,7 +285,7 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`sal-${opt.value}`}
-                        checked={filters.salary === opt.value}
+                        checked={(filters.salary ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox("salary", opt.value, e.target.checked)
                         }
@@ -320,7 +319,7 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`age-${opt.value}`}
-                        checked={filters.ageGroup === opt.value}
+                        checked={(filters.ageGroup ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox(
                             "ageGroup",
@@ -358,7 +357,7 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`tenure-${opt.value}`}
-                        checked={filters.tenure === opt.value}
+                        checked={(filters.tenure ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox("tenure", opt.value, e.target.checked)
                         }
@@ -392,7 +391,7 @@ export default function TeacherFilters({
                       <input
                         type="checkbox"
                         id={`gender-${opt.value}`}
-                        checked={filters.gender === opt.value}
+                        checked={(filters.gender ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox("gender", opt.value, e.target.checked)
                         }
@@ -400,73 +399,6 @@ export default function TeacherFilters({
                       />
                       <label
                         htmlFor={`gender-${opt.value}`}
-                        className="text-sm text-[var(--text)] cursor-pointer flex-1"
-                      >
-                        {opt.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Staff Category */}
-              <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
-                  <Users size={16} />
-                  Staff Category
-                </label>
-                <div className="space-y-1">
-                  {STAFF_CATEGORY_OPTIONS.map(opt => (
-                    <div
-                      key={opt.value}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface)] transition-colors duration-[var(--duration)]"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`cat-${opt.value}`}
-                        checked={filters.staffCategory === opt.value}
-                        onChange={e =>
-                          handleCheckbox(
-                            "staffCategory",
-                            opt.value,
-                            e.target.checked,
-                          )
-                        }
-                        className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
-                      />
-                      <label
-                        htmlFor={`cat-${opt.value}`}
-                        className="text-sm text-[var(--text)] cursor-pointer flex-1"
-                      >
-                        {opt.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
-                  <Calendar size={16} />
-                  Status
-                </label>
-                <div className="space-y-1">
-                  {STATUS_OPTIONS.map(opt => (
-                    <div
-                      key={opt.value}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface)] transition-colors duration-[var(--duration)]"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`status-${opt.value}`}
-                        checked={filters.status === opt.value}
-                        onChange={e =>
-                          handleCheckbox("status", opt.value, e.target.checked)
-                        }
-                        className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
-                      />
-                      <label
-                        htmlFor={`status-${opt.value}`}
                         className="text-sm text-[var(--text)] cursor-pointer flex-1"
                       >
                         {opt.label}

@@ -14,14 +14,13 @@ import PageHeader from "@/components/layout/PageHeader";
 
 const DEFAULT_FILTERS: TeacherFilterValues = {
   search: "",
-  department: "all",
-  experience: undefined,
-  salary: undefined,
-  ageGroup: undefined,
-  tenure: undefined,
-  gender: undefined,
-  staffCategory: undefined,
-  status: undefined,
+  department: [],
+  experience: [],
+  salary: [],
+  ageGroup: [],
+  tenure: [],
+  gender: [],
+  status: [],
 };
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
@@ -41,33 +40,32 @@ export default function TeachersPage() {
   const totalPages = Math.ceil(totalRecords / pageSize);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(filters.search), 400);
+    const t = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+      setCurrentPage(1);
+    }, 400);
     return () => clearTimeout(t);
   }, [filters.search]);
 
   useEffect(() => {
-    function setpage() {
-      setCurrentPage(1);
-    }
-    setpage();
-  }, [debouncedSearch, filters, pageSize]);
+    let cancelled = false;
 
-  useEffect(() => {
-    const fetchTeachers = async () => {
+    const run = async () => {
       setLoading(true);
       const res = await getAllTeachers(
         debouncedSearch || undefined,
-        filters.department !== "all" ? filters.department : undefined,
-        filters.gender,
-        filters.staffCategory,
-        filters.status,
-        filters.experience,
-        filters.salary,
-        filters.ageGroup,
-        filters.tenure,
+        filters.department?.length ? filters.department : undefined,
+        filters.gender?.length ? filters.gender : undefined,
+        undefined,
+        filters.status?.length ? filters.status : undefined,
+        filters.experience?.length ? filters.experience : undefined,
+        filters.salary?.length ? filters.salary : undefined,
+        filters.ageGroup?.length ? filters.ageGroup : undefined,
+        filters.tenure?.length ? filters.tenure : undefined,
         currentPage,
         pageSize,
       );
+      if (cancelled) return;
       if (res.success && res.data) {
         setTeachers(res.data);
         setTotalRecords(res.total ?? 0);
@@ -75,27 +73,52 @@ export default function TeachersPage() {
       setLoading(false);
     };
 
-    fetchTeachers();
-  }, [refresh, debouncedSearch, filters, currentPage, pageSize]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    refresh,
+    debouncedSearch,
+    filters.department,
+    filters.gender,
+    filters.status,
+    filters.experience,
+    filters.salary,
+    filters.ageGroup,
+    filters.tenure,
+    currentPage,
+    pageSize,
+  ]);
 
   const loadTeachers = () => setRefresh(prev => prev + 1);
 
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
   const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1);
   };
 
+  const handleFiltersChange = (val: TeacherFilterValues) => {
+    setCurrentPage(1);
+    setFilters(val);
+  };
+
+  const handleClearFilters = () => {
+    setCurrentPage(1);
+    setFilters(DEFAULT_FILTERS);
+  };
+
   const hasActiveFilters =
-    filters.department !== "all" ||
-    !!filters.experience ||
-    !!filters.salary ||
-    !!filters.ageGroup ||
-    !!filters.tenure ||
-    !!filters.gender ||
-    !!filters.staffCategory ||
-    !!filters.status;
+    (filters.department?.length ?? 0) > 0 ||
+    (filters.experience?.length ?? 0) > 0 ||
+    (filters.salary?.length ?? 0) > 0 ||
+    (filters.ageGroup?.length ?? 0) > 0 ||
+    (filters.tenure?.length ?? 0) > 0 ||
+    (filters.gender?.length ?? 0) > 0 ||
+    (filters.status?.length ?? 0) > 0;
 
   const showingFrom = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const showingTo = Math.min(currentPage * pageSize, totalRecords);
@@ -115,8 +138,8 @@ export default function TeachersPage() {
 
       <TeacherFilters
         filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={() => setFilters(DEFAULT_FILTERS)}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
       />
 
       {loading ? (

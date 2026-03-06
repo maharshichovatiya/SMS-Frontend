@@ -1,6 +1,13 @@
 "use client";
 
-import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Mail,
+  Phone,
+  Calendar,
+  IndianRupee,
+} from "lucide-react";
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import TeacherForm from "../forms/TeacherForm";
@@ -102,18 +109,23 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
-            <span className="text-lg font-extrabold text-[var(--blue)] leading-none">
-              {Math.floor(Number(teacher.salaryPackage))}
-            </span>
+            <div className="flex items-center gap-0.5 text-[var(--blue)] leading-none">
+              <IndianRupee size={14} strokeWidth={2.5} />
+              <span className="text-lg font-extrabold">
+                {Math.floor(Number(teacher.salaryPackage)).toLocaleString(
+                  "en-IN",
+                )}
+              </span>
+            </div>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Salary
+              Year Package
             </span>
           </div>
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
-            <span className="text-lg font-extrabold text-[var(--amber)] leading-none">
+            <span className="text-lg mt-2 font-extrabold text-[var(--amber)] leading-none">
               {formatExperience(teacher.totalExpMonths)}
             </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+            <span className="text-[10px] pt-1 font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
               Experience
             </span>
           </div>

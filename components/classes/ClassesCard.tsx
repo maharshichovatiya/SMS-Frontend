@@ -10,6 +10,7 @@ import { showToast } from "@/lib/utils/Toast";
 import { deleteClass } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 import { StudentAcademic } from "@/lib/types/Class";
+import ClassSubjectsModal from "./ClassSubjectsModal";
 
 interface Props {
   cls: ClassItem;
@@ -31,6 +32,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
   const [showStudents, setShowStudents] = useState(false);
+  const [showSubjects, setShowSubjects] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const teacherName = cls.classTeacher?.user
@@ -113,7 +115,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
           </p>
         </div>
 
-        {/* Subjects */}
         <div className="flex flex-wrap gap-1.5 mb-3 min-h-[22px]">
           {cls.classSubjects && cls.classSubjects.length > 0 ? (
             <>
@@ -140,7 +141,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
         <div className="border-t border-[var(--border)] my-3" />
 
-        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
           {[
             { label: "Students", value: cls.studentCount ?? 0 },
@@ -203,6 +203,15 @@ export default function ClassCard({ cls, onSuccess }: Props) {
           validStudents={validStudents}
           availableSeats={availableSeats}
         />
+      ) : showSubjects ? (
+        <ClassSubjectsModal
+          isOpen={openDetail}
+          onClose={handleCloseDetail}
+          onBack={() => setShowSubjects(false)}
+          className={cls.className}
+          section={cls.section}
+          cls={cls}
+        />
       ) : (
         <ClassDetailModal
           isOpen={openDetail}
@@ -216,6 +225,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
           teacherCount={teacherCount}
           availableSeats={availableSeats}
           onShowStudents={() => setShowStudents(true)}
+          onShowSubjects={() => setShowSubjects(true)}
         />
       )}
 
