@@ -8,13 +8,10 @@ import {
   Mail,
   Phone,
   Calendar,
-  Lock,
   Users,
   Heart,
   Hash,
   IndianRupee,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import {
   createStudentSchema,
@@ -25,6 +22,7 @@ import {
 import { studentApis } from "@/lib/api/Student";
 import { classApis, Class, AcademicYear } from "@/lib/api/Class";
 import { showToast } from "@/lib/utils/Toast";
+import { generateStudentPassword } from "@/lib/utils/PasswordGenerator";
 import {
   handleStringField,
   handleNonStringField,
@@ -59,7 +57,6 @@ export default function StudentForm({
   const [filteredClasses, setFilteredClasses] = useState<Class[]>([]);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
   const [fetchingData, setFetchingData] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // Icon mapping for different fields
   const getFieldIcon = (fieldName: string) => {
@@ -76,8 +73,6 @@ export default function StudentForm({
         return Phone;
       case "admissionDate":
         return Calendar;
-      case "password":
-        return Lock;
       case "fatherName":
       case "motherName":
       case "guardianName":
@@ -110,7 +105,6 @@ export default function StudentForm({
       middleName: "",
       lastName: "",
       email: "",
-      password: "",
       phone: "",
       rollNo: "",
       admissionDate: "",
@@ -166,7 +160,6 @@ export default function StudentForm({
         middleName: initialData.middleName,
         lastName: initialData.lastName,
         email: initialData.email,
-        password: initialData.password,
         phone: initialData.phone,
         rollNo: initialData.rollNo,
         admissionDate: initialData.admissionDate,
@@ -244,7 +237,7 @@ export default function StudentForm({
     middleName?: string;
     lastName: string;
     email: string;
-    password?: string;
+    password: string;
     phone?: string;
     rollNo: string;
     admissionDate: string;
@@ -421,11 +414,15 @@ export default function StudentForm({
         await studentApis.updateStudent(initialData.id, updatePayload);
         showToast.success("Student updated successfully!");
       } else {
-        // Create payload with converted familyAnnualIncome
+        // Create payload with converted familyAnnualIncome and auto-generated password
         const { classId, academicYearId, rollNo, ...studentData } = data;
+
+        // Generate password for new student
+        const generatedPassword = generateStudentPassword();
 
         const payload: CreateStudentPayload = {
           ...studentData,
+          password: generatedPassword,
           rollNo: rollNo || "",
           familyAnnualIncome: data.familyAnnualIncome
             ? parseInt(data.familyAnnualIncome)
@@ -442,6 +439,7 @@ export default function StudentForm({
             rollNo: rollNo || null,
           };
         }
+
         await studentApis.addStudent(payload);
         showToast.success("Student admitted successfully!");
       }
@@ -463,9 +461,7 @@ export default function StudentForm({
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5 auto-rows-auto">
           {(() => {
-            const filteredFields = STUDENT_FIELDS.filter(
-              field => !(isEditMode && field.name === "password"),
-            );
+            const filteredFields = STUDENT_FIELDS; // No filtering needed since password is removed from STUDENT_FIELDS
 
             const fieldsBySection = filteredFields.reduce(
               (acc, field) => {
@@ -676,20 +672,10 @@ export default function StudentForm({
                       </label>
                       <div className="relative">
                         <input
-                          type={
-                            field.name === "password"
-                              ? showPassword
-                                ? "text"
-                                : "password"
-                              : field.type === "tel"
-                                ? "tel"
-                                : field.type
-                          }
+                          type={field.type === "tel" ? "tel" : field.type}
                           placeholder={field.placeholder}
                           {...register(field.name)}
-                          className={`w-full px-3.5 py-2.5 pl-10 ${
-                            field.name === "password" ? "pr-10" : ""
-                          } text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                          className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
                             error
                               ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                               : "border-[var(--border)]"
@@ -739,20 +725,6 @@ export default function StudentForm({
                             return <Icon className="w-4 h-4" />;
                           })()}
                         </div>
-                        {field.name === "password" && (
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text)] transition-colors duration-200 cursor-pointer"
-                            tabIndex={-1}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        )}
                       </div>
                       {error && (
                         <p className="mt-1 text-xs font-medium text-[var(--rose)]">

@@ -23,17 +23,6 @@ export const createStudentSchema = z.object({
     .min(1, "Email is required")
     .max(40, "Email cannot exceed 40 characters")
     .email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^a-zA-Z0-9]/,
-      "Password must contain at least one special character",
-    ),
   phone: z
     .string()
     .min(1, "Phone is required")
@@ -157,18 +146,6 @@ export const updateStudentSchema = z.object({
     .min(1, "Email is required")
     .max(40, "Email cannot exceed 40 characters")
     .email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^a-zA-Z0-9]/,
-      "Password must contain at least one special character",
-    )
-    .optional(),
   phone: z
     .string()
     .max(10, "Phone cannot exceed 10 digits")
@@ -274,7 +251,6 @@ export type StudentFormValues = {
   middleName?: string;
   lastName: string;
   email: string;
-  password?: string;
   phone?: string;
   rollNo: string;
   admissionDate: string;
@@ -399,16 +375,6 @@ export const STUDENT_FIELDS: {
     optional: true,
     fullWidth: true,
     section: "Academic Details",
-  },
-
-  // Account Section
-  {
-    name: "password",
-    label: "Password",
-    type: "password",
-    placeholder: "Min 8 characters",
-    fullWidth: true,
-    section: "Account Details",
   },
 
   // Family Details Section

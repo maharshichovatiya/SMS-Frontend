@@ -68,3 +68,66 @@ export const updateSubjectSchema = z
 
 export type CreateSubjectFormValues = z.infer<typeof createSubjectSchema>;
 export type UpdateSubjectFormValues = z.infer<typeof updateSubjectSchema>;
+
+// Schema for CreateChapterForm - multiple chapters with enhanced validation
+export const createChaptersFormSchema = z.object({
+  chapters: z
+    .array(
+      z.object({
+        chapterName: z
+          .string()
+          .min(2, "Chapter name must be at least 2 characters")
+          .max(50, "Chapter name cannot exceed 50 characters")
+          .regex(
+            /^[^<>"'&]*$/,
+            "Chapter name cannot contain special characters like < > \" ' &",
+          ),
+        chapterNo: z
+          .number()
+          .int("Chapter number must be an integer")
+          .min(1, "Chapter number must be at least 1"),
+      }),
+    )
+    .min(1, "At least one chapter is required")
+    .superRefine((chapters, ctx) => {
+      // Check for duplicate chapter numbers
+      const chapterNumbers = chapters.map(c => c.chapterNo);
+      const uniqueNumbers = new Set(chapterNumbers);
+      if (chapterNumbers.length !== uniqueNumbers.size) {
+        chapters.forEach((chapter, index) => {
+          const duplicates = chapterNumbers.filter(
+            n => n === chapter.chapterNo,
+          );
+          if (duplicates.length > 1) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Chapter numbers must be unique",
+              path: [`chapters`, index, "chapterNo"],
+            });
+          }
+        });
+      }
+
+      // Check for duplicate chapter names (case-insensitive)
+      const chapterNames = chapters.map(c =>
+        c.chapterName.trim().toLowerCase(),
+      );
+      const uniqueNames = new Set(chapterNames);
+      if (chapterNames.length !== uniqueNames.size) {
+        chapters.forEach((chapter, index) => {
+          const duplicates = chapterNames.filter(
+            n => n === chapter.chapterName.trim().toLowerCase(),
+          );
+          if (duplicates.length > 1) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Chapter names must be unique",
+              path: [`chapters`, index, "chapterName"],
+            });
+          }
+        });
+      }
+    }),
+});
+
+export type CreateChaptersFormValues = z.infer<typeof createChaptersFormSchema>;

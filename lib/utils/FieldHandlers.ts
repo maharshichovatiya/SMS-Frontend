@@ -52,9 +52,6 @@ export const handleStringField = (
     case "gender":
       changedFields.gender = formValue as "male" | "female" | "other" | "";
       break;
-    case "password":
-      changedFields.password = formValue;
-      break;
     case "classId":
       changedFields.classId = formValue;
       break;
@@ -126,9 +123,6 @@ export const handleNonStringField = (
       break;
     case "gender":
       changedFields.gender = formValue as "male" | "female" | "other" | "";
-      break;
-    case "password":
-      changedFields.password = formValue as string;
       break;
     case "classId":
       changedFields.classId = formValue as string;
