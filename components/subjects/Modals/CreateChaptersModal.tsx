@@ -1,19 +1,19 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
 import CreateChapterForm from "@/components/forms/CreateChapterForm";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface CreateChaptersModalProps {
   isOpen: boolean;
   onClose: () => void;
   creatingChapters: {
-    subject: SubjectWithClasses;
-    classInfo: SubjectWithClasses["classSubjects"][0];
+    subject: SubjectWithClassSubjects;
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
   } | null;
   fetchSubjects: () => Promise<void>;
-  selectedSubject: SubjectWithClasses | null;
-  setSelectedSubject: (subject: SubjectWithClasses | null) => void;
-  subjects: SubjectWithClasses[];
+  selectedSubject: SubjectWithClassSubjects | null;
+  setSelectedSubject: (subject: SubjectWithClassSubjects | null) => void;
+  subjects: SubjectWithClassSubjects[];
 }
 
 export function CreateChaptersModal({
@@ -34,7 +34,7 @@ export function CreateChaptersModal({
       title="Create Chapters"
       description={`Add new chapters to ${creatingChapters.subject.subjectName}`}
     >
-      <div className="w-[800px]">
+      <div className="w-full max-w-[600px] sm:w-[600px]">
         <CreateChapterForm
           key={creatingChapters.subject.chapters?.length}
           subject={creatingChapters.subject}
@@ -46,7 +46,7 @@ export function CreateChaptersModal({
             await fetchSubjects();
             // Update the selectedSubject with the latest data to show updated chapters
             const updatedSelectedSubject = subjects?.find(
-              (s: SubjectWithClasses) => s.id === selectedSubject?.id,
+              (s: SubjectWithClassSubjects) => s.id === selectedSubject?.id,
             );
             if (updatedSelectedSubject) {
               setSelectedSubject(updatedSelectedSubject);

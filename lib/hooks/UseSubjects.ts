@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   subjectApis,
-  SubjectWithClasses,
+  SubjectWithClassSubjects,
   AssignClassData,
 } from "@/lib/api/Subject";
 import { classApis, Class } from "@/lib/api/Class";
@@ -11,19 +11,23 @@ import { showToast } from "@/lib/utils/Toast";
 
 export interface UseSubjectsReturn {
   // State
-  subjects: SubjectWithClasses[];
+  subjects: SubjectWithClassSubjects[];
   loading: boolean;
   searchQuery: string;
   debouncedSearch: string;
-  selectedSubject: SubjectWithClasses | null;
-  editingSubject: SubjectWithClasses | null;
+  minPassingMarks: string;
+  maxPassingMarks: string;
+  minTotalMarks: string;
+  maxTotalMarks: string;
+  selectedSubject: SubjectWithClassSubjects | null;
+  editingSubject: SubjectWithClassSubjects | null;
   creatingChapters: {
-    subject: SubjectWithClasses;
-    classInfo: SubjectWithClasses["classSubjects"][0];
+    subject: SubjectWithClassSubjects;
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
   } | null;
   deletingId: string | null;
   isDeleting: boolean;
-  deletingSubject: SubjectWithClasses | null;
+  deletingSubject: SubjectWithClassSubjects | null;
   deletingChapter: {
     subjectId: string;
     chapterId: string;
@@ -46,16 +50,21 @@ export interface UseSubjectsReturn {
 
   // Actions
   setSearchQuery: (query: string) => void;
-  setSelectedSubject: (subject: SubjectWithClasses | null) => void;
-  setEditingSubject: (subject: SubjectWithClasses | null) => void;
+  setMinPassingMarks: (value: string) => void;
+  setMaxPassingMarks: (value: string) => void;
+  setMinTotalMarks: (value: string) => void;
+  setMaxTotalMarks: (value: string) => void;
+  clearFilters: () => void;
+  setSelectedSubject: (subject: SubjectWithClassSubjects | null) => void;
+  setEditingSubject: (subject: SubjectWithClassSubjects | null) => void;
   setCreatingChapters: (
     data: {
-      subject: SubjectWithClasses;
-      classInfo: SubjectWithClasses["classSubjects"][0];
+      subject: SubjectWithClassSubjects;
+      classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
     } | null,
   ) => void;
   setDeletingId: (id: string | null) => void;
-  setDeletingSubject: (subject: SubjectWithClasses | null) => void;
+  setDeletingSubject: (subject: SubjectWithClassSubjects | null) => void;
   setDeletingChapter: (
     data: {
       subjectId: string;
@@ -85,10 +94,14 @@ export interface UseSubjectsReturn {
 }
 
 export function useSubjects(): UseSubjectsReturn {
-  const [subjects, setSubjects] = useState<SubjectWithClasses[]>([]);
+  const [subjects, setSubjects] = useState<SubjectWithClassSubjects[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [minPassingMarks, setMinPassingMarks] = useState<string>("");
+  const [maxPassingMarks, setMaxPassingMarks] = useState<string>("");
+  const [minTotalMarks, setMinTotalMarks] = useState<string>("");
+  const [maxTotalMarks, setMaxTotalMarks] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,17 +119,17 @@ export function useSubjects(): UseSubjectsReturn {
   }, [searchQuery]);
 
   const [selectedSubject, setSelectedSubject] =
-    useState<SubjectWithClasses | null>(null);
+    useState<SubjectWithClassSubjects | null>(null);
   const [editingSubject, setEditingSubject] =
-    useState<SubjectWithClasses | null>(null);
+    useState<SubjectWithClassSubjects | null>(null);
   const [creatingChapters, setCreatingChapters] = useState<{
-    subject: SubjectWithClasses;
-    classInfo: SubjectWithClasses["classSubjects"][0];
+    subject: SubjectWithClassSubjects;
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
   } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletingSubject, setDeletingSubject] =
-    useState<SubjectWithClasses | null>(null);
+    useState<SubjectWithClassSubjects | null>(null);
   const [deletingChapter, setDeletingChapter] = useState<{
     subjectId: string;
     chapterId: string;
@@ -139,6 +152,10 @@ export function useSubjects(): UseSubjectsReturn {
         currentPage,
         pageSize,
         debouncedSearch,
+        minPassingMarks ? Number(minPassingMarks) : undefined,
+        maxPassingMarks ? Number(maxPassingMarks) : undefined,
+        minTotalMarks ? Number(minTotalMarks) : undefined,
+        maxTotalMarks ? Number(maxTotalMarks) : undefined,
       );
       setSubjects(response.data);
       setTotalSubjects(response.meta.total);
@@ -148,7 +165,15 @@ export function useSubjects(): UseSubjectsReturn {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, debouncedSearch]);
+  }, [
+    currentPage,
+    pageSize,
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
 
   useEffect(() => {
     fetchSubjects();
@@ -159,7 +184,7 @@ export function useSubjects(): UseSubjectsReturn {
       setModalLoading(true);
       const [classesData, teachersData] = await Promise.all([
         classApis.getAll(),
-        getAllTeachers(),
+        getAllTeachers(undefined, undefined, undefined, undefined, "active"),
       ]);
       setAllClasses(classesData);
       if (teachersData.success && teachersData.data) {
@@ -204,7 +229,7 @@ export function useSubjects(): UseSubjectsReturn {
       showToast.success("Assignment removed successfully!");
 
       // Update the selectedSubject to remove the deleted class
-      if (selectedSubject) {
+      if (selectedSubject && selectedSubject.classSubjects) {
         const updatedSubject = {
           ...selectedSubject,
           classSubjects: selectedSubject.classSubjects.filter(
@@ -259,7 +284,7 @@ export function useSubjects(): UseSubjectsReturn {
         debouncedSearch,
       );
       const updatedSubject = updatedSubjectsResponse.data.find(
-        (s: SubjectWithClasses) => s.id === selectedSubject?.id,
+        (s: SubjectWithClassSubjects) => s.id === selectedSubject?.id,
       );
       if (updatedSubject) {
         setSelectedSubject(updatedSubject);
@@ -271,10 +296,25 @@ export function useSubjects(): UseSubjectsReturn {
     }
   };
 
-  // Reset to first page when search changes
+  // Reset to first page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setMinPassingMarks("");
+    setMaxPassingMarks("");
+    setMinTotalMarks("");
+    setMaxTotalMarks("");
+  };
 
   // Pagination handlers
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
@@ -292,6 +332,10 @@ export function useSubjects(): UseSubjectsReturn {
     loading,
     searchQuery,
     debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
     selectedSubject,
     editingSubject,
     creatingChapters,
@@ -316,6 +360,11 @@ export function useSubjects(): UseSubjectsReturn {
 
     // Actions
     setSearchQuery,
+    setMinPassingMarks,
+    setMaxPassingMarks,
+    setMinTotalMarks,
+    setMaxTotalMarks,
+    clearFilters,
     setSelectedSubject,
     setEditingSubject,
     setCreatingChapters,

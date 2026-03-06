@@ -323,7 +323,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-3)] pointer-events-none" />
             <input
-              type="email"
+              type="text"
               placeholder="contact@school.edu"
               maxLength={100}
               {...register("officialEmail")}

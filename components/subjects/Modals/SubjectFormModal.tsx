@@ -1,12 +1,12 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
 import SubjectForm from "@/components/forms/SubjectForm";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface SubjectFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  editingSubject: SubjectWithClasses | null;
+  editingSubject: SubjectWithClassSubjects | null;
   fetchSubjects: () => Promise<void>;
 }
 

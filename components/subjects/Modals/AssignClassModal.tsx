@@ -2,7 +2,7 @@ import React from "react";
 import Modal from "@/components/ui/Modal";
 import { Class } from "@/lib/api/Class";
 import { GetTeachers } from "@/lib/types/Teacher";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface AssignClassModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface AssignClassModalProps {
   setSelectedClassId: (id: string) => void;
   setSelectedTeacherId: (id: string) => void;
   onAssign: () => void;
-  subjects: SubjectWithClasses[];
+  subjects: SubjectWithClassSubjects[];
 }
 
 export function AssignClassModal({
@@ -40,7 +40,7 @@ export function AssignClassModal({
       title="Assign Class to Subject"
       description={`Assign a class and teacher to ${subjects.find(s => s.id === selectedSubjectId)?.subjectName}`}
     >
-      <div className="w-[600px]">
+      <div className="w-full max-w-[600px] sm:w-[600px]">
         {modalLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-5 h-5 border-2 border-[var(--blue)] border-t-transparent rounded-full animate-spin"></div>
@@ -98,12 +98,12 @@ export function AssignClassModal({
               </select>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)]">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-[var(--border)]">
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer px-8 py-3 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)]"
-                style={{ height: "52px" }}
+                className="cursor-pointer px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)] order-2 sm:order-1"
+                style={{ height: "44px sm:52px" }}
               >
                 Cancel
               </button>
@@ -111,7 +111,7 @@ export function AssignClassModal({
                 type="button"
                 onClick={onAssign}
                 disabled={!selectedClassId || !selectedTeacherId}
-                className="btn-primary cursor-pointer text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary cursor-pointer text-xs sm:text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2 px-4 sm:px-6 py-2.5 sm:py-3"
               >
                 Assign
               </button>
