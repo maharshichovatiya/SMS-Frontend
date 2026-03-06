@@ -159,8 +159,24 @@ export interface AssignClassData {
   teacherId: string;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface SubjectListResponse {
   data: Subject[];
+}
+
+export interface SubjectPaginatedResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    data: SubjectWithClassSubjects[];
+    meta: PaginationMeta;
+  };
 }
 
 export interface ClassSubjectListResponse {

@@ -38,6 +38,12 @@ export interface UseSubjectsReturn {
   modalLoading: boolean;
   activeTab: "classes" | "chapters";
 
+  // Pagination state
+  currentPage: number;
+  pageSize: number;
+  totalSubjects: number;
+  totalPages: number;
+
   // Actions
   setSearchQuery: (query: string) => void;
   setSelectedSubject: (subject: SubjectWithClasses | null) => void;
@@ -63,6 +69,12 @@ export interface UseSubjectsReturn {
   setSelectedTeacherId: (id: string) => void;
   setActiveTab: (tab: "classes" | "chapters") => void;
 
+  // Pagination actions
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  handlePrev: () => void;
+  handleNext: () => void;
+
   // Handlers
   handleAssignModalOpen: () => void;
   handleAssign: () => Promise<void>;
@@ -77,6 +89,12 @@ export function useSubjects(): UseSubjectsReturn {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalSubjects, setTotalSubjects] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Debounce search query (500ms delay)
   useEffect(() => {
@@ -117,14 +135,20 @@ export function useSubjects(): UseSubjectsReturn {
   const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await subjectApis.getAllForPage(debouncedSearch);
-      setSubjects(data);
+      const response = await subjectApis.getAllForPage(
+        currentPage,
+        pageSize,
+        debouncedSearch,
+      );
+      setSubjects(response.data);
+      setTotalSubjects(response.meta.total);
+      setTotalPages(response.meta.totalPages);
     } catch (error) {
       showToast.apiError(error);
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [currentPage, pageSize, debouncedSearch]);
 
   useEffect(() => {
     fetchSubjects();
@@ -229,9 +253,13 @@ export function useSubjects(): UseSubjectsReturn {
       await fetchSubjects();
 
       // Update selectedSubject with latest data
-      const updatedSubjects = await subjectApis.getAllForPage();
-      const updatedSubject = updatedSubjects.find(
-        s => s.id === selectedSubject?.id,
+      const updatedSubjectsResponse = await subjectApis.getAllForPage(
+        currentPage,
+        pageSize,
+        debouncedSearch,
+      );
+      const updatedSubject = updatedSubjectsResponse.data.find(
+        (s: SubjectWithClasses) => s.id === selectedSubject?.id,
       );
       if (updatedSubject) {
         setSelectedSubject(updatedSubject);
@@ -241,6 +269,21 @@ export function useSubjects(): UseSubjectsReturn {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  // Pagination handlers
+  const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
+  const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+
+  // Reset to first page when page size changes
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
   };
 
   return {
@@ -265,6 +308,12 @@ export function useSubjects(): UseSubjectsReturn {
     modalLoading,
     activeTab,
 
+    // Pagination state
+    currentPage,
+    pageSize,
+    totalSubjects,
+    totalPages,
+
     // Actions
     setSearchQuery,
     setSelectedSubject,
@@ -278,6 +327,12 @@ export function useSubjects(): UseSubjectsReturn {
     setSelectedClassId,
     setSelectedTeacherId,
     setActiveTab,
+
+    // Pagination actions
+    setCurrentPage,
+    setPageSize: handlePageSizeChange,
+    handlePrev,
+    handleNext,
 
     // Handlers
     handleAssignModalOpen,

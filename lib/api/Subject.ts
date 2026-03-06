@@ -8,7 +8,9 @@ import {
   UpdateSubjectData,
   AssignClassData,
   SubjectListResponse,
+  SubjectPaginatedResponse,
   AssignClassResponse,
+  PaginationMeta,
 } from "@/lib/types/SubjectTypes";
 
 // Re-export types for backward compatibility
@@ -30,42 +32,52 @@ export const subjectApis = {
     return res.data.data;
   },
 
-  getAllForPage: async (search?: string): Promise<SubjectWithClasses[]> => {
-    const params = search ? { search } : {};
-    const res = await api.get<{ data: SubjectWithClassSubjects[] }>(
-      "/subjects",
-      {
-        params,
-      },
-    );
+  getAllForPage: async (
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ): Promise<{ data: SubjectWithClasses[]; meta: PaginationMeta }> => {
+    const params: Record<string, string | number> = { page, limit };
+    if (search) params.search = search;
+
+    const res = await api.get<SubjectPaginatedResponse>("/subjects", {
+      params,
+    });
 
     // Transform SubjectWithClassSubjects[] to SubjectWithClasses[] format
-    return res.data.data.map((subject: SubjectWithClassSubjects) => ({
-      id: subject.id,
-      subjectName: subject.subjectName,
-      subjectCode: subject.subjectCode,
-      passingMarks: subject.passingMarks,
-      maxMarks: subject.maxMarks,
-      status: subject.status,
-      createdAt: subject.createdAt,
-      updatedAt: subject.updatedAt,
-      chapters: subject.chapters || [], // Include chapters from API response
-      classSubjects:
-        subject.classSubjects?.map(classSubject => ({
-          id: classSubject.id,
-          class: {
-            id: classSubject.class.id,
-            className: classSubject.class.className,
-            section: classSubject.class.section,
-            classTeacherId: classSubject.class.classTeacherId || null,
-            studentCapacity: classSubject.class.studentCapacity || 0,
-            status: classSubject.class.status,
-            createdAt: classSubject.class.createdAt,
-            updatedAt: classSubject.class.updatedAt,
-          },
-          teacher: classSubject.teacher,
-        })) || [], // Use classSubjects directly as required by SubjectWithClasses
-    }));
+    const transformedData = res.data.data.data.map(
+      (subject: SubjectWithClassSubjects) => ({
+        id: subject.id,
+        subjectName: subject.subjectName,
+        subjectCode: subject.subjectCode,
+        passingMarks: subject.passingMarks,
+        maxMarks: subject.maxMarks,
+        status: subject.status,
+        createdAt: subject.createdAt,
+        updatedAt: subject.updatedAt,
+        chapters: subject.chapters || [], // Include chapters from API response
+        classSubjects:
+          subject.classSubjects?.map(classSubject => ({
+            id: classSubject.id,
+            class: {
+              id: classSubject.class.id,
+              className: classSubject.class.className,
+              section: classSubject.class.section,
+              classTeacherId: classSubject.class.classTeacherId || null,
+              studentCapacity: classSubject.class.studentCapacity || 0,
+              status: classSubject.class.status,
+              createdAt: classSubject.class.createdAt,
+              updatedAt: classSubject.class.updatedAt,
+            },
+            teacher: classSubject.teacher,
+          })) || [], // Use classSubjects directly as required by SubjectWithClasses
+      }),
+    );
+
+    return {
+      data: transformedData,
+      meta: res.data.data.meta,
+    };
   },
 
   getById: async (id: string): Promise<Subject> => {
@@ -90,17 +102,19 @@ export const subjectApis = {
 
   addChaptersToSubject: async (
     subjectId: string,
-    chapter: Chapter,
-  ): Promise<Subject> => {
-    const res = await api.post<{ data: Subject }>(
-      `/subjects/${subjectId}/chapters`,
-      chapter,
-    );
-    return res.data.data;
+    chaptersData: { chapters: { chapterNo: number; chapterName: string }[] },
+  ): Promise<{ chapters: { chapterNo: number; chapterName: string }[] }> => {
+    const res = await api.post<{
+      chapters: { chapterNo: number; chapterName: string }[];
+    }>(`/subjects/${subjectId}/chapters`, chaptersData);
+    return res.data;
   },
 
-  deleteChapter: async (subjectId: string, classId: string): Promise<void> => {
-    await api.delete(`/subjects/${subjectId}/chapters/${classId}`);
+  deleteChapter: async (
+    subjectId: string,
+    chapterId: string,
+  ): Promise<void> => {
+    await api.delete(`/subjects/${subjectId}/chapters/${chapterId}`);
   },
 
   update: async (id: string, data: UpdateSubjectData): Promise<Subject> => {

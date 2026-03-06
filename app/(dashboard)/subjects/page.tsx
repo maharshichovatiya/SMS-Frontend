@@ -16,6 +16,7 @@ import { useSubjects } from "@/lib/hooks/UseSubjects";
 import { SubjectWithClasses } from "@/lib/api/Subject";
 
 export default function Subjects() {
+  const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
   const {
     subjects,
     loading,
@@ -35,6 +36,10 @@ export default function Subjects() {
     selectedTeacherId,
     modalLoading,
     activeTab,
+    currentPage,
+    pageSize,
+    totalSubjects,
+    totalPages,
     setSearchQuery,
     setSelectedSubject,
     setEditingSubject,
@@ -47,6 +52,9 @@ export default function Subjects() {
     setSelectedClassId,
     setSelectedTeacherId,
     setActiveTab,
+    setPageSize,
+    handlePrev,
+    handleNext,
     handleAssignModalOpen,
     handleAssign,
     handleDelete,
@@ -90,7 +98,7 @@ export default function Subjects() {
     <section className="animate-fade-up">
       <PageHeader
         title="Subjects"
-        description={`${subjects.length} subjects across all grades with detailed curriculum`}
+        description={`${totalSubjects} subjects across all grades with detailed curriculum`}
         icon={BookOpen}
         iconBgColor="--amber-light"
         iconColor="--amber"
@@ -162,6 +170,54 @@ export default function Subjects() {
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && subjects.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-4 mt-6">
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-[var(--text-3)]">
+              Showing{" "}
+              {subjects.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–
+              {subjects.length > 0
+                ? Math.min(currentPage * pageSize, totalSubjects)
+                : 0}{" "}
+              of {totalSubjects.toLocaleString()} subjects
+            </p>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-[var(--text-3)]">
+                Items per page:
+              </label>
+              <select
+                value={pageSize}
+                onChange={e => setPageSize(Number(e.target.value))}
+                className="px-3 py-1 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+              >
+                {PAGE_SIZE_OPTIONS.map(size => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrev}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              ← Prev
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Subject Details Modal */}
       <SubjectDetailsModal
