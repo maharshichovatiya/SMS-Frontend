@@ -62,7 +62,7 @@ export function SubjectCard({
           </div>
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2 mb-1">
+        <div className="space-y-2 sm:space-y-3 mb-1">
           {subject.classSubjects?.slice(0, 2).map(cls => (
             <div
               key={cls.id}

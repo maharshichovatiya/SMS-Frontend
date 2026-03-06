@@ -132,13 +132,13 @@ export default function Subjects() {
               minTotalMarks,
               maxTotalMarks,
             }}
-            onFiltersChange={filters => {
+            onClearFilters={clearFilters}
+            onApplyFilters={filters => {
               setMinPassingMarks(filters.minPassingMarks || "");
               setMaxPassingMarks(filters.maxPassingMarks || "");
               setMinTotalMarks(filters.minTotalMarks || "");
               setMaxTotalMarks(filters.maxTotalMarks || "");
             }}
-            onClearFilters={clearFilters}
           />
 
           <div className="relative">
