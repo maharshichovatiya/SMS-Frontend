@@ -83,7 +83,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
       >
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black leading-none text-[var(--blue)]">
+            <h2 className="text-xl sm:text-2xl font-black leading-none text-[var(--blue)]">
               {cls.className}
               <span className="text-xl sm:text-2xl font-extrabold">
                 -{cls.section}

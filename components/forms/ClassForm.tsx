@@ -279,7 +279,7 @@ export default function ClassForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
+          className="px-7 py-3 cursor-pointer rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
         >
           Cancel
         </button>

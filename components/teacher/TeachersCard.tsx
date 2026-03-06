@@ -2,12 +2,13 @@
 
 import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
-import Modal from "./ui/Modal";
-import TeacherForm from "./forms/TeacherForm";
+import Modal from "@/components/ui/Modal";
+import TeacherForm from "../forms/TeacherForm";
 import { GetTeachers } from "@/lib/types/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 import { deleteTeacher, updateTeacherStatus } from "@/lib/api/Teacher";
 import { formatExperience } from "@/lib/utils/TotalExpMonths";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 interface Props {
   teacher: GetTeachers;
@@ -20,6 +21,10 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
   const [openEdit, setOpenEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(
+    teacher.status ?? "active",
+  );
+
   const initials =
     teacher?.user.firstName?.charAt(0) + teacher?.user.lastName?.charAt(0);
 
@@ -36,14 +41,16 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     }
   };
 
-  const handleStatusChange = async (status: string) => {
+  const handleStatusChange = async () => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
     setStatusLoading(true);
-    const res = await updateTeacherStatus(teacher.id, status);
+    setCurrentStatus(newStatus);
+    const res = await updateTeacherStatus(teacher.id, newStatus);
     setStatusLoading(false);
     if (res.success) {
       showToast.success("Status updated");
-      onSuccess();
     } else {
+      setCurrentStatus(currentStatus);
       showToast.error(res.message || "Failed to update status");
     }
   };
@@ -82,11 +89,10 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
               </span>
             </div>
 
-            <div className=" flex justify-between items-center">
+            <div className="flex justify-between items-center">
               <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
                 {teacher.highestQualification}
               </p>
-
               <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
                 {teacher.employeeCode}
               </p>
@@ -103,20 +109,12 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
               Salary
             </span>
           </div>
-          {/* <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
-            <span className="text-lg font-extrabold text-[var(--green)] leading-none">
-              {teacher.totalExpMonths ?? "—"}
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Months Exp
-            </span>
-          </div> */}
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
             <span className="text-lg font-extrabold text-[var(--amber)] leading-none">
               {formatExperience(teacher.totalExpMonths)}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Years Exp
+              Experience
             </span>
           </div>
         </div>
@@ -138,61 +136,38 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-[var(--border)]">
-          <div
-            onClick={() =>
-              !statusLoading &&
-              handleStatusChange(
-                (teacher.status ?? "active") === "active"
-                  ? "inactive"
-                  : "active",
-              )
-            }
-            className={` flex gap-2 items-center justify-between px-3 py-2 rounded-[var(--radius-sm)] cursor-pointer transition ${
-              statusLoading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
+        <div className="flex justify-between  gap-3 pt-4 border-t border-[var(--border)]">
+          <div className="flex items-center gap-2">
             <span
-              className={`text-xs font-semibold ${
-                (teacher.status ?? "active") === "active"
-                  ? "text-[var(--green)]"
-                  : "text-[var(--rose)]"
+              className={`text-xs font-semibold px-2 py-1 rounded-full w-16 text-center w-12 ${
+                currentStatus === "active"
+                  ? "bg-[var(--green-light)] text-[var(--green)]"
+                  : "bg-[var(--rose-light)] text-[var(--rose)]"
               }`}
             >
-              {(teacher.status ?? "active") === "active"
-                ? "Active"
-                : "Inactive"}
+              {currentStatus === "active" ? "Active" : "Inactive"}
             </span>
-
-            <div
-              className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${
-                (teacher.status ?? "active") === "active"
-                  ? "bg-[var(--green)]"
-                  : "bg-[var(--rose)]"
-              }`}
-            >
-              <div
-                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 ${
-                  (teacher.status ?? "active") === "active"
-                    ? "translate-x-5"
-                    : "translate-x-0.5"
-                }`}
-              />
-            </div>
+            <ToggleSwitch
+              isOn={currentStatus === "active"}
+              onToggle={handleStatusChange}
+              disabled={statusLoading}
+            />
           </div>
 
-          <button
-            onClick={() => setOpenEdit(true)}
-            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
-          >
-            <Pencil size={13} /> Edit
-          </button>
-          <button
-            onClick={() => setOpenDelete(true)}
-            className="flex-1 cursor-pointer flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
-          >
-            <Trash2 size={13} /> Delete
-          </button>
+          <div className=" flex gap-2 items-center">
+            <button
+              onClick={() => setOpenEdit(true)}
+              className="flex items-center cursor-pointer gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--blue)] text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
+            >
+              <Pencil size={11} /> Edit
+            </button>
+            <button
+              onClick={() => setOpenDelete(true)}
+              className="flex items-center cursor-pointer gap-1 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)] transition"
+            >
+              <Trash2 size={11} /> Delete
+            </button>
+          </div>
         </div>
       </div>
 
@@ -224,6 +199,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             salaryPackage: Number(teacher.salaryPackage),
             highestQualification: teacher.highestQualification,
             experienceYears: Math.floor(teacher.totalExpMonths / 12),
+            experienceMonths: teacher.totalExpMonths % 12,
             profilePhoto: null,
           }}
         />

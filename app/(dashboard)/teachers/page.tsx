@@ -1,10 +1,10 @@
 "use client";
 import TeacherForm from "@/components/forms/TeacherForm";
 import TeacherCardSkeleton from "@/components/skeletons/TeacherCardSkeleton";
-import TeacherCard from "@/components/TeachersCard";
+import TeacherCard from "@/components/teacher/TeachersCard";
 import TeacherFilters, {
   TeacherFilterValues,
-} from "@/components/TeacherFilters";
+} from "@/components/teacher/TeacherFilters";
 import Modal from "@/components/ui/Modal";
 import { getAllTeachers } from "@/lib/api/Teacher";
 import { GetTeachers } from "@/lib/types/Teacher";
