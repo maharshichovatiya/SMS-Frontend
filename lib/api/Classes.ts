@@ -15,6 +15,8 @@ export const getClassSummary = async (
   section?: string,
   capacity?: string,
   studentCount?: string,
+  page: number = 1,
+  limit: number = 9,
 ): Promise<GetClassesResponse> => {
   try {
     const params: Record<string, string> = {};
@@ -24,12 +26,20 @@ export const getClassSummary = async (
     if (section) params.section = section;
     if (capacity) params.capacity = capacity;
     if (studentCount) params.studentCount = studentCount;
+    // params.page = String(page);
+    // params.limit = String(limit);
 
     const res = await api.get("/classes/class-summary", { params });
     return {
       success: true,
-      data: res.data.data,
+      data: res.data.data, // current response path
+      total: res.data.data.length, // count from array length
     };
+    // return {
+    //   success: true,
+    //   data: res.data.data.data,
+    //   total: res.data.data.meta?.total,
+    // };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
     return {
@@ -38,7 +48,6 @@ export const getClassSummary = async (
     };
   }
 };
-
 export const createClass = async (
   data: ClassFormData,
 ): Promise<CreateClassResponse> => {

@@ -81,8 +81,12 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       ),
     experienceYears: z.coerce
       .number()
-      .min(0, "Experience cannot be negative")
-      .max(60, "Experience cannot exceed 60 years"),
+      .min(0, "Cannot be negative")
+      .max(60, "Cannot exceed 60 years"),
+    experienceMonths: z.coerce
+      .number()
+      .min(0, "Cannot be negative")
+      .max(11, "Months must be between 0 and 11"),
     profilePhoto: z.any().optional(),
   });
 

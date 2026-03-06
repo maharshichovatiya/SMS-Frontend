@@ -14,7 +14,7 @@ export type Teacher = {
   dateOfJoining: string;
   salaryPackage: number;
   highestQualification: string;
-  experienceYears: number;
+  totalExpMonths: number;
   userId?: string;
   schoolId?: string;
   roleId?: string;
@@ -31,7 +31,7 @@ export type GetTeachers = {
   highestQualification: string;
   specialization: string | null;
   totalExpMonths: number;
-
+  employeeCode: string;
   salaryPackage: string;
   dateOfJoining: string;
 

@@ -20,6 +20,9 @@ const DEFAULT_FILTERS: ClassFilterValues = {
   studentCount: undefined,
 };
 
+const PAGE_SIZE_OPTIONS = [6, 9, 12];
+const DEFAULT_PAGE_SIZE = 6;
+
 function Page() {
   const [filters, setFilters] = useState<ClassFilterValues>(DEFAULT_FILTERS);
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -27,14 +30,24 @@ function Page() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(filters.search), 400);
+    const t = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+      setCurrentPage(1);
+    }, 400);
     return () => clearTimeout(t);
   }, [filters.search]);
 
   useEffect(() => {
-    const fetchClasses = async () => {
+    let cancelled = false;
+
+    const run = async () => {
       setLoading(true);
       const res = await getClassSummary(
         debouncedSearch || undefined,
@@ -43,15 +56,23 @@ function Page() {
         filters.section,
         filters.capacity,
         filters.studentCount,
+        currentPage,
+        pageSize,
       );
+      if (cancelled) return;
       if (res.success && Array.isArray(res.data)) {
         setClasses(res.data);
+        setTotalRecords(res.total ?? 0);
       }
       setLoading(false);
     };
 
-    fetchClasses();
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [
+    currentPage,
     refresh,
     debouncedSearch,
     filters.availability,
@@ -59,9 +80,31 @@ function Page() {
     filters.section,
     filters.capacity,
     filters.studentCount,
+    pageSize,
   ]);
 
   const loadData = () => setRefresh(prev => prev + 1);
+
+  const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
+  const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  const handleFiltersChange = (val: ClassFilterValues) => {
+    setCurrentPage(1);
+    setFilters(val);
+  };
+
+  const handleClearFilters = () => {
+    setCurrentPage(1);
+    setFilters(DEFAULT_FILTERS);
+  };
+
+  const showingFrom = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const showingTo = Math.min(currentPage * pageSize, totalRecords);
 
   const hasAnyFilter =
     filters.type !== "all" ||
@@ -78,7 +121,7 @@ function Page() {
         description={
           loading
             ? "Loading..."
-            : `${classes.length} sections · Academic Year 2026`
+            : `${totalRecords} sections · Academic Year 2026`
         }
         icon={Building2}
         iconBgColor="--cyan-light"
@@ -90,8 +133,8 @@ function Page() {
 
       <ClassFilters
         filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={() => setFilters(DEFAULT_FILTERS)}
+        onFiltersChange={handleFiltersChange}
+        onClearFilters={handleClearFilters}
       />
 
       {loading ? (
@@ -109,11 +152,54 @@ function Page() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {classes.map(cls => (
-            <ClassCard key={cls.id} cls={cls} onSuccess={loadData} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classes.map(cls => (
+              <ClassCard key={cls.id} cls={cls} onSuccess={loadData} />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-4 mt-4 border-t border-[var(--border)]">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-[var(--text-3)]">
+                Showing {showingFrom}–{showingTo} of{" "}
+                {totalRecords.toLocaleString()} classes
+              </p>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[var(--text-3)]">
+                  Rows per page:
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={e => handlePageSizeChange(Number(e.target.value))}
+                  className="px-3 py-1 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       <Modal

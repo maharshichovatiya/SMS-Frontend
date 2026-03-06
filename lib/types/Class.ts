@@ -57,7 +57,7 @@ export interface ClassItem {
   updatedAt: string;
   classTeacher: StaffMember | null;
   classSubjects: ClassSubject[];
-  studentAcademics?: unknown[];
+  studentAcademics?: StudentAcademic[];
   studentCount: number;
   subjectCount: number;
   teacherCount: number;
@@ -85,4 +85,39 @@ export interface UpdateClassResponse {
 export interface DeleteClassResponse {
   success: boolean;
   message?: string;
+}
+
+export interface StudentUser {
+  id: string;
+  firstName: string;
+  middleName?: string | null;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  gender?: string | null;
+  profilePhoto?: string | null;
+}
+
+export interface StudentRecord {
+  id: string;
+  admissionNo: string;
+  rollNo: string;
+  admissionDate: string;
+  fatherName?: string | null;
+  motherName?: string | null;
+  guardianName?: string | null;
+  status: string;
+  user: StudentUser | null;
+}
+
+export interface StudentAcademic {
+  id: string;
+  rollNo?: string | null;
+  promotionStatus?: string | null;
+  percentage?: number | null;
+  remarks?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  student: StudentRecord | null;
 }

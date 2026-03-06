@@ -60,6 +60,7 @@ export default function TeacherForm({
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+
   useEffect(() => {
     const loadRoles = async () => {
       const res = await getRoles();
@@ -67,7 +68,6 @@ export default function TeacherForm({
         setRoles(res.data);
       }
     };
-
     loadRoles();
   }, []);
 
@@ -79,12 +79,16 @@ export default function TeacherForm({
         role => role.roleName.toLowerCase() === "teacher",
       )?.id;
 
+      const totalExpMonths =
+        Number(data.experienceYears) * 12 + Number(data.experienceMonths);
+
       const payload: Teacher = {
         ...data,
         ...(mode === "edit" && { password: undefined }),
         schoolId,
         roleId: teacherRoleId,
         profilePhoto: data.profilePhoto?.[0] || null,
+        totalExpMonths,
       };
 
       let res;
@@ -101,7 +105,6 @@ export default function TeacherForm({
             ? "Teacher updated successfully "
             : "Teacher created successfully ",
         );
-
         reset();
         onSuccess?.();
       } else {
@@ -330,22 +333,6 @@ export default function TeacherForm({
               </span>
             )}
           </div>
-
-          {/* <div className="flex mt-3 flex-col gap-1">
-            <label className="label-base">Profile Photo</label>
-            <div className="relative">
-              <Camera
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("profilePhoto")}
-                type="file"
-                accept="image/*"
-                className="input-base pl-9 pt-3"
-              />
-            </div>
-          </div> */}
         </div>
       </div>
 
@@ -497,25 +484,50 @@ export default function TeacherForm({
             )}
           </div>
 
-          <div className="flex flex-col gap-1 mt-3">
-            <label className="label-base">Experience (Years)</label>
-            <div className="relative">
-              <Clock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("experienceYears")}
-                type="number"
-                placeholder="5"
-                className={`input-base pl-9 ${
-                  errors.experienceYears ? "error" : ""
-                }`}
-              />
+          <div className="flex flex-col gap-1">
+            <label className="label-base">Experience</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Clock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                  style={{ color: "var(--text-3)" }}
+                />
+                <input
+                  {...register("experienceYears")}
+                  type="number"
+                  min={0}
+                  placeholder="Years"
+                  onKeyDown={e =>
+                    ["e", "E", "+", "-", "."].includes(e.key) &&
+                    e.preventDefault()
+                  }
+                  className={`input-base pl-9 ${errors.experienceYears ? "error" : ""}`}
+                />
+              </div>
+
+              <div className="relative flex-1">
+                <input
+                  {...register("experienceMonths")}
+                  type="number"
+                  min={0}
+                  max={11}
+                  placeholder="Months"
+                  onKeyDown={e =>
+                    ["e", "E", "+", "-", "."].includes(e.key) &&
+                    e.preventDefault()
+                  }
+                  className={`input-base ${errors.experienceMonths ? "error" : ""}`}
+                />
+              </div>
             </div>
             {errors.experienceYears && (
               <span className="text-xs text-[var(--rose)]">
                 {errors.experienceYears.message}
+              </span>
+            )}
+            {errors.experienceMonths && (
+              <span className="text-xs text-[var(--rose)]">
+                {errors.experienceMonths.message}
               </span>
             )}
           </div>

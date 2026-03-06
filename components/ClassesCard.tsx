@@ -1,12 +1,15 @@
 "use client";
 
-import { BookOpen, Pencil, Trash2, LayoutList } from "lucide-react";
+import { Pencil, Trash2, LayoutList } from "lucide-react";
 import { useState } from "react";
-import Modal from "./ui/Modal";
-import ClassForm from "./forms/ClassForm";
+import Modal from "@/components/ui/Modal";
+import ClassForm from "@/components/forms/ClassForm";
+import ClassDetailModal from "@/components/classes/ClassDetailModal";
+import ClassStudentsModal from "@/components/classes/ClassStudentsModal";
 import { showToast } from "@/lib/utils/Toast";
 import { deleteClass } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
+import { StudentAcademic } from "@/lib/types/Class";
 
 interface Props {
   cls: ClassItem;
@@ -27,6 +30,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
+  const [showStudents, setShowStudents] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const teacherName = cls.classTeacher?.user
@@ -38,6 +42,15 @@ export default function ClassCard({ cls, onSuccess }: Props) {
     : "?";
 
   const level = getClassLevel(cls.className);
+  const createdYear = new Date(cls.createdAt).getFullYear();
+  const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
+  const subjectCount = cls.subjectCount ?? cls.classSubjects?.length ?? 0;
+  const teacherCount = cls.teacherCount ?? 0;
+  const availableSeats = (cls.studentCapacity ?? 0) - (cls.studentCount ?? 0);
+
+  const studentAcademics =
+    (cls.studentAcademics as StudentAcademic[] | undefined) ?? [];
+  const validStudents = studentAcademics.filter(sa => sa.student !== null);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -57,11 +70,11 @@ export default function ClassCard({ cls, onSuccess }: Props) {
     }
   };
 
-  const createdYear = new Date(cls.createdAt).getFullYear();
-  const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
-  const subjectCount = cls.subjectCount ?? cls.classSubjects?.length ?? 0;
-  const teacherCount = cls.teacherCount ?? 0;
-  const availableSeats = (cls.studentCapacity ?? 0) - (cls.studentCount ?? 0);
+  const handleCloseDetail = () => {
+    setOpenDetail(false);
+    setShowStudents(false);
+  };
+
   return (
     <>
       <div
@@ -76,12 +89,10 @@ export default function ClassCard({ cls, onSuccess }: Props) {
                 -{cls.section}
               </span>
             </h2>
-
             <p className="text-xs text-[var(--text-3)] mt-1 font-medium">
               {academicYear}
             </p>
           </div>
-
           <span className="text-xs px-2.5 py-1 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium">
             {level}
           </span>
@@ -102,6 +113,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
           </p>
         </div>
 
+        {/* Subjects */}
         <div className="flex flex-wrap gap-1.5 mb-3 min-h-[22px]">
           {cls.classSubjects && cls.classSubjects.length > 0 ? (
             <>
@@ -128,51 +140,24 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
         <div className="border-t border-[var(--border)] my-3" />
 
+        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
-          <div>
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
-              {cls.studentCount ?? 0}
-            </p>
-            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
-              Students
-            </p>
-          </div>
-
-          <div>
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
-              {subjectCount}
-            </p>
-            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
-              Subjects
-            </p>
-          </div>
-
-          <div>
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
-              {teacherCount}
-            </p>
-            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
-              Teachers
-            </p>
-          </div>
-
-          <div>
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
-              {cls.studentCapacity}
-            </p>
-            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
-              Capacity
-            </p>
-          </div>
-
-          <div>
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
-              {availableSeats}
-            </p>
-            <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
-              Available
-            </p>
-          </div>
+          {[
+            { label: "Students", value: cls.studentCount ?? 0 },
+            { label: "Subjects", value: subjectCount },
+            { label: "Teachers", value: teacherCount },
+            { label: "Capacity", value: cls.studentCapacity },
+            { label: "Available", value: availableSeats },
+          ].map(stat => (
+            <div key={stat.label}>
+              <p className="text-lg sm:text-xl font-extrabold text-[var(--text)]">
+                {stat.value}
+              </p>
+              <p className="text-[10px] font-bold uppercase text-[var(--text-3)]">
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-wrap gap-2 justify-between pt-2.5 border-t border-[var(--border)]">
@@ -183,10 +168,8 @@ export default function ClassCard({ cls, onSuccess }: Props) {
             }}
             className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--blue)] hover:bg-[var(--blue-light)] transition"
           >
-            <LayoutList size={12} />
-            View
+            <LayoutList size={12} /> View
           </button>
-
           <div className="flex gap-2">
             <button
               onClick={e => {
@@ -197,7 +180,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
             >
               <Pencil size={11} /> Edit
             </button>
-
             <button
               onClick={e => {
                 e.stopPropagation();
@@ -211,115 +193,31 @@ export default function ClassCard({ cls, onSuccess }: Props) {
         </div>
       </div>
 
-      <Modal
-        isOpen={openDetail}
-        onClose={() => setOpenDetail(false)}
-        title={`Class ${cls.className} — Section ${cls.section}`}
-        description={`${level} · ${academicYear} · ${cls.status}`}
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: "Students", value: cls.studentCount ?? 0 },
-              { label: "Subjects", value: subjectCount },
-              { label: "Teachers", value: teacherCount },
-              { label: "Capacity", value: cls.studentCapacity },
-            ].map(stat => (
-              <div
-                key={stat.label}
-                className="text-center rounded-[var(--radius-sm)] py-3 px-2 bg-[var(--bg-2)] border border-[var(--border)]"
-              >
-                <p className="text-2xl font-extrabold leading-none text-[var(--blue)]">
-                  {stat.value}
-                </p>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-2)] mt-1">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <p className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1.5">
-              Class Teacher
-            </p>
-            <div className="flex items-center gap-3 p-3 rounded-[var(--radius-sm)] bg-[var(--bg-2)] border border-[var(--border)]">
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-[var(--text-inverse)] shrink-0 cursor-pointer"
-                style={{ background: "var(--grad-primary)" }}
-              >
-                {teacherInitials}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--text)] capitalize">
-                  {teacherName}
-                </p>
-                {cls.classTeacher && (
-                  <p className="text-xs text-[var(--text-2)] mt-0.5">
-                    {cls.classTeacher.designation} ·{" "}
-                    {cls.classTeacher.employeeCode}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {cls.classSubjects && cls.classSubjects.length > 0 && (
-            <div>
-              <p className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider mb-1.5">
-                Subjects & Teachers ({cls.classSubjects.length})
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {cls.classSubjects.map(cs => {
-                  const subTeacher = cs.teacher?.user
-                    ? `${cs.teacher.user.firstName} ${cs.teacher.user.lastName}`
-                    : (cs.teacher?.employeeCode ?? "No teacher assigned");
-                  const subTeacherInitials = cs.teacher?.user
-                    ? `${cs.teacher.user.firstName?.charAt(0)}${cs.teacher.user.lastName?.charAt(0)}`
-                    : "?";
-                  return (
-                    <div
-                      key={cs.id}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)] border border-[var(--border)]"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className="w-6 h-6 rounded flex items-center justify-center shrink-0 cursor-pointer"
-                          style={{ background: "var(--blue-light)" }}
-                        >
-                          <BookOpen
-                            size={12}
-                            style={{ color: "var(--blue)" }}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-[var(--text)] truncate">
-                            {cs.subject.subjectName}
-                          </p>
-                          <p className="text-xs text-[var(--text-2)] font-medium">
-                            {cs.subject.subjectCode}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold text-[var(--text-inverse)] cursor-pointer"
-                          style={{ background: "var(--grad-primary)" }}
-                        >
-                          {subTeacherInitials}
-                        </div>
-                        <span className="text-xs text-[var(--text)] capitalize font-medium hidden sm:block">
-                          {subTeacher}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </Modal>
+      {showStudents ? (
+        <ClassStudentsModal
+          isOpen={openDetail}
+          onClose={handleCloseDetail}
+          onBack={() => setShowStudents(false)}
+          className={cls.className}
+          section={cls.section}
+          validStudents={validStudents}
+          availableSeats={availableSeats}
+        />
+      ) : (
+        <ClassDetailModal
+          isOpen={openDetail}
+          onClose={handleCloseDetail}
+          cls={cls}
+          teacherName={teacherName}
+          teacherInitials={teacherInitials}
+          level={level}
+          academicYear={academicYear}
+          subjectCount={subjectCount}
+          teacherCount={teacherCount}
+          availableSeats={availableSeats}
+          onShowStudents={() => setShowStudents(true)}
+        />
+      )}
 
       <Modal
         isOpen={openEdit}

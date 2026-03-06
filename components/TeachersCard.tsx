@@ -1,19 +1,13 @@
 "use client";
 
-import {
-  Pencil,
-  Trash2,
-  Mail,
-  Phone,
-  Calendar,
-  ChevronDown,
-} from "lucide-react";
+import { Pencil, Trash2, Mail, Phone, Calendar } from "lucide-react";
 import { useState } from "react";
 import Modal from "./ui/Modal";
 import TeacherForm from "./forms/TeacherForm";
 import { GetTeachers } from "@/lib/types/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 import { deleteTeacher, updateTeacherStatus } from "@/lib/api/Teacher";
+import { formatExperience } from "@/lib/utils/TotalExpMonths";
 
 interface Props {
   teacher: GetTeachers;
@@ -54,8 +48,6 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     }
   };
 
-  const experienceYears = Math.floor(teacher.totalExpMonths / 12);
-
   return (
     <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow overflow-hidden">
       <div className="p-5">
@@ -90,37 +82,41 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
               </span>
             </div>
 
-            <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
-              {teacher.highestQualification}
-            </p>
+            <div className=" flex justify-between items-center">
+              <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
+                {teacher.highestQualification}
+              </p>
+
+              <p className="text-xs text-[var(--text-3)] mt-1.5 truncate">
+                {teacher.employeeCode}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
             <span className="text-lg font-extrabold text-[var(--blue)] leading-none">
-              {teacher.salaryPackage
-                ? `₹${(Number(teacher.salaryPackage) / 1000).toFixed(0)}k`
-                : "—"}
+              {Math.floor(Number(teacher.salaryPackage))}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
               Salary
             </span>
           </div>
-          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
+          {/* <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
             <span className="text-lg font-extrabold text-[var(--green)] leading-none">
               {teacher.totalExpMonths ?? "—"}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
               Months Exp
             </span>
-          </div>
+          </div> */}
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
             <span className="text-lg font-extrabold text-[var(--amber)] leading-none">
-              {experienceYears}
+              {formatExperience(teacher.totalExpMonths)}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Years
+              Years Exp
             </span>
           </div>
         </div>
@@ -142,29 +138,47 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
           </div>
         </div>
 
-        <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
-          <div className="relative flex-1">
-            <select
-              value={teacher.status ?? "active"}
-              disabled={statusLoading}
-              onChange={e => handleStatusChange(e.target.value)}
-              className={`w-full cursor-pointer py-2 pl-3 pr-7 text-xs font-semibold rounded-[var(--radius-sm)] border transition appearance-none disabled:opacity-50 disabled:cursor-not-allowed ${
+        <div className="flex gap-3 pt-4 border-t border-[var(--border)]">
+          <div
+            onClick={() =>
+              !statusLoading &&
+              handleStatusChange(
                 (teacher.status ?? "active") === "active"
-                  ? "border-[var(--green)] text-[var(--green)] hover:bg-[var(--green-light)]"
-                  : "border-[var(--rose)] text-[var(--rose)] hover:bg-[var(--rose-light)]"
-              }`}
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-            <ChevronDown
-              size={12}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${
+                  ? "inactive"
+                  : "active",
+              )
+            }
+            className={` flex gap-2 items-center justify-between px-3 py-2 rounded-[var(--radius-sm)] cursor-pointer transition ${
+              statusLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            <span
+              className={`text-xs font-semibold ${
                 (teacher.status ?? "active") === "active"
                   ? "text-[var(--green)]"
                   : "text-[var(--rose)]"
               }`}
-            />
+            >
+              {(teacher.status ?? "active") === "active"
+                ? "Active"
+                : "Inactive"}
+            </span>
+
+            <div
+              className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${
+                (teacher.status ?? "active") === "active"
+                  ? "bg-[var(--green)]"
+                  : "bg-[var(--rose)]"
+              }`}
+            >
+              <div
+                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 ${
+                  (teacher.status ?? "active") === "active"
+                    ? "translate-x-5"
+                    : "translate-x-0.5"
+                }`}
+              />
+            </div>
           </div>
 
           <button

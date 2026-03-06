@@ -24,6 +24,9 @@ const DEFAULT_FILTERS: TeacherFilterValues = {
   status: undefined,
 };
 
+const PAGE_SIZE_OPTIONS = [6, 9, 12];
+const DEFAULT_PAGE_SIZE = 6;
+
 export default function TeachersPage() {
   const [open, setOpen] = useState(false);
   const [teachers, setTeachers] = useState<GetTeachers[]>([]);
@@ -31,11 +34,23 @@ export default function TeachersPage() {
   const [filters, setFilters] = useState<TeacherFilterValues>(DEFAULT_FILTERS);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refresh, setRefresh] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(filters.search), 400);
     return () => clearTimeout(t);
   }, [filters.search]);
+
+  useEffect(() => {
+    function setpage() {
+      setCurrentPage(1);
+    }
+    setpage();
+  }, [debouncedSearch, filters, pageSize]);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -50,17 +65,27 @@ export default function TeachersPage() {
         filters.salary,
         filters.ageGroup,
         filters.tenure,
+        currentPage,
+        pageSize,
       );
       if (res.success && res.data) {
         setTeachers(res.data);
+        setTotalRecords(res.total ?? 0);
       }
       setLoading(false);
     };
 
     fetchTeachers();
-  }, [refresh, debouncedSearch, filters]);
+  }, [refresh, debouncedSearch, filters, currentPage, pageSize]);
 
   const loadTeachers = () => setRefresh(prev => prev + 1);
+
+  const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
+  const handleNext = () => setCurrentPage(p => Math.min(totalPages, p + 1));
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
 
   const hasActiveFilters =
     filters.department !== "all" ||
@@ -72,13 +97,14 @@ export default function TeachersPage() {
     !!filters.staffCategory ||
     !!filters.status;
 
+  const showingFrom = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const showingTo = Math.min(currentPage * pageSize, totalRecords);
+
   return (
     <div className="min-h-screen">
       <PageHeader
         title="Teachers"
-        description={
-          loading ? "Loading..." : `${teachers.length} staff members`
-        }
+        description={loading ? "Loading..." : `${totalRecords} staff members`}
         icon={Users}
         iconBgColor="--green-light"
         iconColor="--green"
@@ -110,15 +136,58 @@ export default function TeachersPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
-          {teachers.map(teacher => (
-            <TeacherCard
-              key={teacher.id}
-              teacher={teacher}
-              onSuccess={loadTeachers}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
+            {teachers.map(teacher => (
+              <TeacherCard
+                key={teacher.id}
+                teacher={teacher}
+                onSuccess={loadTeachers}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-4 mt-4 border-t border-[var(--border)]">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-[var(--text-3)]">
+                Showing {showingFrom}–{showingTo} of{" "}
+                {totalRecords.toLocaleString()} teachers
+              </p>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[var(--text-3)]">
+                  Rows per page:
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={e => handlePageSizeChange(Number(e.target.value))}
+                  className="px-3 py-1 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {open && (
