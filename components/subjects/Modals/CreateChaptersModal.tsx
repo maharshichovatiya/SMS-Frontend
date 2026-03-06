@@ -34,7 +34,7 @@ export function CreateChaptersModal({
       title="Create Chapters"
       description={`Add new chapters to ${creatingChapters.subject.subjectName}`}
     >
-      <div className="w-[800px]">
+      <div className="w-full max-w-[600px] sm:w-[600px]">
         <CreateChapterForm
           key={creatingChapters.subject.chapters?.length}
           subject={creatingChapters.subject}

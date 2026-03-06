@@ -12,15 +12,20 @@ import { DeleteAssignmentModal } from "@/components/subjects/Modals/DeleteAssign
 import { SubjectDeleteModal } from "@/components/subjects/Modals/SubjectDeleteModal";
 import { CreateChaptersModal } from "@/components/subjects/Modals/CreateChaptersModal";
 import { ChapterDeleteModal } from "@/components/subjects/Modals/ChapterDeleteModal";
+import SubjectFilters from "@/components/subjects/SubjectFilters";
 import { useSubjects } from "@/lib/hooks/UseSubjects";
 import { SubjectWithClasses } from "@/lib/api/Subject";
 
 export default function Subjects() {
-  const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
+  const PAGE_SIZE_OPTIONS = [6, 9, 12];
   const {
     subjects,
     loading,
     searchQuery,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
     selectedSubject,
     editingSubject,
     creatingChapters,
@@ -41,6 +46,11 @@ export default function Subjects() {
     totalSubjects,
     totalPages,
     setSearchQuery,
+    setMinPassingMarks,
+    setMaxPassingMarks,
+    setMinTotalMarks,
+    setMaxTotalMarks,
+    clearFilters,
     setSelectedSubject,
     setEditingSubject,
     setCreatingChapters,
@@ -107,14 +117,30 @@ export default function Subjects() {
         buttonIcon={Plus}
       />
 
-      {/* Search Bar */}
+      {/* Search Bar and Filters */}
       <div className="flex items-center justify-between gap-4 mt-6 px-4">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status filters can be added here if needed in future */}
         </div>
 
-        {/* Search Bar - Right side */}
+        {/* Search Bar and Filter Button - Right side */}
         <div className="flex items-center gap-3">
+          <SubjectFilters
+            filters={{
+              minPassingMarks,
+              maxPassingMarks,
+              minTotalMarks,
+              maxTotalMarks,
+            }}
+            onFiltersChange={filters => {
+              setMinPassingMarks(filters.minPassingMarks || "");
+              setMaxPassingMarks(filters.maxPassingMarks || "");
+              setMinTotalMarks(filters.minTotalMarks || "");
+              setMaxTotalMarks(filters.maxTotalMarks || "");
+            }}
+            onClearFilters={clearFilters}
+          />
+
           <div className="relative">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -131,7 +157,7 @@ export default function Subjects() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <SubjectCardSkeleton key={i} />

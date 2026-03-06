@@ -15,6 +15,10 @@ export interface UseSubjectsReturn {
   loading: boolean;
   searchQuery: string;
   debouncedSearch: string;
+  minPassingMarks: string;
+  maxPassingMarks: string;
+  minTotalMarks: string;
+  maxTotalMarks: string;
   selectedSubject: SubjectWithClasses | null;
   editingSubject: SubjectWithClasses | null;
   creatingChapters: {
@@ -46,6 +50,11 @@ export interface UseSubjectsReturn {
 
   // Actions
   setSearchQuery: (query: string) => void;
+  setMinPassingMarks: (value: string) => void;
+  setMaxPassingMarks: (value: string) => void;
+  setMinTotalMarks: (value: string) => void;
+  setMaxTotalMarks: (value: string) => void;
+  clearFilters: () => void;
   setSelectedSubject: (subject: SubjectWithClasses | null) => void;
   setEditingSubject: (subject: SubjectWithClasses | null) => void;
   setCreatingChapters: (
@@ -89,6 +98,10 @@ export function useSubjects(): UseSubjectsReturn {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [minPassingMarks, setMinPassingMarks] = useState<string>("");
+  const [maxPassingMarks, setMaxPassingMarks] = useState<string>("");
+  const [minTotalMarks, setMinTotalMarks] = useState<string>("");
+  const [maxTotalMarks, setMaxTotalMarks] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,6 +152,10 @@ export function useSubjects(): UseSubjectsReturn {
         currentPage,
         pageSize,
         debouncedSearch,
+        minPassingMarks ? Number(minPassingMarks) : undefined,
+        maxPassingMarks ? Number(maxPassingMarks) : undefined,
+        minTotalMarks ? Number(minTotalMarks) : undefined,
+        maxTotalMarks ? Number(maxTotalMarks) : undefined,
       );
       setSubjects(response.data);
       setTotalSubjects(response.meta.total);
@@ -148,7 +165,15 @@ export function useSubjects(): UseSubjectsReturn {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, debouncedSearch]);
+  }, [
+    currentPage,
+    pageSize,
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
 
   useEffect(() => {
     fetchSubjects();
@@ -271,10 +296,25 @@ export function useSubjects(): UseSubjectsReturn {
     }
   };
 
-  // Reset to first page when search changes
+  // Reset to first page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setMinPassingMarks("");
+    setMaxPassingMarks("");
+    setMinTotalMarks("");
+    setMaxTotalMarks("");
+  };
 
   // Pagination handlers
   const handlePrev = () => setCurrentPage(p => Math.max(1, p - 1));
@@ -292,6 +332,10 @@ export function useSubjects(): UseSubjectsReturn {
     loading,
     searchQuery,
     debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
     selectedSubject,
     editingSubject,
     creatingChapters,
@@ -316,6 +360,11 @@ export function useSubjects(): UseSubjectsReturn {
 
     // Actions
     setSearchQuery,
+    setMinPassingMarks,
+    setMaxPassingMarks,
+    setMinTotalMarks,
+    setMaxTotalMarks,
+    clearFilters,
     setSelectedSubject,
     setEditingSubject,
     setCreatingChapters,

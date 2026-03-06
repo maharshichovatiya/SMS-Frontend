@@ -251,7 +251,6 @@ export default function SignUpPage() {
       localStorage.removeItem("signup_personal_details");
       localStorage.removeItem("signup_school_details");
       localStorage.removeItem("signup_current_step");
-      localStorage.removeItem("roleId");
 
       router.replace("/dashboard");
     } catch (error: unknown) {

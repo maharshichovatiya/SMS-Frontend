@@ -36,9 +36,17 @@ export const subjectApis = {
     page: number = 1,
     limit: number = 10,
     search?: string,
+    minPassingMarks?: number,
+    maxPassingMarks?: number,
+    minTotalMarks?: number,
+    maxTotalMarks?: number,
   ): Promise<{ data: SubjectWithClasses[]; meta: PaginationMeta }> => {
     const params: Record<string, string | number> = { page, limit };
     if (search) params.search = search;
+    if (minPassingMarks !== undefined) params.minPassingMarks = minPassingMarks;
+    if (maxPassingMarks !== undefined) params.maxPassingMarks = maxPassingMarks;
+    if (minTotalMarks !== undefined) params.minTotalMarks = minTotalMarks;
+    if (maxTotalMarks !== undefined) params.maxTotalMarks = maxTotalMarks;
 
     const res = await api.get<SubjectPaginatedResponse>("/subjects", {
       params,
