@@ -44,18 +44,7 @@ export const schoolSchema = z
       }),
     schoolCode: z.string().max(20, "School code is too long").optional(),
     mediumOfInstruction: z.string().min(1, "Medium of instruction is required"),
-    schoolTimingStart: z
-      .string()
-      .refine(
-        val => {
-          if (!val || val.trim() === "") return true;
-          const [h, m] = val.split(":").map(Number);
-          const mins = h * 60 + m;
-          return mins >= 6 * 60 && mins <= 16 * 60;
-        },
-        { message: "Start time must be between 06:00 and 16:00" },
-      )
-      .optional(),
+    schoolTimingStart: z.string().optional(),
     schoolTimingEnd: z.string().optional(),
     websiteUrl: z
       .string()
@@ -89,7 +78,7 @@ export const schoolSchema = z
       return diff > 0 && diff <= 480;
     },
     {
-      message: "End time must be after start and within 8 hours",
+      message: "End time must be after start time and max 8 hours duration",
       path: ["schoolTimingEnd"],
     },
   );

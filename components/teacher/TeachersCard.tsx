@@ -50,14 +50,16 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
 
   const handleStatusChange = async () => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
+    const previousStatus = currentStatus;
     setStatusLoading(true);
     setCurrentStatus(newStatus);
     const res = await updateTeacherStatus(teacher.id, newStatus);
     setStatusLoading(false);
     if (res.success) {
       showToast.success("Status updated");
+      onSuccess();
     } else {
-      setCurrentStatus(currentStatus);
+      setCurrentStatus(previousStatus);
       showToast.error(res.message || "Failed to update status");
     }
   };
