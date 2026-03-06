@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Filter, X, ChevronRight, BookOpen, TrendingUp } from "lucide-react";
 
 interface SubjectFiltersProps {
@@ -10,29 +10,48 @@ interface SubjectFiltersProps {
     minTotalMarks?: string;
     maxTotalMarks?: string;
   };
-  onFiltersChange: (filters: SubjectFiltersProps["filters"]) => void;
   onClearFilters: () => void;
+  onApplyFilters: (filters: SubjectFiltersProps["filters"]) => void;
 }
 
 export default function SubjectFilters({
   filters,
-  onFiltersChange,
   onClearFilters,
+  onApplyFilters,
 }: SubjectFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [localFilters, setLocalFilters] = useState(filters);
+
+  // Sync localFilters with external filters when they change
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
 
   const hasActiveFilters = Object.values(filters).some(
     value => value !== undefined && value !== "",
   );
 
+  const hasLocalChanges =
+    JSON.stringify(localFilters) !== JSON.stringify(filters);
+
   const handleInputChange = (
     filterName: keyof SubjectFiltersProps["filters"],
     value: string,
   ) => {
-    onFiltersChange({
-      ...filters,
+    setLocalFilters({
+      ...localFilters,
       [filterName]: value || undefined,
     });
+  };
+
+  const handleApplyFilters = () => {
+    onApplyFilters(localFilters);
+    setIsOpen(false);
+  };
+
+  const handleClearLocalFilters = () => {
+    setLocalFilters({});
+    onClearFilters();
   };
 
   return (
@@ -80,7 +99,7 @@ export default function SubjectFilters({
                 <div className="flex items-center gap-2">
                   {hasActiveFilters && (
                     <button
-                      onClick={onClearFilters}
+                      onClick={handleClearLocalFilters}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] rounded-[var(--radius-sm)] transition-colors duration-[var(--duration)] cursor-pointer"
                     >
                       <X size={14} />
@@ -114,7 +133,7 @@ export default function SubjectFilters({
                       <input
                         type="number"
                         placeholder="e.g. 35"
-                        value={filters.minPassingMarks || ""}
+                        value={localFilters.minPassingMarks || ""}
                         onChange={e =>
                           handleInputChange("minPassingMarks", e.target.value)
                         }
@@ -129,7 +148,7 @@ export default function SubjectFilters({
                       <input
                         type="number"
                         placeholder="e.g. 50"
-                        value={filters.maxPassingMarks || ""}
+                        value={localFilters.maxPassingMarks || ""}
                         onChange={e =>
                           handleInputChange("maxPassingMarks", e.target.value)
                         }
@@ -154,7 +173,7 @@ export default function SubjectFilters({
                       <input
                         type="number"
                         placeholder="e.g. 100"
-                        value={filters.minTotalMarks || ""}
+                        value={localFilters.minTotalMarks || ""}
                         onChange={e =>
                           handleInputChange("minTotalMarks", e.target.value)
                         }
@@ -169,7 +188,7 @@ export default function SubjectFilters({
                       <input
                         type="number"
                         placeholder="e.g. 500"
-                        value={filters.maxTotalMarks || ""}
+                        value={localFilters.maxTotalMarks || ""}
                         onChange={e =>
                           handleInputChange("maxTotalMarks", e.target.value)
                         }
@@ -178,6 +197,28 @@ export default function SubjectFilters({
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="sticky bottom-0 bg-[var(--surface)] border-t border-[var(--border)] p-4 mt-6">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setLocalFilters(filters);
+                      setIsOpen(false);
+                    }}
+                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] transition-colors duration-[var(--duration)] cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleApplyFilters}
+                    disabled={!hasLocalChanges}
+                    className="flex-1 px-4 py-2.5 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-[var(--duration)] cursor-pointer"
+                  >
+                    Apply Filters
+                  </button>
                 </div>
               </div>
             </div>

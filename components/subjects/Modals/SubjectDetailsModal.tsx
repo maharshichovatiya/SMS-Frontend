@@ -98,7 +98,7 @@ export function SubjectDetailsModal({
                   {subject.classSubjects?.map(cls => (
                     <div
                       key={cls.id}
-                      className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden"
+                      className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl overflow-hidden mb-4"
                     >
                       <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
                         <div className="flex items-center justify-between">

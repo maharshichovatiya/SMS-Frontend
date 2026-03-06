@@ -105,7 +105,7 @@ export function useSubjects(): UseSubjectsReturn {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(6);
   const [totalSubjects, setTotalSubjects] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
