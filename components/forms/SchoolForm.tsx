@@ -82,8 +82,16 @@ export default function SchoolForm() {
         setSavedData(mapped);
         reset(mapped);
       } catch (error) {
-        const err = error as Error;
-        showToast.error(err.message);
+        let message = "Something went wrong";
+        if (error && typeof error === "object" && "message" in error) {
+          const errorMsg = (error as { message: unknown }).message;
+          if (Array.isArray(errorMsg) && errorMsg.length > 0) {
+            message = errorMsg[0] || "Something went wrong";
+          } else if (typeof errorMsg === "string") {
+            message = errorMsg;
+          }
+        }
+        showToast.error(message);
       } finally {
         setLoading(false);
       }
@@ -119,8 +127,16 @@ export default function SchoolForm() {
       showToast.success("School updated successfully");
       setIsEditOpen(false);
     } catch (error) {
-      const err = error as Error;
-      showToast.error(err.message);
+      let message = "Something went wrong";
+      if (error && typeof error === "object" && "message" in error) {
+        const errorMsg = (error as { message: unknown }).message;
+        if (Array.isArray(errorMsg) && errorMsg.length > 0) {
+          message = errorMsg[0] || "Something went wrong";
+        } else if (typeof errorMsg === "string") {
+          message = errorMsg;
+        }
+      }
+      showToast.error(message);
     }
   };
 

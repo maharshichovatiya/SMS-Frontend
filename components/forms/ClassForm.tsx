@@ -51,12 +51,26 @@ export default function ClassForm({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ClassFormData>({
     resolver: zodResolver(classSchema) as Resolver<ClassFormData>,
     defaultValues,
     mode: "onSubmit",
   });
+
+  const formValues = watch();
+
+  const hasChanges = () => {
+    if (!defaultValues || mode !== "edit") return true;
+
+    return Object.keys(defaultValues).some(key => {
+      const defaultValue = defaultValues[key as keyof ClassFormData];
+      const currentValue = formValues[key as keyof ClassFormData];
+
+      return String(defaultValue ?? "") !== String(currentValue ?? "");
+    });
+  };
 
   useEffect(() => {
     if (defaultValues) {
@@ -76,7 +90,15 @@ export default function ClassForm({
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
-          showToast.error(res.message || "Something went wrong");
+          let message = res.message;
+          if (
+            res.message &&
+            res.message.length > 0 &&
+            typeof res.message === "object"
+          ) {
+            message = res.message[0];
+          }
+          showToast.error(message || "Something went wrong");
         }
       } catch {
         showToast.error("Failed to load teachers");
@@ -109,7 +131,15 @@ export default function ClassForm({
         reset();
         onSuccess?.();
       } else {
-        showToast.error(res.message || "Something went wrong");
+        let message = res.message;
+        if (
+          res.message &&
+          res.message.length > 0 &&
+          typeof res.message === "object"
+        ) {
+          message = res.message[0];
+        }
+        showToast.error(message || "Something went wrong");
       }
     } catch {
       showToast.error("Something went wrong");
@@ -300,7 +330,12 @@ export default function ClassForm({
         </button>
         <button
           type="submit"
-          disabled={submitting || loadingTeachers || teachers.length === 0}
+          disabled={
+            submitting ||
+            loadingTeachers ||
+            teachers.length === 0 ||
+            (mode === "edit" && !hasChanges())
+          }
           className="btn-primary disabled:opacity-60"
         >
           {submitting

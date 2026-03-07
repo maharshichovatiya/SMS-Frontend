@@ -28,7 +28,10 @@ export const createStudentSchema = z.object({
     .min(1, "Phone is required")
     .max(10, "Phone cannot exceed 10 digits")
     .min(10, "Phone must be exactly 10 digits")
-    .regex(/^\d{10}$/, "Phone must be a 10-digit number"),
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    ),
   rollNo: z
     .string()
     .min(1, "Roll No is required")
@@ -77,7 +80,10 @@ export const createStudentSchema = z.object({
   fatherPhone: z
     .string()
     .max(10, "Father phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Father phone must be exactly 10 digits")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
   motherName: z
@@ -149,7 +155,10 @@ export const updateStudentSchema = z.object({
   phone: z
     .string()
     .max(10, "Phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Phone must be a 10-digit number")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
   rollNo: z
@@ -200,7 +209,10 @@ export const updateStudentSchema = z.object({
   fatherPhone: z
     .string()
     .max(10, "Father phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Father phone must be exactly 10 digits")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
   motherName: z

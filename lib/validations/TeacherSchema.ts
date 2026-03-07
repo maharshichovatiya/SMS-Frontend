@@ -35,7 +35,10 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
     phone: z
       .string()
       .max(10, "Enter a valid phone number")
-      .regex(/^[0-9+\s-]+$/, "Invalid phone number"),
+      .regex(
+        /^[6-9]\d{9}$/,
+        "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+      ),
     gender: z
       .string()
       .min(1, "Select a gender")
@@ -88,6 +91,78 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .min(0, "Cannot be negative")
       .max(11, "Months must be between 0 and 11"),
     profilePhoto: z.any().optional(),
+    bloodGroup: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        const validBloodGroups = [
+          "A+",
+          "A-",
+          "B+",
+          "B-",
+          "O+",
+          "O-",
+          "AB+",
+          "AB-",
+        ];
+        return validBloodGroups.includes(val);
+      }, "Invalid blood group value"),
+    aadhaarNo: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        return /^\d{12}$/.test(val);
+      }, "Aadhaar number must be exactly 12 digits"),
+    panNo: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        // PAN must be exactly 10 characters: 5 uppercase letters, 4 digits, 1 uppercase letter
+        const pan = val.trim();
+        return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
+      }, "Invalid PAN number"),
+    permanentAddress: z
+      .string()
+      .max(200, "Address cannot exceed 200 characters")
+      .optional(),
+    currentAddress: z
+      .string()
+      .max(200, "Address cannot exceed 200 characters")
+      .optional(),
+    sameAsPermanent: z.boolean().optional(),
+    bankName: z
+      .string()
+      .max(50, "Bank name cannot exceed 50 characters")
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        return /^[a-zA-Z\s&.-]+$/.test(val);
+      }, "Bank name can only contain letters, spaces, & . -"),
+    accountNo: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        return /^\d{9,18}$/.test(val);
+      }, "Account number must be 9-18 digits"),
+    ifscCode: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        return /^[A-Za-z]{4}[0][A-Za-z0-9]{6}$/.test(val);
+      }, "IFSC code must be 11 characters: 4 letters + 0 + 6 alphanumeric"),
+    branch: z
+      .string()
+      .max(50, "Branch name cannot exceed 50 characters")
+      .optional()
+      .refine(val => {
+        if (!val || val.trim() === "") return true;
+        return /^[a-zA-Z\s&.-]+$/.test(val);
+      }, "Branch name can only contain letters, spaces, & . -"),
   });
 
 export type TeacherFormData = z.infer<ReturnType<typeof createTeacherSchema>>;
