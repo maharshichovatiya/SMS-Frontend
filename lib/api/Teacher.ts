@@ -18,14 +18,14 @@ export type GetTeachersResponse = {
 
 export const getAllTeachers = async (
   search?: string,
-  department?: string,
-  gender?: string,
-  staffCategory?: string,
-  status?: string,
-  experience?: string,
-  salary?: string,
-  ageGroup?: string,
-  tenure?: string,
+  department?: string[],
+  gender?: string[],
+  staffCategory?: string[],
+  status?: string[],
+  experience?: string[],
+  salary?: string[],
+  ageGroup?: string[],
+  tenure?: string[],
   page: number = 1,
   limit: number = 9,
 ): Promise<{
@@ -35,21 +35,24 @@ export const getAllTeachers = async (
   message?: string;
 }> => {
   try {
-    const params: Record<string, string> = {};
-
-    if (search) params.search = search;
-    if (department) params.department = department;
-    if (gender) params.gender = gender;
-    if (staffCategory) params.staffType = staffCategory;
-    if (status) params.status = status;
-    if (experience) params.experienceRange = experience;
-    if (salary) params.salaryRange = salary;
-    if (ageGroup) params.ageGroup = ageGroup;
-    if (tenure) params.tenure = tenure;
-    params.page = String(page);
-    params.limit = String(limit);
-
-    const res = await api.get<GetTeachersResponse>("/teachers", { params });
+    const res = await api.get<GetTeachersResponse>("/teachers", {
+      params: {
+        search: search || undefined,
+        department: department?.length ? department : undefined,
+        gender: gender?.length ? gender : undefined,
+        staffType: staffCategory?.length ? staffCategory : undefined,
+        status: status?.length ? status : undefined,
+        experienceRange: experience?.length ? experience : undefined,
+        salaryRange: salary?.length ? salary : undefined,
+        ageGroup: ageGroup?.length ? ageGroup : undefined,
+        tenure: tenure?.length ? tenure : undefined,
+        page: String(page),
+        limit: String(limit),
+      },
+      paramsSerializer: {
+        indexes: null,
+      },
+    });
 
     return {
       success: true,

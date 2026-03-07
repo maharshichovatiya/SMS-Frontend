@@ -10,26 +10,30 @@ import api from "../Axios";
 
 export const getClassSummary = async (
   search?: string,
-  availability?: string,
+  availability?: string[],
   type?: string,
-  section?: string,
-  capacity?: string,
-  studentCount?: string,
+  section?: string[],
+  capacity?: string[],
+  studentCount?: string[],
   page: number = 1,
   limit: number = 9,
 ): Promise<GetClassesResponse> => {
   try {
-    const params: Record<string, string> = {};
-    if (search) params.search = search;
-    if (availability) params.availability = availability;
-    if (type) params.type = type;
-    if (section) params.section = section;
-    if (capacity) params.capacity = capacity;
-    if (studentCount) params.studentCount = studentCount;
-    params.page = String(page);
-    params.limit = String(limit);
-
-    const res = await api.get("/classes/class-summary", { params });
+    const res = await api.get("/classes/class-summary", {
+      params: {
+        search: search || undefined,
+        availability: availability?.length ? availability : undefined,
+        type: type || undefined,
+        section: section?.length ? section : undefined,
+        capacity: capacity?.length ? capacity : undefined,
+        studentCount: studentCount?.length ? studentCount : undefined,
+        page: String(page),
+        limit: String(limit),
+      },
+      paramsSerializer: {
+        indexes: null,
+      },
+    });
 
     return {
       success: true,

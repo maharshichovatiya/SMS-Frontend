@@ -3,7 +3,7 @@ export const DEPARTMENTS = [
   { key: "academic", label: "Academic" },
   { key: "administration", label: "Administration" },
   { key: "sports", label: "Sports" },
-  { key: "lab", label: "Laboratory" },
+  { key: "laboratory", label: "Laboratory" },
 ];
 
 export const EXPERIENCE_OPTIONS = [

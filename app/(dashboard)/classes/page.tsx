@@ -16,10 +16,10 @@ import PageHeader from "@/components/layout/PageHeader";
 const DEFAULT_FILTERS: ClassFilterValues = {
   search: "",
   type: "all",
-  availability: undefined,
-  section: undefined,
-  capacity: undefined,
-  studentCount: undefined,
+  availability: [],
+  section: [],
+  capacity: [],
+  studentCount: [],
 };
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
@@ -53,11 +53,11 @@ function Page() {
       setLoading(true);
       const res = await getClassSummary(
         debouncedSearch || undefined,
-        filters.availability,
+        filters.availability?.length ? filters.availability : undefined,
         filters.type !== "all" ? filters.type : undefined,
-        filters.section,
-        filters.capacity,
-        filters.studentCount,
+        filters.section?.length ? filters.section : undefined,
+        filters.capacity?.length ? filters.capacity : undefined,
+        filters.studentCount?.length ? filters.studentCount : undefined,
         currentPage,
         pageSize,
       );
@@ -110,10 +110,10 @@ function Page() {
 
   const hasAnyFilter =
     filters.type !== "all" ||
-    !!filters.availability ||
-    !!filters.section ||
-    !!filters.capacity ||
-    !!filters.studentCount ||
+    (filters.availability?.length ?? 0) > 0 ||
+    (filters.section?.length ?? 0) > 0 ||
+    (filters.capacity?.length ?? 0) > 0 ||
+    (filters.studentCount?.length ?? 0) > 0 ||
     !!filters.search;
 
   return (

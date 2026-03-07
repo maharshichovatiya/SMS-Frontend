@@ -12,46 +12,21 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const TYPE_OPTIONS = [
-  { value: "all", label: "All" },
-  { value: "pre-primary", label: "Pre-Primary" },
-  { value: "primary", label: "Primary" },
-  { value: "secondary", label: "Secondary" },
-  { value: "higher-secondary", label: "Higher Secondary" },
-];
-
-const SECTION_OPTIONS = [
-  { value: "A", label: "Section A" },
-  { value: "B", label: "Section B" },
-  { value: "C", label: "Section C" },
-  { value: "D", label: "Section D" },
-];
-
-const CAPACITY_OPTIONS = [
-  { value: "small", label: "Small", sub: "1 – 20 seats" },
-  { value: "medium", label: "Medium", sub: "21 – 40 seats" },
-  { value: "large", label: "Large", sub: "41+ seats" },
-];
-
-const STUDENT_COUNT_OPTIONS = [
-  { value: "empty", label: "Empty", sub: "0 students" },
-  { value: "small", label: "Small", sub: "1 – 15 students" },
-  { value: "medium", label: "Medium", sub: "16 – 30 students" },
-  { value: "large", label: "Large", sub: "30+ students" },
-];
-
-const AVAILABILITY_OPTIONS = [
-  { value: "available", label: "Available", sub: "Seats remaining" },
-  { value: "full", label: "Full", sub: "No seats left" },
-];
+import {
+  TYPE_OPTIONS,
+  SECTION_OPTIONS,
+  CAPACITY_OPTIONS,
+  STUDENT_COUNT_OPTIONS,
+  AVAILABILITY_OPTIONS,
+} from "@/lib/utils/ClassFilterConstants";
 
 export interface ClassFilterValues {
   search: string;
   type: string;
-  availability?: string;
-  section?: string;
-  capacity?: string;
-  studentCount?: string;
+  availability?: string[];
+  section?: string[];
+  capacity?: string[];
+  studentCount?: string[];
 }
 
 interface ClassFiltersProps {
@@ -68,33 +43,33 @@ export default function ClassFilters({
   const [isOpen, setIsOpen] = useState(false);
 
   const hasActiveFilters =
-    !!filters.availability ||
-    !!filters.section ||
-    !!filters.capacity ||
-    !!filters.studentCount;
+    (filters.availability?.length ?? 0) > 0 ||
+    (filters.section?.length ?? 0) > 0 ||
+    (filters.capacity?.length ?? 0) > 0 ||
+    (filters.studentCount?.length ?? 0) > 0;
 
   const activeFilterCount = [
-    filters.availability,
-    filters.section,
-    filters.capacity,
-    filters.studentCount,
-  ].filter(Boolean).length;
+    ...(filters.availability ?? []),
+    ...(filters.section ?? []),
+    ...(filters.capacity ?? []),
+    ...(filters.studentCount ?? []),
+  ].length;
 
   const handleCheckbox = (
     key: keyof ClassFilterValues,
     value: string,
     checked: boolean,
   ) => {
+    const current = (filters[key] as string[]) ?? [];
     onFiltersChange({
       ...filters,
-      [key]: checked ? value : undefined,
+      [key]: checked ? [...current, value] : current.filter(v => v !== value),
     });
   };
 
   return (
     <>
       <div className="flex items-center justify-between gap-4 mt-6">
-        {/* Class Type Pills */}
         <div className="flex items-center gap-2 flex-wrap">
           {TYPE_OPTIONS.map(t => (
             <button
@@ -190,7 +165,6 @@ export default function ClassFilters({
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Availability */}
               <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
                   <CheckCircle2 size={16} />
@@ -205,7 +179,9 @@ export default function ClassFilters({
                       <input
                         type="checkbox"
                         id={`avail-${opt.value}`}
-                        checked={filters.availability === opt.value}
+                        checked={(filters.availability ?? []).includes(
+                          opt.value,
+                        )}
                         onChange={e =>
                           handleCheckbox(
                             "availability",
@@ -229,7 +205,6 @@ export default function ClassFilters({
                 </div>
               </div>
 
-              {/* Section */}
               <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
                   <Layers size={16} />
@@ -244,7 +219,7 @@ export default function ClassFilters({
                       <input
                         type="checkbox"
                         id={`section-${opt.value}`}
-                        checked={filters.section === opt.value}
+                        checked={(filters.section ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox("section", opt.value, e.target.checked)
                         }
@@ -261,7 +236,6 @@ export default function ClassFilters({
                 </div>
               </div>
 
-              {/* Capacity */}
               <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
                   <Users size={16} />
@@ -276,7 +250,7 @@ export default function ClassFilters({
                       <input
                         type="checkbox"
                         id={`cap-${opt.value}`}
-                        checked={filters.capacity === opt.value}
+                        checked={(filters.capacity ?? []).includes(opt.value)}
                         onChange={e =>
                           handleCheckbox(
                             "capacity",
@@ -300,7 +274,6 @@ export default function ClassFilters({
                 </div>
               </div>
 
-              {/* Student Count */}
               <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-[var(--text)] mb-3">
                   <CircleDot size={16} />
@@ -315,7 +288,9 @@ export default function ClassFilters({
                       <input
                         type="checkbox"
                         id={`sc-${opt.value}`}
-                        checked={filters.studentCount === opt.value}
+                        checked={(filters.studentCount ?? []).includes(
+                          opt.value,
+                        )}
                         onChange={e =>
                           handleCheckbox(
                             "studentCount",
