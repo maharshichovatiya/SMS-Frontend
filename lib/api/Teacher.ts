@@ -16,6 +16,43 @@ export type GetTeachersResponse = {
   };
 };
 
+export const getTeachersForAssignClass = async (): Promise<{
+  success: boolean;
+  data?: {
+    id: string;
+    employeeCode: string;
+    staffCategory: string;
+    department: string;
+    designation: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      school: {
+        id: string;
+        name: string;
+      };
+    };
+  }[];
+  message?: string;
+}> => {
+  try {
+    const res = await api.get("/teachers/findallassignclass");
+    return {
+      success: true,
+      data: res.data.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    return {
+      success: false,
+      message: err.response?.data?.message || "Failed to fetch teachers",
+    };
+  }
+};
+
 export const getAllTeachers = async (
   search?: string,
   department?: string[],
@@ -27,7 +64,7 @@ export const getAllTeachers = async (
   ageGroup?: string[],
   tenure?: string[],
   page: number = 1,
-  limit: number = 9,
+  limit: number = 6,
 ): Promise<{
   success: boolean;
   data?: GetTeachers[];

@@ -4,11 +4,29 @@ import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClassFormData, classSchema } from "@/lib/validations/ClassSchema";
 import { useEffect, useState } from "react";
-import { getAllTeachers } from "@/lib/api/Teacher";
-import { GetTeachers } from "@/lib/types/Teacher";
+import { getTeachersForAssignClass } from "@/lib/api/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
+
+interface AssignTeacher {
+  id: string;
+  employeeCode: string;
+  staffCategory: string;
+  department: string;
+  designation: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    school: {
+      id: string;
+      name: string;
+    };
+  };
+}
 
 interface ClassFormProps {
   onCancel: () => void;
@@ -25,7 +43,7 @@ export default function ClassForm({
   mode = "add",
   classId,
 }: ClassFormProps) {
-  const [teachers, setTeachers] = useState<GetTeachers[]>([]);
+  const [teachers, setTeachers] = useState<AssignTeacher[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -54,14 +72,11 @@ export default function ClassForm({
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await getAllTeachers();
+        const res = await getTeachersForAssignClass();
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
-          const message = Array.isArray(res.message)
-            ? res.message[0]
-            : res.message;
-          showToast.error(message || "Something went wrong");
+          showToast.error(res.message || "Something went wrong");
         }
       } catch {
         showToast.error("Failed to load teachers");

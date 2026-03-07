@@ -104,18 +104,16 @@ export default function TeacherFilters({
               onClick={() =>
                 onFiltersChange({
                   ...filters,
-                  status: filters.status?.includes(s.value)
-                    ? filters.status.filter(v => v !== s.value)
-                    : [...(filters.status ?? []), s.value],
+                  status: filters.status?.[0] === s.value ? [] : [s.value],
                 })
               }
               className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
-                filters.status?.includes(s.value)
+                filters.status?.[0] === s.value
                   ? "text-white border-transparent"
                   : "bg-[var(--surface)] border-[var(--border)] text-[var(--text-2)] hover:bg-[var(--bg-2)]"
               }`}
               style={
-                filters.status?.includes(s.value)
+                filters.status?.[0] === s.value
                   ? {
                       background: "var(--grad-primary)",
                       borderColor: "transparent",
