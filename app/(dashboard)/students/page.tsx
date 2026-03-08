@@ -172,7 +172,7 @@ function Page() {
         title="Admit New Student"
         description="Fill in the details below to register a new student."
       >
-        <div className="w-[560px]">
+        <div className="w-[800px]">
           <StudentForm
             onClose={() => setIsOpen(false)}
             roleId={role}

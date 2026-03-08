@@ -14,6 +14,11 @@ import {
   IndianRupee,
   Building,
   CreditCard,
+  Lock,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Home,
 } from "lucide-react";
 import {
   createStudentSchema,
@@ -137,12 +142,30 @@ export default function StudentForm({
       gender: "",
       classId: "",
       academicYearId: "",
+      password: "",
+      sameAsPermanent: false,
     },
     mode: "onSubmit",
   });
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const formData = watch();
+  const sameAsPermanent = watch("sameAsPermanent");
+
+  const handleGeneratePassword = () => {
+    const generatedPassword = generateStudentPassword();
+    setValue("password", generatedPassword);
+    setShowPassword(true);
+    showToast.success("Password generated successfully!");
+  };
+
+  // Sync permanent address with current address when sameAsPermanent changes
+  useEffect(() => {
+    if (sameAsPermanent) {
+      setValue("permanentAddress", formData.currentAddress);
+    }
+  }, [sameAsPermanent, formData.currentAddress, setValue]);
 
   // Monitor form changes to enable/disable submit button
   useEffect(() => {
@@ -183,7 +206,12 @@ export default function StudentForm({
         rollNo: initialData.rollNo,
         admissionDate: initialData.admissionDate,
         dob: initialData.dob,
-        gender: (initialData.gender as "male" | "female" | "other" | "") || "",
+        gender:
+          ((initialData.gender || initialData.user?.gender) as
+            | "male"
+            | "female"
+            | "other"
+            | "") || "",
         fatherName: initialData.fatherName,
         fatherPhone: initialData.fatherPhone,
         motherName: initialData.motherName,
@@ -316,7 +344,7 @@ export default function StudentForm({
 
       // Special handling for familyAnnualIncome due to number/string conversion
       if (key === "familyAnnualIncome") {
-        const formNum = formValue ? parseInt(formValue) : undefined;
+        const formNum = formValue ? parseInt(formValue as string) : undefined;
         const initialNum =
           initialValue !== undefined && initialValue !== ""
             ? Math.floor(Number(initialValue))
@@ -324,15 +352,25 @@ export default function StudentForm({
 
         if (formNum !== initialNum) {
           if (formValue !== undefined && formValue !== "") {
-            changedFields.familyAnnualIncome = formValue;
+            changedFields.familyAnnualIncome = formValue as string;
           }
+        }
+        return;
+      }
+
+      // Special handling for sameAsPermanent due to boolean comparison
+      if (key === "sameAsPermanent") {
+        const formBoolValue = Boolean(formValue);
+        const initialBoolValue = Boolean(initialValue);
+        if (formBoolValue !== initialBoolValue) {
+          changedFields.sameAsPermanent = formBoolValue;
         }
         return;
       }
 
       // Normalize undefined/null to "" for consistent comparison
       const normalizedFormValue = formValue ?? "";
-      const normalizedInitialValue = initialValue ?? "";
+      const normalizedInitialValue = (initialValue as unknown) ?? "";
 
       // Handle different types of comparisons for other fields
       if (normalizedFormValue !== normalizedInitialValue) {
@@ -343,7 +381,11 @@ export default function StudentForm({
         ) {
           if (normalizedFormValue.trim() !== normalizedInitialValue.trim()) {
             // Handle other string fields
-            handleStringField(key, normalizedFormValue, changedFields);
+            handleStringField(
+              key,
+              normalizedFormValue as string,
+              changedFields,
+            );
           }
         } else {
           // Handle non-string fields
@@ -377,9 +419,10 @@ export default function StudentForm({
           return;
         }
 
-        // Prepare update payload with only student data changes (exclude academic fields)
-        const { classId, academicYearId, rollNo, ...studentFieldsOnly } =
-          processedData;
+        // Use data (strings) for comparing student fields
+        const { classId, academicYearId, rollNo, ...studentFieldsFromForm } =
+          data;
+
         const {
           classId: initialClassId,
           academicYearId: initialAcademicYearId,
@@ -388,13 +431,13 @@ export default function StudentForm({
 
         // Check if academic assignment changed
         const academicChanged =
-          classId !== initialClassId ||
-          academicYearId !== initialAcademicYearId;
+          classId !== (initialClassId || "") ||
+          academicYearId !== (initialAcademicYearId || "");
 
-        const rollNoChanged = rollNo !== initialRollNo;
+        const rollNoChanged = rollNo !== (initialRollNo || "");
 
         const changedStudentFields = getChangedFields(
-          studentFieldsOnly as StudentFormValues,
+          studentFieldsFromForm as StudentFormValues,
           initialData,
         );
 
@@ -448,15 +491,12 @@ export default function StudentForm({
         await studentApis.updateStudent(initialData.id, updatePayload);
         showToast.success("Student updated successfully!");
       } else {
-        // Create payload with converted familyAnnualIncome and auto-generated password
+        // Create payload with converted familyAnnualIncome and password from form
         const { classId, academicYearId, rollNo, ...studentData } = data;
-
-        // Generate password for new student
-        const generatedPassword = generateStudentPassword();
 
         const payload: CreateStudentPayload = {
           ...studentData,
-          password: generatedPassword,
+          password: data.password || "", // Use password from form instead of auto-generating
           rollNo: rollNo || "",
           familyAnnualIncome: data.familyAnnualIncome
             ? parseInt(data.familyAnnualIncome)
@@ -630,6 +670,75 @@ export default function StudentForm({
                     );
                   }
 
+                  if (field.type === "password") {
+                    return (
+                      <div
+                        key={field.name}
+                        className={
+                          isFullWidth
+                            ? "md:col-span-2 col-span-1"
+                            : "md:col-span-1 col-span-1"
+                        }
+                      >
+                        <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+                          {field.label}
+                          {!field.optional &&
+                            !(isEditMode && field.name === "password") && (
+                              <span className="text-[var(--rose)] ml-0.5">
+                                *
+                              </span>
+                            )}
+                        </label>
+                        <div className="relative">
+                          <Lock
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                            style={{ color: "var(--text-3)" }}
+                          />
+                          <input
+                            {...register(field.name)}
+                            type={showPassword ? "text" : "password"}
+                            placeholder={
+                              isEditMode && field.name === "password"
+                                ? "Leave blank to keep current"
+                                : field.placeholder
+                            }
+                            className={`w-full px-3.5 py-2.5 pl-9 pr-20 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                              error
+                                ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                                : "border-[var(--border)]"
+                            }`}
+                          />
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={handleGeneratePassword}
+                              className="p-1.5 cursor-pointer text-[var(--blue)] hover:bg-[var(--blue-light)] rounded-[var(--radius-sm)] transition-colors"
+                              title="Generate password"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        {error && (
+                          <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+                            {error.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+
                   if (field.type === "select") {
                     return (
                       <div
@@ -649,7 +758,7 @@ export default function StudentForm({
                         <div className="relative">
                           <select
                             {...register(field.name)}
-                            value={watch(field.name) || ""}
+                            value={(watch(field.name) as string) || ""}
                             className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer ${
                               error
                                 ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
@@ -804,6 +913,75 @@ export default function StudentForm({
               </React.Fragment>
             ));
           })()}
+        </div>
+
+        {/* Address Information Section */}
+        <div className="pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="section-label">Address Information</span>
+            <div className="flex-1 h-px bg-[var(--border)]" />
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="label-base">Current Address</label>
+              <div className="relative">
+                <Home
+                  className="absolute left-3 top-3 pt-2 w-4 h-4 pointer-events-none"
+                  style={{ color: "var(--text-3)" }}
+                />
+                <textarea
+                  {...register("currentAddress")}
+                  placeholder="Enter your current address..."
+                  rows={4}
+                  style={{ minHeight: "90px" }}
+                  className={`input-base pl-9 pt-2 resize-none ${errors.currentAddress ? "error" : ""}`}
+                />
+              </div>
+              {errors.currentAddress && (
+                <span className="text-xs text-[var(--rose)]">
+                  {errors.currentAddress.message}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 my-2">
+              <input
+                type="checkbox"
+                id="sameAsPermanent"
+                {...register("sameAsPermanent")}
+                className="w-4 h-4 text-[var(--blue)] bg-[var(--bg-2)] border-[var(--border)] rounded focus:ring-[var(--blue-light)] focus:ring-2"
+              />
+              <label
+                htmlFor="sameAsPermanent"
+                className="text-sm text-[var(--text-2)] cursor-pointer select-none"
+              >
+                Permanent address same as current address
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="label-base">Permanent Address</label>
+              <div className="relative">
+                <Home
+                  className="absolute left-3 top-3 pt-2 w-4 h-4 pointer-events-none"
+                  style={{ color: "var(--text-3)" }}
+                />
+                <textarea
+                  {...register("permanentAddress")}
+                  placeholder="Enter your permanent address..."
+                  rows={4}
+                  style={{ minHeight: "90px" }}
+                  disabled={sameAsPermanent}
+                  className={`input-base pl-9 pt-2 resize-none ${errors.permanentAddress ? "error" : ""} ${sameAsPermanent ? "opacity-60 cursor-not-allowed" : ""}`}
+                />
+              </div>
+              {errors.permanentAddress && (
+                <span className="text-xs text-[var(--rose)]">
+                  {errors.permanentAddress.message}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-[var(--border)]">

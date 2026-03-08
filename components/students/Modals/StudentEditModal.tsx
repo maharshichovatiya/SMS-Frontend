@@ -26,7 +26,7 @@ export default function StudentEditModal({
       title="Edit Student"
       description="Update the student's information below."
     >
-      <div className="w-[560px]">
+      <div className="w-[800px]">
         {student && (
           <StudentForm
             initialData={{

@@ -1,15 +1,18 @@
 "use client";
 
+// Teacher view modal component with student-details-matching UI
 import Modal from "@/components/ui/Modal";
-import { Student } from "@/components/tables/StudentTable";
+import { GetTeachers } from "@/lib/types/Teacher";
+import { formatExperience } from "@/lib/utils/TotalExpMonths";
 
-interface StudentDetailsModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  student: Student | null;
+  teacher: GetTeachers;
 }
 
-function formatAdmissionDate(iso: string) {
+function formatJoiningDate(iso: string) {
+  if (!iso) return "Not specified";
   const [y, m, d] = iso.split("-");
   const months = [
     "Jan",
@@ -33,19 +36,20 @@ function formatPhone(phone: string | undefined | null) {
   return `${phone.slice(0, 5)}  ${phone.slice(5)}`;
 }
 
-export default function StudentDetailsModal({
-  isOpen,
-  onClose,
-  student,
-}: StudentDetailsModalProps) {
-  if (!student) return null;
+function formatSalary(salary: number | undefined | null) {
+  if (!salary) return "Not specified";
+  return `₹${Math.floor(Number(salary)).toLocaleString("en-IN")}/year`;
+}
+
+export default function TeacherViewModal({ isOpen, onClose, teacher }: Props) {
+  const fullName = `${teacher.user.firstName} ${teacher.user.lastName}`;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Student Details"
-      description="Complete information about the student."
+      title="Teacher Details"
+      description="Complete information about the teacher."
       className="max-w-2xl"
     >
       <div className="space-y-6">
@@ -59,36 +63,36 @@ export default function StudentDetailsModal({
               <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
                 Full Name
               </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.firstName} {student.middleName} {student.lastName}
-              </p>
+              <p className="text-sm text-[var(--text)]">{fullName}</p>
             </div>
             <div>
               <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
                 Email
               </p>
-              <p className="text-sm text-[var(--text)]">{student.email}</p>
+              <p className="text-sm text-[var(--text)]">{teacher.user.email}</p>
             </div>
             <div>
               <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
                 Phone
               </p>
               <p className="text-sm text-[var(--text)]">
-                {formatPhone(student.phone)}
+                {formatPhone(teacher.user.phone)}
               </p>
             </div>
             <div>
               <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
                 Date of Birth
               </p>
-              <p className="text-sm text-[var(--text)]">{student.dob}</p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.dob || "Not specified"}
+              </p>
             </div>
             <div>
               <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
                 Gender
               </p>
               <p className="text-sm text-[var(--text)] capitalize">
-                {student.gender || "Not specified"}
+                {teacher.user.gender || "Not specified"}
               </p>
             </div>
             <div>
@@ -96,7 +100,7 @@ export default function StudentDetailsModal({
                 Blood Group
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.bloodGroup || "Not specified"}
+                {teacher.user.bloodGroup || "Not specified"}
               </p>
             </div>
             <div>
@@ -104,7 +108,7 @@ export default function StudentDetailsModal({
                 Aadhaar Number
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.aadhaarNo || "Not specified"}
+                {teacher.user.aadhaarNo || "Not specified"}
               </p>
             </div>
             <div>
@@ -112,7 +116,70 @@ export default function StudentDetailsModal({
                 PAN Number
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.panNo || "Not specified"}
+                {teacher.user.panNo || "Not specified"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Information Section */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Professional Information
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Employee Code
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.employeeCode}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Department
+              </p>
+              <p className="text-sm text-[var(--text)]">{teacher.department}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Designation
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.designation}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Date of Joining
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatJoiningDate(teacher.dateOfJoining)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Highest Qualification
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.highestQualification}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Salary Package
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatSalary(Number(teacher.salaryPackage))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Total Experience
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatExperience(Number(teacher.totalExpMonths) || 0)}
               </p>
             </div>
           </div>
@@ -129,7 +196,7 @@ export default function StudentDetailsModal({
                 Permanent Address
               </p>
               <p className="text-sm text-[var(--text)] break-words whitespace-pre-wrap">
-                {student.permanentAddress || "Not specified"}
+                {teacher.user.permanentAddress || "Not specified"}
               </p>
             </div>
             <div>
@@ -137,101 +204,7 @@ export default function StudentDetailsModal({
                 Current Address
               </p>
               <p className="text-sm text-[var(--text)] break-words whitespace-pre-wrap">
-                {student.currentAddress || "Not specified"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Academic Information Section */}
-        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
-          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
-            Academic Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Roll Number
-              </p>
-              <p className="text-sm text-[var(--text)]">{student.rollNo}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Admission Date
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {formatAdmissionDate(student.admissionDate)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Class
-              </p>
-              <p className="text-sm text-[var(--text)]">{student.class}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Academic Year
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.academicYear || "Not assigned"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Family Information Section */}
-        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
-          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
-            Family Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Father Name
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.fatherName || "Not specified"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Father Phone
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {formatPhone(student.fatherPhone)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Mother Name
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.motherName || "Not specified"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Guardian Name
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.guardianName || "Not specified"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Family Annual Income
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.familyAnnualIncome || "Not specified"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
-                Medical Conditions
-              </p>
-              <p className="text-sm text-[var(--text)]">
-                {student.medicalConditions || "Not specified"}
+                {teacher.user.currentAddress || "Not specified"}
               </p>
             </div>
           </div>
@@ -248,7 +221,7 @@ export default function StudentDetailsModal({
                 Bank Name
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.bankName || "Not specified"}
+                {teacher.user.bankName || "Not specified"}
               </p>
             </div>
             <div>
@@ -256,7 +229,7 @@ export default function StudentDetailsModal({
                 Account Number
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.accountNo || "Not specified"}
+                {teacher.user.accountNo || "Not specified"}
               </p>
             </div>
             <div>
@@ -264,7 +237,7 @@ export default function StudentDetailsModal({
                 IFSC Code
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.ifscCode || "Not specified"}
+                {teacher.user.ifscCode || "Not specified"}
               </p>
             </div>
             <div>
@@ -272,7 +245,7 @@ export default function StudentDetailsModal({
                 Branch
               </p>
               <p className="text-sm text-[var(--text)]">
-                {student.branch || "Not specified"}
+                {teacher.user.branch || "Not specified"}
               </p>
             </div>
           </div>
@@ -293,13 +266,13 @@ export default function StudentDetailsModal({
                   className={`
                     px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
                     ${
-                      student.status === "Active"
+                      teacher.status === "active"
                         ? "bg-[var(--green-light)] text-[var(--green)]"
                         : "bg-[var(--rose-light)] text-[var(--rose)]"
                     }
                   `}
                 >
-                  {student.status}
+                  {teacher.status}
                 </span>
               </div>
             </div>
