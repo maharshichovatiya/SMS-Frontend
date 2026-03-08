@@ -52,6 +52,33 @@ export const handleStringField = (
     case "gender":
       changedFields.gender = formValue as "male" | "female" | "other" | "";
       break;
+    case "bloodGroup":
+      changedFields.bloodGroup = formValue;
+      break;
+    case "aadhaarNo":
+      changedFields.aadhaarNo = formValue;
+      break;
+    case "panNo":
+      changedFields.panNo = formValue;
+      break;
+    case "permanentAddress":
+      changedFields.permanentAddress = formValue;
+      break;
+    case "currentAddress":
+      changedFields.currentAddress = formValue;
+      break;
+    case "bankName":
+      changedFields.bankName = formValue;
+      break;
+    case "accountNo":
+      changedFields.accountNo = formValue;
+      break;
+    case "ifscCode":
+      changedFields.ifscCode = formValue;
+      break;
+    case "branch":
+      changedFields.branch = formValue;
+      break;
     case "classId":
       changedFields.classId = formValue;
       break;
@@ -123,6 +150,33 @@ export const handleNonStringField = (
       break;
     case "gender":
       changedFields.gender = formValue as "male" | "female" | "other" | "";
+      break;
+    case "bloodGroup":
+      changedFields.bloodGroup = formValue as string;
+      break;
+    case "aadhaarNo":
+      changedFields.aadhaarNo = formValue as string;
+      break;
+    case "panNo":
+      changedFields.panNo = formValue as string;
+      break;
+    case "permanentAddress":
+      changedFields.permanentAddress = formValue as string;
+      break;
+    case "currentAddress":
+      changedFields.currentAddress = formValue as string;
+      break;
+    case "bankName":
+      changedFields.bankName = formValue as string;
+      break;
+    case "accountNo":
+      changedFields.accountNo = formValue as string;
+      break;
+    case "ifscCode":
+      changedFields.ifscCode = formValue as string;
+      break;
+    case "branch":
+      changedFields.branch = formValue as string;
       break;
     case "classId":
       changedFields.classId = formValue as string;

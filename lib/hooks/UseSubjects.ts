@@ -184,7 +184,7 @@ export function useSubjects(): UseSubjectsReturn {
       setModalLoading(true);
       const [classesData, teachersData] = await Promise.all([
         classApis.getAll(),
-        getAllTeachers(undefined, undefined, undefined, undefined, "active"),
+        getAllTeachers(undefined, undefined, undefined, undefined, ["active"]),
       ]);
       setAllClasses(classesData);
       if (teachersData.success && teachersData.data) {

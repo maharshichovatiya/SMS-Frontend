@@ -47,10 +47,7 @@ export const updateSubjectSchema = z
       .number()
       .min(1, "Maximum marks must be greater than 0")
       .optional(),
-    chapters: z
-      .array(chapterSchema)
-      .min(1, "At least one chapter is required")
-      .optional(),
+    chapters: z.array(chapterSchema).optional(), // Removed .min(1) requirement
     status: z.enum(["active", "inactive"]).optional(),
   })
   .refine(

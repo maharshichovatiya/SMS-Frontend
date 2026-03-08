@@ -117,6 +117,77 @@ export const createStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  bloodGroup: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+    ),
+  aadhaarNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+      "Aadhaar number must contain only digits and be exactly 12 digits",
+    ),
+  panNo: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+          !/[a-z0-9]/.test(val.slice(0, 5)) &&
+          !/[a-z]/.test(val.slice(5, 9)) &&
+          !/[0-9]/.test(val.slice(9, 10))),
+      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+    ),
+  permanentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Permanent address must be at least 5 characters if provided",
+    ),
+  currentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Current address must be at least 5 characters if provided",
+    ),
+  bankName: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+    )
+    .optional(),
+  accountNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      "Account number must contain only digits and be at least 8 characters",
+    ),
+  ifscCode: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+    ),
+  branch: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+    )
+    .optional(),
   gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for create student
   classId: z.string().optional(),
@@ -240,6 +311,77 @@ export const updateStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  bloodGroup: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+    ),
+  aadhaarNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+      "Aadhaar number must contain only digits and be exactly 12 digits",
+    ),
+  panNo: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+          !/[a-z0-9]/.test(val.slice(0, 5)) &&
+          !/[a-z]/.test(val.slice(5, 9)) &&
+          !/[0-9]/.test(val.slice(9, 10))),
+      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+    ),
+  permanentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Permanent address must be at least 5 characters if provided",
+    ),
+  currentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Current address must be at least 5 characters if provided",
+    ),
+  bankName: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+    )
+    .optional(),
+  accountNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      "Account number must contain only digits and be at least 8 characters",
+    ),
+  ifscCode: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+    ),
+  branch: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+    )
+    .optional(),
   gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for update student
   classId: z.string().optional(),
@@ -262,6 +404,15 @@ export type StudentFormValues = {
   guardianName?: string;
   familyAnnualIncome?: string;
   medicalConditions?: string;
+  bloodGroup?: string;
+  aadhaarNo?: string;
+  panNo?: string;
+  permanentAddress?: string;
+  currentAddress?: string;
+  bankName?: string;
+  accountNo?: string;
+  ifscCode?: string;
+  branch?: string;
   classId?: string;
   academicYearId?: string;
 };
@@ -335,6 +486,53 @@ export const STUDENT_FIELDS: {
     label: "Gender",
     type: "select",
     placeholder: "Select gender",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "bloodGroup",
+    label: "Blood Group",
+    type: "select",
+    placeholder: "Select blood group",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "aadhaarNo",
+    label: "Aadhaar Number",
+    type: "text",
+    placeholder: "e.g. 123456789012",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+  {
+    name: "panNo",
+    label: "PAN Number",
+    type: "text",
+    placeholder: "e.g. ABCDE1234F",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+  {
+    name: "permanentAddress",
+    label: "Permanent Address",
+    type: "text",
+    placeholder: "e.g. 123 Main Street, City",
+    optional: true,
+    fullWidth: true,
+    section: "Personal Details",
+  },
+  {
+    name: "currentAddress",
+    label: "Current Address",
+    type: "text",
+    placeholder: "e.g. 456 Temp Street, City",
     optional: true,
     fullWidth: true,
     section: "Personal Details",
@@ -434,5 +632,43 @@ export const STUDENT_FIELDS: {
     optional: true,
     fullWidth: true,
     section: "Family Details",
+  },
+
+  // Bank Details Section
+  {
+    name: "bankName",
+    label: "Bank Name",
+    type: "text",
+    placeholder: "e.g. State Bank of India",
+    optional: true,
+    fullWidth: true,
+    section: "Bank Details",
+  },
+  {
+    name: "accountNo",
+    label: "Account Number",
+    type: "text",
+    placeholder: "e.g. 123456789012",
+    optional: true,
+    fullWidth: true,
+    section: "Bank Details",
+  },
+  {
+    name: "ifscCode",
+    label: "IFSC Code",
+    type: "text",
+    placeholder: "e.g. SBIN0001234",
+    optional: true,
+    fullWidth: true,
+    section: "Bank Details",
+  },
+  {
+    name: "branch",
+    label: "Branch Name",
+    type: "text",
+    placeholder: "e.g. Main Branch, Delhi",
+    optional: true,
+    fullWidth: true,
+    section: "Bank Details",
   },
 ];

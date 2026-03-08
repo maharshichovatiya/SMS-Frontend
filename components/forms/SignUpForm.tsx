@@ -73,6 +73,10 @@ export function PersonalDetailsForm({
                   e.target.value = e.target.value
                     .replace(/[^a-zA-Z\s]/g, "")
                     .slice(0, 50);
+                  // Only trigger validation if there's already an error
+                  if (errors.firstName) {
+                    form.trigger("firstName");
+                  }
                 },
               })}
               className={inputClass(!!errors.firstName)}
@@ -97,6 +101,10 @@ export function PersonalDetailsForm({
                   e.target.value = e.target.value
                     .replace(/[^a-zA-Z\s]/g, "")
                     .slice(0, 50);
+                  // Only trigger validation if there's already an error
+                  if (errors.middleName) {
+                    form.trigger("middleName");
+                  }
                 },
               })}
               className={`${baseInput} pl-10 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
@@ -119,6 +127,10 @@ export function PersonalDetailsForm({
                   e.target.value = e.target.value
                     .replace(/[^a-zA-Z\s]/g, "")
                     .slice(0, 50);
+                  // Only trigger validation if there's already an error
+                  if (errors.lastName) {
+                    form.trigger("lastName");
+                  }
                 },
               })}
               className={inputClass(!!errors.lastName)}
@@ -139,7 +151,14 @@ export function PersonalDetailsForm({
               type="email"
               placeholder="admin@school.edu"
               maxLength={100}
-              {...register("email")}
+              {...register("email", {
+                onChange: _e => {
+                  // Only trigger validation if there's already an error
+                  if (errors.email) {
+                    form.trigger("email");
+                  }
+                },
+              })}
               className={inputClass(!!errors.email)}
             />
           </div>
@@ -163,6 +182,10 @@ export function PersonalDetailsForm({
                     e.target.value = value;
                   } else {
                     e.target.value = value.slice(0, 10);
+                  }
+                  // Only trigger validation if there's already an error
+                  if (errors.phone) {
+                    form.trigger("phone");
                   }
                 },
               })}
@@ -190,7 +213,14 @@ export function PersonalDetailsForm({
           <input
             type={showPass ? "text" : "password"}
             placeholder="Min. 8 characters"
-            {...register("password")}
+            {...register("password", {
+              onChange: _e => {
+                // Only trigger validation if there's already an error
+                if (errors.password) {
+                  form.trigger("password");
+                }
+              },
+            })}
             className={inputClass(!!errors.password, "pl-10 pr-12")}
           />
           <button
@@ -265,6 +295,10 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                   e.target.value = e.target.value
                     .replace(/[^a-zA-Z0-9\s&.,'-]/g, "")
                     .slice(0, 100);
+                  // Only trigger validation if there's already an error
+                  if (errors.schoolName) {
+                    form.trigger("schoolName");
+                  }
                 },
               })}
               className={inputClass(!!errors.schoolName)}
@@ -278,7 +312,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             School Type <span className="text-red-500 text-lg">*</span>
           </label>
           <select
-            {...register("schoolType")}
+            {...register("schoolType", {
+              onChange: () => {
+                // Only trigger validation if there's already an error
+                if (errors.schoolType) {
+                  form.trigger("schoolType");
+                }
+              },
+            })}
             className={selectClass(!!errors.schoolType)}
           >
             <option value="">Select Type</option>
@@ -302,6 +343,10 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                 e.target.value = e.target.value
                   .replace(/[^a-zA-Z0-9\s,.-/#]/g, "")
                   .slice(0, 200);
+                // Only trigger validation if there's already an error
+                if (errors.address) {
+                  form.trigger("address");
+                }
               },
             })}
             rows={3}
@@ -326,7 +371,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               type="text"
               placeholder="contact@school.edu"
               maxLength={100}
-              {...register("officialEmail")}
+              {...register("officialEmail", {
+                onChange: _e => {
+                  // Only trigger validation if there's already an error
+                  if (errors.officialEmail) {
+                    form.trigger("officialEmail");
+                  }
+                },
+              })}
               className={inputClass(!!errors.officialEmail)}
             />
           </div>
@@ -351,6 +403,10 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                   } else {
                     e.target.value = value.slice(0, 10);
                   }
+                  // Only trigger validation if there's already an error
+                  if (errors.contactNumber) {
+                    form.trigger("contactNumber");
+                  }
                 },
               })}
               className={inputClass(!!errors.contactNumber)}
@@ -367,7 +423,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             <span className="text-red-500 text-lg">*</span>
           </label>
           <select
-            {...register("mediumOfInstruction")}
+            {...register("mediumOfInstruction", {
+              onChange: () => {
+                // Only trigger validation if there's already an error
+                if (errors.mediumOfInstruction) {
+                  form.trigger("mediumOfInstruction");
+                }
+              },
+            })}
             className={selectClass(!!errors.mediumOfInstruction)}
           >
             <option value="">Select Medium</option>
@@ -384,7 +447,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             Affiliation Board <span className="text-red-500 text-lg">*</span>
           </label>
           <select
-            {...register("affiliationBoard")}
+            {...register("affiliationBoard", {
+              onChange: () => {
+                // Only trigger validation if there's already an error
+                if (errors.affiliationBoard) {
+                  form.trigger("affiliationBoard");
+                }
+              },
+            })}
             className={selectClass(!!errors.affiliationBoard)}
           >
             <option value="">Select Board</option>
@@ -415,6 +485,10 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                   .toUpperCase()
                   .replace(/[^A-Z0-9]/g, "")
                   .slice(0, 20);
+                // Only trigger validation if there's already an error
+                if (errors.schoolCode) {
+                  form.trigger("schoolCode");
+                }
               },
             })}
             className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
@@ -426,7 +500,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             Establishment Year
           </label>
           <select
-            {...register("establishmentYear")}
+            {...register("establishmentYear", {
+              onChange: () => {
+                // Only trigger validation if there's already an error
+                if (errors.establishmentYear) {
+                  form.trigger("establishmentYear");
+                }
+              },
+            })}
             className={selectClass(!!errors.establishmentYear)}
           >
             <option value="">Select Year</option>
@@ -453,7 +534,14 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               type="email"
               placeholder="Defaults to your email"
               maxLength={100}
-              {...register("adminEmail")}
+              {...register("adminEmail", {
+                onChange: _e => {
+                  // Only trigger validation if there's already an error
+                  if (errors.adminEmail) {
+                    form.trigger("adminEmail");
+                  }
+                },
+              })}
               className={`${baseInput} pl-10 ${errors.adminEmail ? "border-red-500 focus:border-red-500" : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"}`}
             />
           </div>
@@ -484,6 +572,10 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                   e.target.value = value;
                 } else {
                   e.target.value = value.slice(0, 200);
+                }
+                // Only trigger validation if there's already an error
+                if (errors.websiteUrl) {
+                  form.trigger("websiteUrl");
                 }
               },
             })}
