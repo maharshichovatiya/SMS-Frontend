@@ -12,6 +12,8 @@ import {
   Heart,
   Hash,
   IndianRupee,
+  Building,
+  CreditCard,
 } from "lucide-react";
 import {
   createStudentSchema,
@@ -81,6 +83,14 @@ export default function StudentForm({
         return IndianRupee;
       case "medicalConditions":
         return Heart;
+      case "bloodGroup":
+        return Heart;
+      case "bankName":
+      case "branch":
+        return Building;
+      case "accountNo":
+      case "ifscCode":
+        return CreditCard;
       case "admissionNo":
       case "rollNo":
         return Hash;
@@ -115,6 +125,15 @@ export default function StudentForm({
       guardianName: "",
       familyAnnualIncome: "",
       medicalConditions: "",
+      bloodGroup: "",
+      aadhaarNo: "",
+      panNo: "",
+      permanentAddress: "",
+      currentAddress: "",
+      bankName: "",
+      accountNo: "",
+      ifscCode: "",
+      branch: "",
       gender: "",
       classId: "",
       academicYearId: "",
@@ -173,6 +192,15 @@ export default function StudentForm({
           ? Math.floor(Number(initialData.familyAnnualIncome)).toString()
           : "",
         medicalConditions: initialData.medicalConditions,
+        bloodGroup: initialData.bloodGroup || "",
+        aadhaarNo: initialData.aadhaarNo || "",
+        panNo: initialData.panNo || "",
+        permanentAddress: initialData.permanentAddress || "",
+        currentAddress: initialData.currentAddress || "",
+        bankName: initialData.bankName || "",
+        accountNo: initialData.accountNo || "",
+        ifscCode: initialData.ifscCode || "",
+        branch: initialData.branch || "",
       };
       reset(formDataToReset);
     }
@@ -248,6 +276,15 @@ export default function StudentForm({
     guardianName?: string;
     familyAnnualIncome?: number;
     medicalConditions?: string;
+    bloodGroup?: string;
+    aadhaarNo?: string;
+    panNo?: string;
+    permanentAddress?: string;
+    currentAddress?: string;
+    bankName?: string;
+    accountNo?: string;
+    ifscCode?: string;
+    branch?: string;
     classId?: string;
     academicYearId?: string;
     roleId: string;
@@ -403,9 +440,6 @@ export default function StudentForm({
             rollNo: rollNo || null,
           };
         }
-        // Note: If academic assignment was completely removed (academicChanged && !classId && !academicYearId),
-        // we don't send academic payload since the backend handles removal differently
-
         // Add academic payload to update request if it exists
         if (academicPayload) {
           updatePayload.academic = academicPayload;
@@ -625,13 +659,16 @@ export default function StudentForm({
                             {/* Hide placeholder if in edit mode and gender already exists in original data */}
                             {!(
                               isEditMode &&
-                              field.name === "gender" &&
-                              initialData?.gender
+                              (field.name === "gender" ||
+                                field.name === "bloodGroup") &&
+                              (initialData?.gender || initialData?.bloodGroup)
                             ) && (
                               <option value="">
                                 {field.name === "gender"
                                   ? "Select gender"
-                                  : field.placeholder}
+                                  : field.name === "bloodGroup"
+                                    ? "Select blood group"
+                                    : field.placeholder}
                               </option>
                             )}
                             {field.name === "gender" ? (
@@ -639,6 +676,17 @@ export default function StudentForm({
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
                                 <option value="other">Other</option>
+                              </>
+                            ) : field.name === "bloodGroup" ? (
+                              <>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
                               </>
                             ) : null}
                           </select>
@@ -672,7 +720,15 @@ export default function StudentForm({
                       </label>
                       <div className="relative">
                         <input
-                          type={field.type === "tel" ? "tel" : field.type}
+                          type={
+                            field.type === "tel"
+                              ? "tel"
+                              : field.name === "rollNo" ||
+                                  field.name === "aadhaarNo" ||
+                                  field.name === "accountNo"
+                                ? "number"
+                                : field.type
+                          }
                           placeholder={field.placeholder}
                           {...register(field.name)}
                           className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
@@ -692,19 +748,18 @@ export default function StudentForm({
                                     e.currentTarget.value = numericValue;
                                   }
                                 }
-                              : field.name === "rollNo"
+                              : field.name === "aadhaarNo"
                                 ? e => {
                                     const value = e.currentTarget.value;
-                                    // Only allow numbers
-                                    const numericValue = value.replace(
-                                      /\D/g,
-                                      "",
-                                    );
+                                    // Only allow numbers, max 12 digits
+                                    const numericValue = value
+                                      .replace(/\D/g, "")
+                                      .slice(0, 12);
                                     if (value !== numericValue) {
                                       e.currentTarget.value = numericValue;
                                     }
                                   }
-                                : field.name === "familyAnnualIncome"
+                                : field.name === "rollNo"
                                   ? e => {
                                       const value = e.currentTarget.value;
                                       // Only allow numbers
@@ -716,7 +771,19 @@ export default function StudentForm({
                                         e.currentTarget.value = numericValue;
                                       }
                                     }
-                                  : undefined
+                                  : field.name === "familyAnnualIncome"
+                                    ? e => {
+                                        const value = e.currentTarget.value;
+                                        // Only allow numbers
+                                        const numericValue = value.replace(
+                                          /\D/g,
+                                          "",
+                                        );
+                                        if (value !== numericValue) {
+                                          e.currentTarget.value = numericValue;
+                                        }
+                                      }
+                                    : undefined
                           }
                         />
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] pointer-events-none">
