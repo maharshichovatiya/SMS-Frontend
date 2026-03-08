@@ -25,7 +25,7 @@ export function SubjectCard({
   return (
     <div
       key={subject.id}
-      className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-sm)] animate-fade-up hover:border-[var(--border-focus)] transition-all duration-[var(--duration)] flex flex-col"
+      className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-sm)] animate-fade-up flex flex-col"
       style={{ animationDelay: `${index * 0.08}s` }}
     >
       <div className="flex-1">
@@ -44,8 +44,9 @@ export function SubjectCard({
                   e.stopPropagation();
                   onAssignClass(subject.id);
                 }}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold cursor-pointer rounded-[var(--radius-sm)] bg-[var(--blue)] text-[var(--text-inverse)] hover:bg-[var(--blue-dark)] flex items-center gap-1.5 sm:gap-2 transition-all duration-[var(--duration)] border border-[var(--blue)] hover:scale-[1.02]"
+                className="btn-primary cursor-pointer px-4 py-2 text-xs sm:text-sm font-normal rounded-[var(--radius-sm)] flex items-center gap-1.5 sm:gap-2 transition-all duration-[var(--duration)] border hover:scale-[1.02]"
                 title="Assign Class"
+                style={{ height: "40px", padding: "8px 16px" }}
               >
                 <Plus size={14} className="sm:size-4" strokeWidth={2} />
                 <span className="hidden sm:inline">Assign Class</span>

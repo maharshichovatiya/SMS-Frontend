@@ -103,7 +103,7 @@ export function SubjectDetailsModal({
                       <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] text-[var(--text-2)] flex items-center justify-center text-sm font-bold">
                               {cls.class.className}
                             </div>
                             <div>
@@ -115,7 +115,7 @@ export function SubjectDetailsModal({
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => onDeleteClass(cls.id)}
-                              className="w-8 h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)]"
+                              className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--rose-light)] text-[var(--rose)] cursor-pointer flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)]"
                               title="Remove Class Assignment"
                             >
                               <Trash2 size={14} strokeWidth={1.8} />
@@ -142,10 +142,10 @@ export function SubjectDetailsModal({
                         .map((chapter, index) => (
                           <div
                             key={chapter.id || index}
-                            className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4 hover:border-[var(--border-focus)] transition-colors"
+                            className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4"
                           >
                             <div className="flex items-start justify-between mb-2">
-                              <div className="w-8 h-8 rounded-lg bg-blue-light text-blue flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] text-[var(--text-2)] flex items-center justify-center text-sm font-bold flex-shrink-0">
                                 {chapter.chapterNo}
                               </div>
                               {chapter.id && (
@@ -157,7 +157,7 @@ export function SubjectDetailsModal({
                                       chapter.chapterName,
                                     )
                                   }
-                                  className="w-6 h-6 rounded-[var(--radius-sm)] cursor-pointer bg-[var(--rose-light)] text-[var(--rose)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)]"
+                                  className="w-6 h-6 rounded-[var(--radius-sm)] cursor-pointer bg-[var(--rose-light)] text-[var(--rose)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--rose-light)] hover:bg-[var(--rose)] hover:text-[var(--text-inverse)]"
                                   title="Delete Chapter"
                                 >
                                   <Trash2 size={12} strokeWidth={1.8} />
