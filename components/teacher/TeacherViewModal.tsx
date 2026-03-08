@@ -1,21 +1,6 @@
 "use client";
 
-import {
-  Mail,
-  Phone,
-  Calendar,
-  IndianRupee,
-  Award,
-  GraduationCap,
-  Droplet,
-  User,
-  Briefcase,
-  Building2,
-  CreditCard,
-  MapPin,
-  FileText,
-  Home,
-} from "lucide-react";
+// Teacher view modal component with student-details-matching UI
 import Modal from "@/components/ui/Modal";
 import { GetTeachers } from "@/lib/types/Teacher";
 import { formatExperience } from "@/lib/utils/TotalExpMonths";
@@ -26,6 +11,36 @@ interface Props {
   teacher: GetTeachers;
 }
 
+function formatJoiningDate(iso: string) {
+  if (!iso) return "Not specified";
+  const [y, m, d] = iso.split("-");
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return `${months[parseInt(m) - 1]} ${parseInt(d)}, ${y}`;
+}
+
+function formatPhone(phone: string | undefined | null) {
+  if (!phone) return "N/A";
+  return `${phone.slice(0, 5)}  ${phone.slice(5)}`;
+}
+
+function formatSalary(salary: number | undefined | null) {
+  if (!salary) return "Not specified";
+  return `₹${Math.floor(Number(salary)).toLocaleString("en-IN")}/year`;
+}
+
 export default function TeacherViewModal({ isOpen, onClose, teacher }: Props) {
   const fullName = `${teacher.user.firstName} ${teacher.user.lastName}`;
 
@@ -33,247 +48,236 @@ export default function TeacherViewModal({ isOpen, onClose, teacher }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={fullName}
-      description={`${teacher.designation} · ${teacher.department}`}
+      title="Teacher Details"
+      description="Complete information about the teacher."
       className="max-w-2xl"
     >
       <div className="space-y-6">
-        {/* First Row: Basic Info & Contact */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-              Basic Information
-            </h4>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <User size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span className="font-semibold">{fullName}</span>
+        {/* Personal Information Section */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Personal Information
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Full Name
+              </p>
+              <p className="text-sm text-[var(--text)]">{fullName}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Award size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>{teacher.designation}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Email
+              </p>
+              <p className="text-sm text-[var(--text)]">{teacher.user.email}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Building2 size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>{teacher.employeeCode}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Phone
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatPhone(teacher.user.phone)}
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <User size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Status: {teacher.status}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Date of Birth
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.dob || "Not specified"}
+              </p>
             </div>
-          </div>
-
-          {/* Contact Information */}
-          <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-              Contact Information
-            </h4>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Mail size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span className="truncate">{teacher.user.email}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Gender
+              </p>
+              <p className="text-sm text-[var(--text)] capitalize">
+                {teacher.user.gender || "Not specified"}
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Phone size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>{teacher.user.phone}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Blood Group
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.bloodGroup || "Not specified"}
+              </p>
             </div>
-          </div>
-        </div>
-
-        {/* Second Row: Personal Info & Employment Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Personal Information */}
-          <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-              Personal Information
-            </h4>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Calendar size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>DOB: {teacher.user.dob}</span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Aadhaar Number
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.aadhaarNo || "Not specified"}
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <User size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Gender: {teacher.user.gender}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Droplet size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Blood Group: {teacher.user.bloodGroup}</span>
-            </div>
-          </div>
-
-          {/* Employment Information */}
-          <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-              Employment Information
-            </h4>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Building2 size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Department: {teacher.department}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Briefcase size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Designation: {teacher.designation}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Calendar size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>Date of Joining: {teacher.dateOfJoining}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <GraduationCap
-                size={14}
-                className="shrink-0 text-[var(--text-3)]"
-              />
-              <span>Highest Qualification: {teacher.highestQualification}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <IndianRupee
-                size={14}
-                className="shrink-0 text-[var(--text-3)]"
-              />
-              <span>
-                Salary Package: ₹
-                {Math.floor(Number(teacher.salaryPackage)).toLocaleString(
-                  "en-IN",
-                )}
-                /year
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-              <Briefcase size={14} className="shrink-0 text-[var(--text-3)]" />
-              <span>
-                Experience: {formatExperience(teacher.totalExpMonths)}
-              </span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                PAN Number
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.panNo || "Not specified"}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Third Row: Bank Details & Personal Data */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Bank Details */}
-          {(teacher.user.bankName ||
-            teacher.user.accountNo ||
-            teacher.user.ifscCode ||
-            teacher.user.branch) && (
-            <div className="space-y-1.5">
-              <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-                Bank Details
-              </h4>
-              {teacher.user.bankName && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <Building2
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>Bank: {teacher.user.bankName}</span>
-                </div>
-              )}
-              {teacher.user.accountNo && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <CreditCard
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>Account: {teacher.user.accountNo}</span>
-                </div>
-              )}
-              {teacher.user.ifscCode && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <CreditCard
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>IFSC: {teacher.user.ifscCode}</span>
-                </div>
-              )}
-              {teacher.user.branch && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <MapPin size={14} className="shrink-0 text-[var(--text-3)]" />
-                  <span>Branch: {teacher.user.branch}</span>
-                </div>
-              )}
+        {/* Professional Information Section */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Professional Information
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Employee Code
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.employeeCode}
+              </p>
             </div>
-          )}
-
-          {/* Personal Data */}
-          {(teacher.user.bloodGroup ||
-            teacher.user.aadhaarNo ||
-            teacher.user.panNo) && (
-            <div className="space-y-1.5">
-              <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-                Personal Data
-              </h4>
-              {teacher.user.bloodGroup && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <Droplet
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>Blood Group: {teacher.user.bloodGroup}</span>
-                </div>
-              )}
-              {teacher.user.aadhaarNo && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <FileText
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>Aadhaar: {teacher.user.aadhaarNo}</span>
-                </div>
-              )}
-              {teacher.user.panNo && (
-                <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
-                  <CreditCard
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)]"
-                  />
-                  <span>PAN: {teacher.user.panNo}</span>
-                </div>
-              )}
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Department
+              </p>
+              <p className="text-sm text-[var(--text)]">{teacher.department}</p>
             </div>
-          )}
-        </div>
-
-        {/* Address Details */}
-        {(teacher.user.permanentAddress || teacher.user.currentAddress) && (
-          <div className="space-y-1.5">
-            <h4 className="text-sm font-semibold text-[var(--text)] mb-3">
-              Address
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {teacher.user.permanentAddress && (
-                <div className="flex items-start gap-2 text-sm text-[var(--text-2)]">
-                  <Home
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)] mt-0.5"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <span className="font-medium">Permanent: </span>
-                    <div className="whitespace-pre-wrap break-words">
-                      {teacher.user.permanentAddress.length > 200
-                        ? `${teacher.user.permanentAddress.substring(0, 200)}...`
-                        : teacher.user.permanentAddress}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {teacher.user.currentAddress && (
-                <div className="flex items-start gap-2 text-sm text-[var(--text-2)]">
-                  <MapPin
-                    size={14}
-                    className="shrink-0 text-[var(--text-3)] mt-0.5"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <span className="font-medium">Current: </span>
-                    <div className="whitespace-pre-wrap break-words">
-                      {teacher.user.currentAddress.length > 200
-                        ? `${teacher.user.currentAddress.substring(0, 200)}...`
-                        : teacher.user.currentAddress}
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Designation
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.designation}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Date of Joining
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatJoiningDate(teacher.dateOfJoining)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Highest Qualification
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.highestQualification}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Salary Package
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatSalary(Number(teacher.salaryPackage))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Total Experience
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {formatExperience(Number(teacher.totalExpMonths) || 0)}
+              </p>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Address Information Section */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Address Information
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Permanent Address
+              </p>
+              <p className="text-sm text-[var(--text)] break-words whitespace-pre-wrap">
+                {teacher.user.permanentAddress || "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Current Address
+              </p>
+              <p className="text-sm text-[var(--text)] break-words whitespace-pre-wrap">
+                {teacher.user.currentAddress || "Not specified"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bank Details Section */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Bank Details
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Bank Name
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.bankName || "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Account Number
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.accountNo || "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                IFSC Code
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.ifscCode || "Not specified"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Branch
+              </p>
+              <p className="text-sm text-[var(--text)]">
+                {teacher.user.branch || "Not specified"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Information */}
+        <div className="bg-[var(--surface-2)] rounded-lg p-4 border border-[var(--border)]">
+          <h3 className="text-lg font-semibold text-[var(--text)] mb-4 pb-2 border-b border-[var(--border)]">
+            Status Information
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-wide mb-1">
+                Current Status
+              </p>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`
+                    px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
+                    ${
+                      teacher.status === "active"
+                        ? "bg-[var(--green-light)] text-[var(--green)]"
+                        : "bg-[var(--rose-light)] text-[var(--rose)]"
+                    }
+                  `}
+                >
+                  {teacher.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </Modal>
   );

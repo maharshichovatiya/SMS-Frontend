@@ -26,12 +26,14 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .string()
       .min(1, "First name is required")
       .max(20, "First name cannot exceed 20 characters")
-      .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters"),
+      .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters")
+      .regex(/^\S*$/, "First name cannot contain spaces"),
     lastName: z
       .string()
       .min(1, "Last name is required")
       .max(20, "Last name cannot exceed 20 characters")
-      .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters"),
+      .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters")
+      .regex(/^\S*$/, "Last name cannot contain spaces"),
     phone: z
       .string()
       .max(10, "Enter a valid phone number")
@@ -141,13 +143,14 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
         if (!val || val.trim() === "") return true;
         return /^[a-zA-Z\s&.-]+$/.test(val);
       }, "Bank name can only contain letters, spaces, & . -"),
+    // Account number validation - must be between 9 and 18 digits
     accountNo: z
       .string()
       .optional()
       .refine(val => {
         if (!val || val.trim() === "") return true;
         return /^\d{9,18}$/.test(val);
-      }, "Account number must be 9-18 digits"),
+      }, "Account number must be between 9 and 18 digits"),
     ifscCode: z
       .string()
       .optional()

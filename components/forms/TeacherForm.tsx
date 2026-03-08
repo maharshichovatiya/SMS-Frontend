@@ -9,6 +9,7 @@ import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
 import { getRoles } from "@/lib/api/Role";
+import { generatePassword } from "@/lib/utils/PasswordGenerator";
 
 import {
   Award,
@@ -23,6 +24,7 @@ import {
   Lock,
   Mail,
   Phone,
+  RefreshCw,
   User,
   Users,
   Wallet,
@@ -71,6 +73,19 @@ export default function TeacherForm({
   const [showPassword, setShowPassword] = useState(false);
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
+  const handleGeneratePassword = () => {
+    const { password } = generatePassword({
+      length: 12,
+      uppercase: true,
+      lowercase: true,
+      numbers: true,
+      special: true,
+    });
+    setValue("password", password);
+    setShowPassword(true);
+    showToast.success("Password generated successfully!");
+  };
+
   const formValues = watch();
 
   const hasChanges = () => {
@@ -113,25 +128,33 @@ export default function TeacherForm({
         role => role.roleName.toLowerCase() === "teacher",
       )?.id;
 
+      // Handle experience - pass 0 if no experience is provided (to match Teacher type)
       const totalExpMonths =
-        Number(data.experienceYears) * 12 + Number(data.experienceMonths);
+        !data.experienceYears && !data.experienceMonths
+          ? 0
+          : Number(data.experienceYears || 0) * 12 +
+            Number(data.experienceMonths || 0);
 
-      // Convert empty strings to null for optional fields
+      // Convert empty strings to null for optional fields and exclude individual experience fields
+      const { experienceYears, experienceMonths, ...dataWithoutExperience } =
+        data;
+
       const processedData = {
-        ...data,
-        bloodGroup: data.bloodGroup?.trim() || null,
-        aadhaarNo: data.aadhaarNo?.trim() || null,
-        panNo: data.panNo?.trim() || null,
-        permanentAddress: data.permanentAddress?.trim() || null,
-        currentAddress: data.currentAddress?.trim() || null,
-        bankName: data.bankName?.trim() || null,
-        accountNo: data.accountNo?.trim() || null,
-        ifscCode: data.ifscCode?.trim() || null,
-        branch: data.branch?.trim() || null,
+        ...dataWithoutExperience,
+        bloodGroup: dataWithoutExperience.bloodGroup?.trim() || null,
+        aadhaarNo: dataWithoutExperience.aadhaarNo?.trim() || null,
+        panNo: dataWithoutExperience.panNo?.trim() || null,
+        permanentAddress:
+          dataWithoutExperience.permanentAddress?.trim() || null,
+        currentAddress: dataWithoutExperience.currentAddress?.trim() || null,
+        bankName: dataWithoutExperience.bankName?.trim() || null,
+        accountNo: dataWithoutExperience.accountNo?.trim() || null,
+        ifscCode: dataWithoutExperience.ifscCode?.trim() || null,
+        branch: dataWithoutExperience.branch?.trim() || null,
         ...(mode === "edit" && { password: undefined }),
         schoolId,
         roleId: teacherRoleId,
-        profilePhoto: data.profilePhoto?.[0] || null,
+        profilePhoto: dataWithoutExperience.profilePhoto?.[0] || null,
         totalExpMonths,
       };
 
@@ -219,19 +242,29 @@ export default function TeacherForm({
                 {...register("password")}
                 type={showPassword ? "text" : "password"}
                 placeholder={mode === "edit" ? "••••••••" : "Min. 8 characters"}
-                className={`input-base pl-9 ${errors.password ? "error" : ""}`}
+                className={`input-base pl-9 pr-20 ${errors.password ? "error" : ""}`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleGeneratePassword}
+                  className="p-1.5 cursor-pointer text-[var(--blue)] hover:bg-[var(--blue-light)] rounded-[var(--radius-sm)] transition-colors"
+                  title="Generate password"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
             {errors.password && (
               <span className="text-xs text-[var(--rose)]">
@@ -732,24 +765,18 @@ export default function TeacherForm({
               />
               <input
                 {...register("accountNo")}
-                type="text"
+                type="number"
                 placeholder="123456789012345"
                 maxLength={18}
-                onKeyDown={e => {
-                  if (
-                    !/[0-9]/.test(e.key) &&
-                    ![
-                      "Backspace",
-                      "Delete",
-                      "Tab",
-                      "ArrowLeft",
-                      "ArrowRight",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
+                className={`input-base pl-9 ${errors.accountNo ? "error" : ""}`}
+                onInput={e => {
+                  const value = e.currentTarget.value;
+                  // Only allow numbers, max 18 digits for teacher
+                  const numericValue = value.replace(/\D/g, "").slice(0, 18);
+                  if (value !== numericValue) {
+                    e.currentTarget.value = numericValue;
                   }
                 }}
-                className={`input-base pl-9 ${errors.accountNo ? "error" : ""}`}
               />
             </div>
             {errors.accountNo && (
@@ -834,7 +861,8 @@ export default function TeacherForm({
               <textarea
                 {...register("currentAddress")}
                 placeholder="Enter your current address..."
-                rows={5}
+                rows={4}
+                style={{ minHeight: "90px" }}
                 className={`input-base pl-9 pt-2 resize-none ${errors.currentAddress ? "error" : ""}`}
               />
             </div>
@@ -871,7 +899,8 @@ export default function TeacherForm({
               <textarea
                 {...register("permanentAddress")}
                 placeholder="Enter your permanent address..."
-                rows={5}
+                rows={4}
+                style={{ minHeight: "90px" }}
                 disabled={sameAsPermanent}
                 className={`input-base pl-9 pt-2 resize-none ${errors.permanentAddress ? "error" : ""} ${sameAsPermanent ? "opacity-60 cursor-not-allowed" : ""}`}
               />
