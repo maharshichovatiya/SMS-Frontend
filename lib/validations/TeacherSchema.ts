@@ -92,7 +92,7 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .number()
       .min(0, "Cannot be negative")
       .max(11, "Months must be between 0 and 11"),
-    profilePhoto: z.any().optional(),
+    profilePhoto: z.unknown().optional(),
     bloodGroup: z
       .string()
       .optional()

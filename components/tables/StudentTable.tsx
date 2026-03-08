@@ -227,10 +227,10 @@ export default function StudentsTable({
           className="w-full bg-[var(--surface)] rounded-[var(--radius-md)] border border-[var(--border)] overflow-hidden"
           style={{ boxShadow: "var(--shadow-sm)" }}
         >
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full min-w-[1100px] border-separate border-spacing-0">
               <thead>
-                <tr className="border-b border-[var(--border)]">
+                <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
                   {[
                     "Student",
                     "Class",
@@ -244,7 +244,7 @@ export default function StudentsTable({
                   ].map(col => (
                     <th
                       key={col}
-                      className="px-5 py-3 text-left text-[11px] font-bold tracking-widest text-[var(--text-3)] uppercase whitespace-nowrap"
+                      className="px-5 py-4 text-left text-[11px] font-bold tracking-widest text-[var(--text-2)] uppercase whitespace-nowrap opacity-80"
                     >
                       {col}
                     </th>

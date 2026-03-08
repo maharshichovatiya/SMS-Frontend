@@ -20,7 +20,7 @@ const filterEmptyOptionalFields = (
         familyAnnualIncome?: number;
       }),
 ) => {
-  const filteredData: Record<string, string | number> = {};
+  const filteredData: Record<string, unknown> = {};
 
   Object.keys(data).forEach(key => {
     const value = data[key as keyof typeof data];

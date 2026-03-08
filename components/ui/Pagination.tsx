@@ -59,18 +59,19 @@ export default function Pagination({
           </select>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <button
           onClick={handlePrev}
           disabled={currentPage === 1}
-          className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="px-5 py-2 text-sm font-bold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] hover:border-[var(--border-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-sm active:translate-y-[1px]"
         >
-          ← Prev
+          ← Previous
         </button>
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] bg-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="px-6 py-2 text-sm font-bold text-[var(--text-inverse)] rounded-[var(--radius-sm)] hover:translate-y-[-2px] disabled:translate-y-0 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer shadow-md"
+          style={{ background: "var(--grad-primary)" }}
         >
           Next →
         </button>

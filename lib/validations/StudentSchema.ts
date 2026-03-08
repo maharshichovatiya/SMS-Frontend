@@ -23,6 +23,18 @@ export const createStudentSchema = z.object({
     .min(1, "Email is required")
     .max(40, "Email cannot exceed 40 characters")
     .email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password cannot exceed 20 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(
+      /[^a-zA-Z0-9]/,
+      "Password must contain at least one special character",
+    ),
   phone: z
     .string()
     .min(1, "Phone is required")
@@ -187,6 +199,7 @@ export const createStudentSchema = z.object({
     ),
   branch: z
     .string()
+    .max(50, "Branch name cannot exceed 50 characters")
     .optional()
     .refine(
       val =>
@@ -194,6 +207,7 @@ export const createStudentSchema = z.object({
       "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
     )
     .optional(),
+  sameAsPermanent: z.boolean().optional(),
   gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for create student
   classId: z.string().optional(),
@@ -223,6 +237,19 @@ export const updateStudentSchema = z.object({
     .min(1, "Email is required")
     .max(40, "Email cannot exceed 40 characters")
     .email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password cannot exceed 20 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(
+      /[^a-zA-Z0-9]/,
+      "Password must contain at least one special character",
+    )
+    .optional()
+    .or(z.literal("")),
   phone: z
     .string()
     .max(10, "Phone cannot exceed 10 digits")
@@ -394,6 +421,7 @@ export const updateStudentSchema = z.object({
       "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
     )
     .optional(),
+  sameAsPermanent: z.boolean().optional(),
   gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for update student
   classId: z.string().optional(),
@@ -427,6 +455,8 @@ export type StudentFormValues = {
   branch?: string;
   classId?: string;
   academicYearId?: string;
+  password?: string;
+  sameAsPermanent?: boolean;
 };
 
 export const STUDENT_FIELDS: {
@@ -444,7 +474,6 @@ export const STUDENT_FIELDS: {
     label: "First Name",
     type: "text",
     placeholder: "e.g. Man",
-    fullWidth: true,
     section: "Personal Details",
   },
   {
@@ -453,7 +482,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Kumar",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
   {
@@ -461,7 +489,6 @@ export const STUDENT_FIELDS: {
     label: "Last Name",
     type: "text",
     placeholder: "e.g. Lakhani",
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -470,7 +497,14 @@ export const STUDENT_FIELDS: {
     label: "Email",
     type: "email",
     placeholder: "e.g. student@gmail.com",
-    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Min. 8 characters",
     section: "Personal Details",
   },
 
@@ -479,7 +513,6 @@ export const STUDENT_FIELDS: {
     label: "Phone",
     type: "tel",
     placeholder: "e.g. 9099330195",
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -489,7 +522,6 @@ export const STUDENT_FIELDS: {
     type: "date",
     placeholder: "",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -499,7 +531,6 @@ export const STUDENT_FIELDS: {
     type: "select",
     placeholder: "Select gender",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -509,7 +540,6 @@ export const STUDENT_FIELDS: {
     type: "select",
     placeholder: "Select blood group",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -519,7 +549,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. 123456789012",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
   {
@@ -528,25 +557,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. ABCDE1234F",
     optional: true,
-    fullWidth: true,
-    section: "Personal Details",
-  },
-  {
-    name: "permanentAddress",
-    label: "Permanent Address",
-    type: "text",
-    placeholder: "e.g. 123 Main Street, City",
-    optional: true,
-    fullWidth: true,
-    section: "Personal Details",
-  },
-  {
-    name: "currentAddress",
-    label: "Current Address",
-    type: "text",
-    placeholder: "e.g. 456 Temp Street, City",
-    optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -556,7 +566,6 @@ export const STUDENT_FIELDS: {
     label: "Roll No",
     type: "text",
     placeholder: "e.g. 1",
-    fullWidth: true,
     section: "Academic Details",
   },
   {
@@ -564,7 +573,6 @@ export const STUDENT_FIELDS: {
     label: "Admission Date",
     type: "date",
     placeholder: "",
-    fullWidth: true,
     section: "Academic Details",
   },
 
@@ -594,7 +602,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. John Doe",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
 
@@ -604,7 +611,6 @@ export const STUDENT_FIELDS: {
     type: "tel",
     placeholder: "e.g. 9099330195",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
   {
@@ -613,7 +619,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Jane Doe",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
 
@@ -623,7 +628,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Guardian Name",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
   {
@@ -632,7 +636,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. 500000",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
 
@@ -653,7 +656,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. State Bank of India",
     optional: true,
-    fullWidth: true,
     section: "Bank Details",
   },
   {
@@ -662,7 +664,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. 123456789012",
     optional: true,
-    fullWidth: true,
     section: "Bank Details",
   },
   {
@@ -671,7 +672,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. SBIN0001234",
     optional: true,
-    fullWidth: true,
     section: "Bank Details",
   },
   {
@@ -680,7 +680,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Main Branch, Delhi",
     optional: true,
-    fullWidth: true,
     section: "Bank Details",
   },
 ];
