@@ -637,6 +637,7 @@ export const STUDENT_FIELDS: {
     placeholder: "e.g. 500000",
     optional: true,
     section: "Family Details",
+    fullWidth: true,
   },
 
   {

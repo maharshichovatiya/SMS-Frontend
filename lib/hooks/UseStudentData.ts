@@ -78,7 +78,7 @@ export function UseStudentData({
               lastName: apiStudent.user.lastName,
               email: apiStudent.user.email,
               phone: apiStudent.user.phone,
-              rollNo: apiStudent.rollNo,
+              rollNo: currentAcademic?.rollNo || apiStudent.rollNo,
               admissionDate: apiStudent.admissionDate,
               class: currentAcademic
                 ? `${currentAcademic.class.className}-${currentAcademic.class.section}`

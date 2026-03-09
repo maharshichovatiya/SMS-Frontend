@@ -171,7 +171,8 @@ export default function CreateChapterForm({
             <button
               type="button"
               onClick={addChapter}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[var(--text-inverse)] bg-[var(--blue)] border border-[var(--blue)] rounded-[var(--radius-sm)] hover:bg-[var(--blue-dark)] hover:border-[var(--blue-dark)] transition-colors duration-[var(--duration)] cursor-pointer"
+              className="btn-primary flex items-center gap-2 px-3 py-1.5 text-xs font-normal rounded-[var(--radius-sm)] cursor-pointer"
+              style={{ height: "32px", padding: "6px 12px" }}
             >
               <Plus size={14} />
               Add Chapter

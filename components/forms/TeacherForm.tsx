@@ -10,33 +10,15 @@ import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
 import { getRoles } from "@/lib/api/Role";
 import { generatePassword } from "@/lib/utils/PasswordGenerator";
-
-import {
-  Award,
-  Building2,
-  Calendar,
-  CalendarCheck,
-  ChevronDown,
-  Clock,
-  Eye,
-  EyeOff,
-  GraduationCap,
-  Lock,
-  Mail,
-  Phone,
-  RefreshCw,
-  User,
-  Users,
-  Wallet,
-  Home,
-  MapPin,
-  Banknote,
-  CreditCard,
-  Building,
-  FileText,
-  Droplet,
-} from "lucide-react";
 import { Role } from "@/lib/types/Role";
+
+// Import section components
+import AccountInfoSection from "./TeacherSections/AccountInfoSection";
+import PersonalInfoSection from "./TeacherSections/PersonalInfoSection";
+import EmploymentInfoSection from "./TeacherSections/EmploymentInfoSection";
+import QualificationsSection from "./TeacherSections/QualificationsSection";
+import AdditionalInfoSection from "./TeacherSections/AdditionalInfoSection";
+import AddressInfoSection from "./TeacherSections/AddressInfoSection";
 
 interface TeacherFormProps {
   onCancel: () => void;
@@ -86,14 +68,13 @@ export default function TeacherForm({
     showToast.success("Password generated successfully!");
   };
 
-  const formValues = watch();
-
   const hasChanges = () => {
     if (!defaultValues || mode !== "edit") return true;
 
+    const currentValues = watch();
     return Object.keys(defaultValues).some(key => {
       const defaultValue = defaultValues[key as keyof TeacherFormData];
-      const currentValue = formValues[key as keyof TeacherFormData];
+      const currentValue = currentValues[key as keyof TeacherFormData];
 
       if (key === "profilePhoto") {
         return false;
@@ -115,10 +96,10 @@ export default function TeacherForm({
 
   useEffect(() => {
     if (sameAsPermanent) {
-      const currentAddressValue = formValues.currentAddress || "";
+      const currentAddressValue = watch("currentAddress") || "";
       setValue("permanentAddress", currentAddressValue);
     }
-  }, [sameAsPermanent, formValues.currentAddress]);
+  }, [sameAsPermanent, watch, setValue]);
 
   const onSubmit: SubmitHandler<TeacherFormData> = async data => {
     try {
@@ -128,16 +109,19 @@ export default function TeacherForm({
         role => role.roleName.toLowerCase() === "teacher",
       )?.id;
 
-      // Handle experience - pass 0 if no experience is provided (to match Teacher type)
+      // Handle experience - pass null if no experience is provided, otherwise calculate total months
       const totalExpMonths =
         !data.experienceYears && !data.experienceMonths
-          ? 0
+          ? null
           : Number(data.experienceYears || 0) * 12 +
             Number(data.experienceMonths || 0);
 
       // Convert empty strings to null for optional fields and exclude individual experience fields
-      const { experienceYears, experienceMonths, ...dataWithoutExperience } =
-        data;
+      const {
+        experienceYears: _experienceYears,
+        experienceMonths: _experienceMonths,
+        ...dataWithoutExperience
+      } = data;
 
       const processedData = {
         ...dataWithoutExperience,
@@ -154,7 +138,8 @@ export default function TeacherForm({
         ...(mode === "edit" && { password: undefined }),
         schoolId,
         roleId: teacherRoleId,
-        profilePhoto: dataWithoutExperience.profilePhoto?.[0] || null,
+        profilePhoto:
+          (dataWithoutExperience.profilePhoto as FileList)?.[0] || null,
         totalExpMonths,
       };
 
@@ -187,7 +172,7 @@ export default function TeacherForm({
         }
         showToast.error(message || "Something went wrong");
       }
-    } catch (error) {
+    } catch (_error) {
       showToast.error("Something went wrong ");
     }
   };
@@ -197,727 +182,29 @@ export default function TeacherForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-6 w-full max-w-2xl mx-auto"
     >
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Account Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base min-h-[24px] flex items-center gap-1">
-              Email <span className="text-red-500 text-lg leading-none">*</span>
-            </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("email")}
-                type="text"
-                placeholder="example@school.com"
-                className={`input-base pl-9 ${errors.email ? "error" : ""}`}
-              />
-            </div>
-            {errors.email && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.email.message}
-              </span>
-            )}
-          </div>
+      <AccountInfoSection
+        register={register}
+        errors={errors}
+        mode={mode}
+        showPassword={showPassword}
+        setShowPassword={setShowPassword}
+        onGeneratePassword={handleGeneratePassword}
+      />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base min-h-[24px] flex items-center gap-1">
-              Password{" "}
-              {mode !== "edit" && (
-                <span className="text-red-500 text-lg leading-none">*</span>
-              )}
-            </label>
-            <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder={mode === "edit" ? "••••••••" : "Min. 8 characters"}
-                className={`input-base pl-9 pr-20 ${errors.password ? "error" : ""}`}
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handleGeneratePassword}
-                  className="p-1.5 cursor-pointer text-[var(--blue)] hover:bg-[var(--blue-light)] rounded-[var(--radius-sm)] transition-colors"
-                  title="Generate password"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            {errors.password && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.password.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      <PersonalInfoSection register={register} errors={errors} />
 
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Personal Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              First Name <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <User
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("firstName")}
-                placeholder="First Name"
-                className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
-              />
-            </div>
-            {errors.firstName && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.firstName.message}
-              </span>
-            )}
-          </div>
+      <EmploymentInfoSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Last Name <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <User
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("lastName")}
-                placeholder="Last Name"
-                className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
-              />
-            </div>
-            {errors.lastName && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.lastName.message}
-              </span>
-            )}
-          </div>
+      <QualificationsSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Phone <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Phone
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("phone")}
-                type="tel"
-                placeholder="9876543210"
-                maxLength={10}
-                onKeyDown={e => {
-                  if (
-                    !/[0-9]/.test(e.key) &&
-                    ![
-                      "Backspace",
-                      "Delete",
-                      "Tab",
-                      "ArrowLeft",
-                      "ArrowRight",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`input-base pl-9 ${errors.phone ? "error" : ""}`}
-              />
-            </div>
-            {errors.phone && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.phone.message}
-              </span>
-            )}
-          </div>
+      <AdditionalInfoSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Gender <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Users
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("gender")}
-                className={`input-base pl-9 appearance-none ${
-                  errors.gender ? "error" : ""
-                }`}
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.gender && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.gender.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Date of Birth <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Calendar
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("dob")}
-                max={new Date().toISOString().split("T")[0]}
-                type="date"
-                className={`input-base pl-9 cursor-pointer ${errors.dob ? "error" : ""}`}
-              />
-            </div>
-            {errors.dob && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.dob.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Employment Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Department <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Building2
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("department")}
-                className={`input-base pl-9 appearance-none ${
-                  errors.department ? "error" : ""
-                }`}
-              >
-                <option value="">Select department</option>
-                <option value="academic">Academic</option>
-                <option value="administration">Administration</option>
-                <option value="sports">Sports</option>
-                <option value="laboratory">Laboratory</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.department && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.department.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Designation <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Award
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("designation")}
-                placeholder="Senior Teacher"
-                className={`input-base pl-9 ${
-                  errors.designation ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.designation && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.designation.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Date of Joining <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <CalendarCheck
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("dateOfJoining")}
-                type="date"
-                className={`input-base pl-9 cursor-pointer ${
-                  errors.dateOfJoining ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.dateOfJoining && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.dateOfJoining.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Salary Package (₹ Year){" "}
-              <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Wallet
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("salaryPackage")}
-                type="number"
-                step="any"
-                placeholder="60000"
-                onKeyDown={e =>
-                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
-                }
-                className={`input-base pl-9 ${errors.salaryPackage ? "error" : ""}`}
-              />
-            </div>
-            {errors.salaryPackage && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.salaryPackage.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Qualifications</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Highest Qualification{" "}
-              <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <GraduationCap
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("highestQualification")}
-                placeholder="B.Ed / M.Sc / Ph.D"
-                className={`input-base pl-9 ${
-                  errors.highestQualification ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.highestQualification && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.highestQualification.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1 mt-3">
-            <label className="label-base">Experience</label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Clock
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                  style={{ color: "var(--text-3)" }}
-                />
-                <input
-                  {...register("experienceYears")}
-                  type="number"
-                  min={0}
-                  placeholder="Years"
-                  onKeyDown={e =>
-                    ["e", "E", "+", "-", "."].includes(e.key) &&
-                    e.preventDefault()
-                  }
-                  className={`input-base pl-9 ${errors.experienceYears ? "error" : ""}`}
-                />
-              </div>
-
-              <div className="relative flex-1">
-                <input
-                  {...register("experienceMonths")}
-                  type="number"
-                  min={0}
-                  max={11}
-                  placeholder="Months"
-                  onKeyDown={e =>
-                    ["e", "E", "+", "-", "."].includes(e.key) &&
-                    e.preventDefault()
-                  }
-                  className={`input-base ${errors.experienceMonths ? "error" : ""}`}
-                />
-              </div>
-            </div>
-            {errors.experienceYears && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.experienceYears.message}
-              </span>
-            )}
-            {errors.experienceMonths && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.experienceMonths.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Additional Information</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Blood Group</label>
-            <div className="relative">
-              <Droplet
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("bloodGroup")}
-                className={`input-base pl-9 appearance-none ${
-                  errors.bloodGroup ? "error" : ""
-                }`}
-              >
-                <option value="">Select blood group</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.bloodGroup && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.bloodGroup.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Aadhaar Number</label>
-            <div className="relative">
-              <FileText
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("aadhaarNo")}
-                type="text"
-                placeholder="123456789012"
-                maxLength={12}
-                onKeyDown={e => {
-                  if (
-                    !/[0-9]/.test(e.key) &&
-                    ![
-                      "Backspace",
-                      "Delete",
-                      "Tab",
-                      "ArrowLeft",
-                      "ArrowRight",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`input-base pl-9 ${errors.aadhaarNo ? "error" : ""}`}
-              />
-            </div>
-            {errors.aadhaarNo && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.aadhaarNo.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">PAN Number</label>
-            <div className="relative">
-              <CreditCard
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("panNo")}
-                type="text"
-                placeholder="ABCDE1234F"
-                maxLength={10}
-                className={`input-base pl-9 uppercase ${errors.panNo ? "error" : ""}`}
-                onInput={e => {
-                  const target = e.target as HTMLInputElement;
-                  target.value = target.value.toUpperCase();
-                }}
-              />
-            </div>
-            {errors.panNo && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.panNo.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Bank Name</label>
-            <div className="relative">
-              <Building
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("bankName")}
-                type="text"
-                placeholder="State Bank of India"
-                onKeyDown={e => {
-                  if (
-                    !/[a-zA-Z\s&.-]/.test(e.key) &&
-                    ![
-                      "Backspace",
-                      "Delete",
-                      "Tab",
-                      "ArrowLeft",
-                      "ArrowRight",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`input-base pl-9 ${errors.bankName ? "error" : ""}`}
-              />
-            </div>
-            {errors.bankName && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.bankName.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Account Number</label>
-            <div className="relative">
-              <Banknote
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("accountNo")}
-                type="number"
-                placeholder="123456789012345"
-                maxLength={18}
-                className={`input-base pl-9 ${errors.accountNo ? "error" : ""}`}
-                onInput={e => {
-                  const value = e.currentTarget.value;
-                  // Only allow numbers, max 18 digits for teacher
-                  const numericValue = value.replace(/\D/g, "").slice(0, 18);
-                  if (value !== numericValue) {
-                    e.currentTarget.value = numericValue;
-                  }
-                }}
-              />
-            </div>
-            {errors.accountNo && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.accountNo.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">IFSC Code</label>
-            <div className="relative">
-              <CreditCard
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("ifscCode")}
-                type="text"
-                placeholder="SBIN0001234"
-                maxLength={11}
-                className={`input-base pl-9 ${errors.ifscCode ? "error" : ""}`}
-              />
-            </div>
-            {errors.ifscCode && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.ifscCode.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Bank Branch</label>
-            <div className="relative">
-              <MapPin
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("branch")}
-                type="text"
-                placeholder="Main Branch"
-                onKeyDown={e => {
-                  if (
-                    !/[a-zA-Z\s&.-]/.test(e.key) &&
-                    ![
-                      "Backspace",
-                      "Delete",
-                      "Tab",
-                      "ArrowLeft",
-                      "ArrowRight",
-                    ].includes(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }}
-                className={`input-base pl-9 ${errors.branch ? "error" : ""}`}
-              />
-            </div>
-            {errors.branch && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.branch.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Address Information</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Current Address</label>
-            <div className="relative">
-              <MapPin
-                className="absolute left-3 top-3 pt-2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <textarea
-                {...register("currentAddress")}
-                placeholder="Enter your current address..."
-                rows={4}
-                style={{ minHeight: "90px" }}
-                className={`input-base pl-9 pt-2 resize-none ${errors.currentAddress ? "error" : ""}`}
-              />
-            </div>
-            {errors.currentAddress && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.currentAddress.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 my-2">
-            <input
-              type="checkbox"
-              id="sameAsPermanent"
-              checked={sameAsPermanent}
-              onChange={e => setSameAsPermanent(e.target.checked)}
-              className="w-4 h-4 text-[var(--blue)] bg-[var(--bg-2)] border-[var(--border)] rounded focus:ring-[var(--blue-light)] focus:ring-2"
-            />
-            <label
-              htmlFor="sameAsPermanent"
-              className="text-sm text-[var(--text-2)] cursor-pointer select-none"
-            >
-              Permanent address same as current address
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">Permanent Address</label>
-            <div className="relative">
-              <Home
-                className="absolute left-3 top-3 pt-2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <textarea
-                {...register("permanentAddress")}
-                placeholder="Enter your permanent address..."
-                rows={4}
-                style={{ minHeight: "90px" }}
-                disabled={sameAsPermanent}
-                className={`input-base pl-9 pt-2 resize-none ${errors.permanentAddress ? "error" : ""} ${sameAsPermanent ? "opacity-60 cursor-not-allowed" : ""}`}
-              />
-            </div>
-            {errors.permanentAddress && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.permanentAddress.message}
-              </span>
-            )}
-            {sameAsPermanent && (
-              <span className="text-xs text-[var(--text-3)] italic">
-                Auto-filled from current address
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      <AddressInfoSection
+        register={register}
+        errors={errors}
+        sameAsPermanent={sameAsPermanent}
+        setSameAsPermanent={setSameAsPermanent}
+      />
 
       <div className="flex items-center justify-end gap-3 pt-2 border-t border-[var(--border)]">
         <button

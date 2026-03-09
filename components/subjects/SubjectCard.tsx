@@ -25,7 +25,7 @@ export function SubjectCard({
   return (
     <div
       key={subject.id}
-      className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-sm)] animate-fade-up hover:border-[var(--border-focus)] transition-all duration-[var(--duration)] flex flex-col"
+      className="bg-[var(--surface)] border-[1.5px] border-[var(--border)] rounded-2xl p-4 sm:p-6 shadow-[var(--shadow-sm)] animate-fade-up flex flex-col"
       style={{ animationDelay: `${index * 0.08}s` }}
     >
       <div className="flex-1">
@@ -36,16 +36,22 @@ export function SubjectCard({
         <div className="flex items-start justify-between mb-2 sm:mb-3">
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-2">
-              <h3 className="text-[15px] sm:text-[17px] font-bold text-[var(--text)]">
-                {subject.subjectName}
-              </h3>
+              <div className="flex-1">
+                <h3 className="text-[15px] sm:text-[17px] font-bold text-[var(--text)]">
+                  {subject.subjectName}
+                </h3>
+                <p className="text-[11px] sm:text-[12px] text-[var(--text-2)] font-medium mt-0.5">
+                  Code: {subject.subjectCode}
+                </p>
+              </div>
               <button
                 onClick={e => {
                   e.stopPropagation();
                   onAssignClass(subject.id);
                 }}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold cursor-pointer rounded-[var(--radius-sm)] bg-[var(--blue)] text-[var(--text-inverse)] hover:bg-[var(--blue-dark)] flex items-center gap-1.5 sm:gap-2 transition-all duration-[var(--duration)] border border-[var(--blue)] hover:scale-[1.02]"
+                className="btn-primary cursor-pointer px-4 py-2 text-xs sm:text-sm font-normal rounded-[var(--radius-sm)] flex items-center gap-1.5 sm:gap-2 transition-all duration-[var(--duration)] border hover:scale-[1.02]"
                 title="Assign Class"
+                style={{ height: "40px", padding: "8px 16px" }}
               >
                 <Plus size={14} className="sm:size-4" strokeWidth={2} />
                 <span className="hidden sm:inline">Assign Class</span>

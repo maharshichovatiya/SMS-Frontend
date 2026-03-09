@@ -22,6 +22,9 @@ export const handleStringField = (
     case "phone":
       changedFields.phone = formValue;
       break;
+    case "password":
+      changedFields.password = formValue;
+      break;
     case "rollNo":
       changedFields.rollNo = formValue;
       break;
@@ -120,6 +123,9 @@ export const handleNonStringField = (
       break;
     case "phone":
       changedFields.phone = formValue as string;
+      break;
+    case "password":
+      changedFields.password = formValue as string;
       break;
     case "rollNo":
       changedFields.rollNo = formValue as string;
