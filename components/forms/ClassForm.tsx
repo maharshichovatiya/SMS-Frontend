@@ -312,13 +312,37 @@ export default function ClassForm({
                   {...register("classTeacherId")}
                   className={`input-base pl-9 pr-9 appearance-none ${errors.classTeacherId ? "error" : ""}`}
                 >
-                  <option value="">Select a teacher</option>
-                  {teachers.map(teacher => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.user.firstName} {teacher.user.lastName} —{" "}
-                      {teacher.designation}
+                  {/* In edit mode with existing teacher, only show that teacher */}
+                  {mode === "edit" && defaultValues?.classTeacherId ? (
+                    <option value={defaultValues.classTeacherId}>
+                      {
+                        teachers.find(
+                          t => t.id === defaultValues.classTeacherId,
+                        )?.user.firstName
+                      }{" "}
+                      {
+                        teachers.find(
+                          t => t.id === defaultValues.classTeacherId,
+                        )?.user.lastName
+                      }{" "}
+                      —{" "}
+                      {
+                        teachers.find(
+                          t => t.id === defaultValues.classTeacherId,
+                        )?.designation
+                      }
                     </option>
-                  ))}
+                  ) : (
+                    <>
+                      <option value="">Select a teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 <ChevronDown
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
