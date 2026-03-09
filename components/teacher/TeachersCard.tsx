@@ -68,10 +68,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
 
   return (
     <>
-      <div
-        className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow overflow-hidden cursor-pointer group"
-        onClick={() => setOpenDetails(true)}
-      >
+      <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--border)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow)] transition-shadow overflow-hidden group">
         <div className="p-5">
           <div className="flex items-center gap-4 mb-4">
             {teacher.user.profilePhoto ? (
@@ -131,7 +128,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             </div>
             <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-2)]">
               <span className="text-lg mt-2 font-extrabold text-[var(--amber)] leading-none">
-                {formatExperience(teacher.totalExpMonths)}
+                {formatExperience(teacher.totalExpMonths || 0)}
               </span>
               <span className="text-[10px] pt-1 font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
                 Experience
@@ -254,8 +251,12 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
             dateOfJoining: teacher.dateOfJoining,
             salaryPackage: Number(teacher.salaryPackage),
             highestQualification: teacher.highestQualification,
-            experienceYears: Math.floor(teacher.totalExpMonths / 12),
-            experienceMonths: teacher.totalExpMonths % 12,
+            experienceYears: teacher.totalExpMonths
+              ? Math.floor(teacher.totalExpMonths / 12)
+              : 0,
+            experienceMonths: teacher.totalExpMonths
+              ? teacher.totalExpMonths % 12
+              : 0,
             profilePhoto: null,
             // New additional fields
             bloodGroup: teacher.user.bloodGroup || "",

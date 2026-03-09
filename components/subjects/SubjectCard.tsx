@@ -36,9 +36,14 @@ export function SubjectCard({
         <div className="flex items-start justify-between mb-2 sm:mb-3">
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-2">
-              <h3 className="text-[15px] sm:text-[17px] font-bold text-[var(--text)]">
-                {subject.subjectName}
-              </h3>
+              <div className="flex-1">
+                <h3 className="text-[15px] sm:text-[17px] font-bold text-[var(--text)]">
+                  {subject.subjectName}
+                </h3>
+                <p className="text-[11px] sm:text-[12px] text-[var(--text-2)] font-medium mt-0.5">
+                  Code: {subject.subjectCode}
+                </p>
+              </div>
               <button
                 onClick={e => {
                   e.stopPropagation();
