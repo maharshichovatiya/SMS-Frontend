@@ -21,8 +21,9 @@ export const profileSchema = z.object({
     .trim()
     .transform(val => (val === "" ? undefined : val))
     .optional()
-    .refine(val => !val || /^[0-9]{10}$/.test(val), {
-      message: "Phone number must be exactly 10 digits",
+    .refine(val => !val || /^[6-9]\d{9}$/.test(val), {
+      message:
+        "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
     }),
   password: z
     .string()

@@ -30,6 +30,14 @@ export const updateProfile = async (
       lastName: payload.lastName,
     };
 
+    if (payload.middleName !== undefined) {
+      body.middleName = payload.middleName;
+    }
+
+    if (payload.phone !== undefined) {
+      body.phone = payload.phone;
+    }
+
     if (payload.password) {
       body.password = payload.password;
     }

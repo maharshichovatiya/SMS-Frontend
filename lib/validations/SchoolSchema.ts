@@ -39,8 +39,9 @@ export const schoolSchema = z
       .trim()
       .transform(val => (val === "" ? undefined : val))
       .optional()
-      .refine(val => !val || /^[0-9]{10}$/.test(val), {
-        message: "Contact number must be exactly 10 digits",
+      .refine(val => !val || /^[6-9]\d{9}$/.test(val), {
+        message:
+          "Contact number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
       }),
     schoolCode: z.string().max(20, "School code is too long").optional(),
     mediumOfInstruction: z.string().min(1, "Medium of instruction is required"),
