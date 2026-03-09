@@ -12,7 +12,6 @@ interface Props {
   teacherName: string;
   teacherInitials: string;
   level: string;
-  academicYear: string;
   subjectCount: number;
   teacherCount: number;
   availableSeats: number;
@@ -27,7 +26,6 @@ export default function ClassDetailModal({
   teacherName,
   teacherInitials,
   level,
-  academicYear,
   subjectCount,
   teacherCount,
   onShowStudents,
@@ -38,7 +36,7 @@ export default function ClassDetailModal({
       isOpen={isOpen}
       onClose={onClose}
       title={`Class ${cls.className} — Section ${cls.section}`}
-      description={`${level} · ${academicYear} · ${cls.status}`}
+      description={`${level} · ${cls.status}`}
       className="max-w-2xl"
     >
       <div className="space-y-4">
