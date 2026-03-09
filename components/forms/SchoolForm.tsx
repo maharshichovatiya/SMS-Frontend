@@ -59,6 +59,12 @@ export default function SchoolForm() {
   const schoolTimingStart = watch("schoolTimingStart");
 
   useEffect(() => {
+    if (savedData) {
+      reset(savedData);
+    }
+  }, [savedData, reset]);
+
+  useEffect(() => {
     const fetchSchool = async () => {
       try {
         const id = localStorage.getItem("schoolId") ?? "";
@@ -625,6 +631,12 @@ export default function SchoolForm() {
                   type="time"
                   onInvalid={e => e.preventDefault()}
                   disabled={!schoolTimingStart}
+                  value={schoolTimingStart ? watch("schoolTimingEnd") : ""}
+                  onChange={e => {
+                    if (schoolTimingStart) {
+                      register("schoolTimingEnd").onChange(e);
+                    }
+                  }}
                   className={`input-base pl-9 ${
                     !schoolTimingStart
                       ? "bg-[var(--bg-2)] text-[var(--text-2)] cursor-not-allowed"
