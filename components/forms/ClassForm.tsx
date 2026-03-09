@@ -31,7 +31,15 @@ interface AssignTeacher {
 interface ClassFormProps {
   onCancel: () => void;
   onSuccess?: () => void;
-  defaultValues?: Partial<ClassFormData>;
+  defaultValues?: Partial<ClassFormData> & {
+    classTeacher?: {
+      id: string;
+      user: {
+        firstName: string;
+        lastName: string;
+      };
+    } | null;
+  };
   mode?: "add" | "edit";
   classId?: string;
 }
@@ -114,7 +122,13 @@ export default function ClassForm({
     try {
       const payload = {
         ...data,
-        classTeacherId: data.classTeacherId || null,
+        // Use teacher ID from classTeacher object if available, otherwise use form selection
+        classTeacherId:
+          defaultValues?.classTeacher?.id ||
+          (data.classTeacherId &&
+            teachers.some(t => t.id === data.classTeacherId))
+            ? data.classTeacherId
+            : null,
       };
 
       const res =
