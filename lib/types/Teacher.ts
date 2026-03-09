@@ -5,6 +5,7 @@ export type Teacher = {
   email: string;
   password?: string;
   firstName: string;
+  middleName?: string | null;
   lastName: string;
   phone: string;
   gender: string;

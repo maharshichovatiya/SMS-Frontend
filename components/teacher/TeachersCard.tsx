@@ -242,6 +242,7 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
           defaultValues={{
             email: teacher.user.email,
             firstName: teacher.user.firstName,
+            middleName: teacher.user.middleName || "",
             lastName: teacher.user.lastName,
             phone: teacher.user.phone,
             gender: teacher.user.gender,

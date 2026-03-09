@@ -195,7 +195,7 @@ export function UseStudentForm({
     const generatedPassword = generateStudentPassword();
     setValue("password", generatedPassword);
     setShowPassword(true);
-    showToast.success("Password generated successfully!");
+    // showToast.success("Password generated successfully!");
   };
 
   useEffect(() => {

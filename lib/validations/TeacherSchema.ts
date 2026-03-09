@@ -28,6 +28,12 @@ export const createTeacherSchema = (mode: "add" | "edit" = "add") =>
       .max(20, "First name cannot exceed 20 characters")
       .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters")
       .regex(/^\S*$/, "First name cannot contain spaces"),
+    middleName: z
+      .string()
+      .max(20, "Middle name cannot exceed 20 characters")
+      .regex(/^[a-zA-Z\s'-]*$/, "Middle name can only contain letters")
+      .regex(/^\S*$/, "Middle name cannot contain spaces")
+      .optional(),
     lastName: z
       .string()
       .min(1, "Last name is required")

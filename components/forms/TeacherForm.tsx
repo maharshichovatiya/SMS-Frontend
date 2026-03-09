@@ -58,7 +58,11 @@ export default function TeacherForm({
   // Reset form when defaultValues change to establish proper baseline
   useEffect(() => {
     if (defaultValues) {
-      reset(defaultValues);
+      reset({
+        ...defaultValues,
+        // Handle middleName: get directly from defaultValues if available, otherwise empty string
+        middleName: defaultValues.middleName ?? "",
+      });
     }
   }, [defaultValues, reset]);
 
@@ -87,7 +91,7 @@ export default function TeacherForm({
 
     setValue("password", password, { shouldDirty: true });
     setShowPassword(true);
-    showToast.success("Password generated successfully!");
+    // showToast.success("Password generated successfully!");
   };
 
   useEffect(() => {
@@ -141,6 +145,11 @@ export default function TeacherForm({
         accountNo: dataWithoutExperience.accountNo?.trim() || null,
         ifscCode: dataWithoutExperience.ifscCode?.trim() || null,
         branch: dataWithoutExperience.branch?.trim() || null,
+
+        middleName:
+          dataWithoutExperience.middleName?.trim() === ""
+            ? null
+            : dataWithoutExperience.middleName || null,
         // Handle password properly: convert empty string to undefined, keep valid passwords
         ...(mode === "edit" && {
           password:

@@ -40,6 +40,26 @@ export default function PersonalInfoSection({
           )}
         </div>
 
+        <div className="flex flex-col gap-1 mt-3">
+          <label className="label-base">Middle Name</label>
+          <div className="relative">
+            <User
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+              style={{ color: "var(--text-3)" }}
+            />
+            <input
+              {...register("middleName")}
+              placeholder="Middle Name (Optional)"
+              className={`input-base pl-9 ${errors.middleName ? "error" : ""}`}
+            />
+          </div>
+          {errors.middleName && (
+            <span className="text-xs text-[var(--rose)]">
+              {errors.middleName.message}
+            </span>
+          )}
+        </div>
+
         <div className="flex flex-col gap-1">
           <label className="label-base">
             Last Name <span className="text-red-500 text-lg">*</span>
