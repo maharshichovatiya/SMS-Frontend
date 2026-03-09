@@ -1,7 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
+import classFiltersReducer from "./classFiltersSlice";
+import teacherFiltersReducer from "./teacherFiltersSlice";
 
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    classFilters: classFiltersReducer,
+    teacherFilters: teacherFiltersReducer,
+  },
   devTools: process.env.NODE_ENV !== "production",
 });
 

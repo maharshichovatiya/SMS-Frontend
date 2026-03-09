@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Filter,
   X,
@@ -13,6 +13,20 @@ import {
   Building2,
   IndianRupee,
 } from "lucide-react";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks/Redux";
+import {
+  selectTeacherFilters,
+  selectTeacherFiltersPanelOpen,
+  selectTeacherHasActiveFilters,
+  selectTeacherActiveFilterCount,
+} from "@/lib/store/teacherFiltersSelectors";
+import {
+  setSearch,
+  setStatus,
+  toggleFilterOption,
+  clearFilters,
+  toggleFiltersPanel,
+} from "@/lib/store/teacherFiltersSlice";
 import {
   AGE_OPTIONS,
   DEPARTMENTS,
@@ -35,45 +49,50 @@ export interface TeacherFilterValues {
 }
 
 interface TeacherFiltersProps {
-  filters: TeacherFilterValues;
-  onFiltersChange: (filters: TeacherFilterValues) => void;
-  onClearFilters: () => void;
+  onFiltersChange?: (filters: TeacherFilterValues) => void;
+  onClearFilters?: () => void;
 }
 
 export default function TeacherFilters({
-  filters,
   onFiltersChange,
   onClearFilters,
 }: TeacherFiltersProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const hasActiveFilters =
-    (filters.department?.length ?? 0) > 0 ||
-    (filters.experience?.length ?? 0) > 0 ||
-    (filters.salary?.length ?? 0) > 0 ||
-    (filters.ageGroup?.length ?? 0) > 0 ||
-    (filters.tenure?.length ?? 0) > 0 ||
-    (filters.gender?.length ?? 0) > 0;
-
-  const activeFilterCount = [
-    ...(filters.department ?? []),
-    ...(filters.experience ?? []),
-    ...(filters.salary ?? []),
-    ...(filters.ageGroup ?? []),
-    ...(filters.tenure ?? []),
-    ...(filters.gender ?? []),
-  ].filter(Boolean).length;
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(selectTeacherFilters) as TeacherFilterValues;
+  const isOpen = useAppSelector(selectTeacherFiltersPanelOpen);
+  const hasActiveFilters = useAppSelector(selectTeacherHasActiveFilters);
+  const activeFilterCount = useAppSelector(selectTeacherActiveFilterCount);
 
   const handleCheckbox = (
     key: keyof TeacherFilterValues,
     value: string,
     checked: boolean,
   ) => {
-    const current = (filters[key] as string[]) ?? [];
-    onFiltersChange({
-      ...filters,
-      [key]: checked ? [...current, value] : current.filter(v => v !== value),
-    });
+    dispatch(toggleFilterOption({ key, option: value }));
+    if (onFiltersChange) {
+      onFiltersChange(filters);
+    }
+  };
+
+  const handleStatusChange = (status: string[]) => {
+    dispatch(setStatus(status));
+    if (onFiltersChange) {
+      onFiltersChange({ ...filters, status });
+    }
+  };
+
+  const handleSearchChange = (search: string) => {
+    dispatch(setSearch(search));
+    if (onFiltersChange) {
+      onFiltersChange({ ...filters, search });
+    }
+  };
+
+  const handleClearAllFilters = () => {
+    dispatch(clearFilters());
+    if (onClearFilters) {
+      onClearFilters();
+    }
   };
 
   return (
@@ -81,7 +100,7 @@ export default function TeacherFilters({
       <div className="flex items-center justify-between gap-4 mt-6">
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => onFiltersChange({ ...filters, status: [] })}
+            onClick={() => handleStatusChange([])}
             className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
               !filters.status?.length
                 ? "text-white border-transparent"
@@ -102,10 +121,9 @@ export default function TeacherFilters({
             <button
               key={s.value}
               onClick={() =>
-                onFiltersChange({
-                  ...filters,
-                  status: filters.status?.[0] === s.value ? [] : [s.value],
-                })
+                dispatch(
+                  setStatus(filters.status?.[0] === s.value ? [] : [s.value]),
+                )
               }
               className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
                 filters.status?.[0] === s.value
@@ -128,7 +146,7 @@ export default function TeacherFilters({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={() => dispatch(toggleFiltersPanel(true))}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-[var(--duration)] cursor-pointer ${
               hasActiveFilters
                 ? "bg-[var(--blue-light)] text-[var(--blue)] border border-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)]"
@@ -153,9 +171,7 @@ export default function TeacherFilters({
               type="text"
               placeholder="Search teachers..."
               value={filters.search}
-              onChange={e =>
-                onFiltersChange({ ...filters, search: e.target.value })
-              }
+              onChange={e => handleSearchChange(e.target.value)}
               className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
             />
           </div>
@@ -166,7 +182,7 @@ export default function TeacherFilters({
         <>
           <div
             className="fixed inset-0 bg-black/20 z-40 cursor-pointer"
-            onClick={() => setIsOpen(false)}
+            onClick={() => dispatch(toggleFiltersPanel(false))}
           />
 
           <div className="fixed right-0 top-0 h-full w-96 bg-[var(--surface)] border-l border-[var(--border)] shadow-[var(--shadow-lg)] z-50 overflow-y-auto">
@@ -178,7 +194,7 @@ export default function TeacherFilters({
                 <div className="flex items-center gap-2">
                   {hasActiveFilters && (
                     <button
-                      onClick={onClearFilters}
+                      onClick={handleClearAllFilters}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] rounded-[var(--radius-sm)] transition-colors duration-[var(--duration)] cursor-pointer"
                     >
                       <X size={14} />
@@ -186,7 +202,7 @@ export default function TeacherFilters({
                     </button>
                   )}
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => dispatch(toggleFiltersPanel(false))}
                     className="w-8 h-8 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] flex items-center justify-center transition-colors duration-[var(--duration)] cursor-pointer"
                   >
                     <X size={18} />

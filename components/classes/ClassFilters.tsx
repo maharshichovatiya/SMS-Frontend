@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Filter,
   X,
@@ -11,7 +11,20 @@ import {
   CircleDot,
   CheckCircle2,
 } from "lucide-react";
-
+import { useAppSelector, useAppDispatch } from "@/lib/hooks/Redux";
+import {
+  selectClassFilters,
+  selectFiltersPanelOpen,
+  selectHasActiveFilters,
+  selectActiveFilterCount,
+} from "@/lib/store/classFiltersSelectors";
+import {
+  setSearch,
+  setType,
+  toggleFilterOption,
+  clearFilters,
+  toggleFiltersPanel,
+} from "@/lib/store/classFiltersSlice";
 import {
   TYPE_OPTIONS,
   SECTION_OPTIONS,
@@ -30,41 +43,50 @@ export interface ClassFilterValues {
 }
 
 interface ClassFiltersProps {
-  filters: ClassFilterValues;
-  onFiltersChange: (filters: ClassFilterValues) => void;
-  onClearFilters: () => void;
+  onFiltersChange?: (filters: ClassFilterValues) => void;
+  onClearFilters?: () => void;
 }
 
 export default function ClassFilters({
-  filters,
   onFiltersChange,
   onClearFilters,
 }: ClassFiltersProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const hasActiveFilters =
-    (filters.availability?.length ?? 0) > 0 ||
-    (filters.section?.length ?? 0) > 0 ||
-    (filters.capacity?.length ?? 0) > 0 ||
-    (filters.studentCount?.length ?? 0) > 0;
-
-  const activeFilterCount = [
-    ...(filters.availability ?? []),
-    ...(filters.section ?? []),
-    ...(filters.capacity ?? []),
-    ...(filters.studentCount ?? []),
-  ].length;
+  const dispatch = useAppDispatch();
+  const filters = useAppSelector(selectClassFilters) as ClassFilterValues;
+  const isOpen = useAppSelector(selectFiltersPanelOpen);
+  const hasActiveFilters = useAppSelector(selectHasActiveFilters);
+  const activeFilterCount = useAppSelector(selectActiveFilterCount);
 
   const handleCheckbox = (
     key: keyof ClassFilterValues,
     value: string,
     checked: boolean,
   ) => {
-    const current = (filters[key] as string[]) ?? [];
-    onFiltersChange({
-      ...filters,
-      [key]: checked ? [...current, value] : current.filter(v => v !== value),
-    });
+    dispatch(toggleFilterOption({ key, option: value }));
+    if (onFiltersChange) {
+      onFiltersChange(filters);
+    }
+  };
+
+  const handleTypeChange = (type: string) => {
+    dispatch(setType(type));
+    if (onFiltersChange) {
+      onFiltersChange({ ...filters, type });
+    }
+  };
+
+  const handleSearchChange = (search: string) => {
+    dispatch(setSearch(search));
+    if (onFiltersChange) {
+      onFiltersChange({ ...filters, search });
+    }
+  };
+
+  const handleClearAllFilters = () => {
+    dispatch(clearFilters());
+    if (onClearFilters) {
+      onClearFilters();
+    }
   };
 
   return (
@@ -74,7 +96,7 @@ export default function ClassFilters({
           {TYPE_OPTIONS.map(t => (
             <button
               key={t.value}
-              onClick={() => onFiltersChange({ ...filters, type: t.value })}
+              onClick={() => handleTypeChange(t.value)}
               className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
                 filters.type === t.value
                   ? "text-white border-transparent"
@@ -96,7 +118,7 @@ export default function ClassFilters({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={() => dispatch(toggleFiltersPanel(true))}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-[var(--duration)] cursor-pointer ${
               hasActiveFilters
                 ? "bg-[var(--blue-light)] text-[var(--blue)] border border-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)]"
@@ -122,9 +144,7 @@ export default function ClassFilters({
               type="text"
               placeholder="Search classes..."
               value={filters.search}
-              onChange={e =>
-                onFiltersChange({ ...filters, search: e.target.value })
-              }
+              onChange={e => handleSearchChange(e.target.value)}
               className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
             />
           </div>
@@ -135,7 +155,7 @@ export default function ClassFilters({
         <>
           <div
             className="fixed inset-0 bg-black/20 z-40 cursor-pointer"
-            onClick={() => setIsOpen(false)}
+            onClick={() => dispatch(toggleFiltersPanel(false))}
           />
 
           <div className="fixed right-0 top-0 h-full w-96 bg-[var(--surface)] border-l border-[var(--border)] shadow-[var(--shadow-lg)] z-50 overflow-y-auto">
@@ -147,7 +167,7 @@ export default function ClassFilters({
                 <div className="flex items-center gap-2">
                   {hasActiveFilters && (
                     <button
-                      onClick={onClearFilters}
+                      onClick={handleClearAllFilters}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] rounded-[var(--radius-sm)] transition-colors duration-[var(--duration)] cursor-pointer"
                     >
                       <X size={14} />
@@ -155,7 +175,7 @@ export default function ClassFilters({
                     </button>
                   )}
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => dispatch(toggleFiltersPanel(false))}
                     className="w-8 h-8 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] flex items-center justify-center transition-colors duration-[var(--duration)] cursor-pointer"
                   >
                     <X size={18} />
