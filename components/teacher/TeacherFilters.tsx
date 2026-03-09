@@ -13,13 +13,8 @@ import {
   Building2,
   IndianRupee,
 } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/lib/hooks/Redux";
-import {
-  selectTeacherFilters,
-  selectTeacherFiltersPanelOpen,
-  selectTeacherHasActiveFilters,
-  selectTeacherActiveFilterCount,
-} from "@/lib/store/teacherFiltersSelectors";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store";
 import {
   setSearch,
   setStatus,
@@ -57,11 +52,35 @@ export default function TeacherFilters({
   onFiltersChange,
   onClearFilters,
 }: TeacherFiltersProps) {
-  const dispatch = useAppDispatch();
-  const filters = useAppSelector(selectTeacherFilters) as TeacherFilterValues;
-  const isOpen = useAppSelector(selectTeacherFiltersPanelOpen);
-  const hasActiveFilters = useAppSelector(selectTeacherHasActiveFilters);
-  const activeFilterCount = useAppSelector(selectTeacherActiveFilterCount);
+  const dispatch = useDispatch<AppDispatch>();
+  const filters = useSelector(
+    (state: RootState) => state.teacherFilters.filters,
+  ) as TeacherFilterValues;
+  const isOpen = useSelector((state: RootState) => state.teacherFilters.isOpen);
+  const hasActiveFilters = useSelector((state: RootState) => {
+    const filters = state.teacherFilters.filters;
+    return (
+      (filters.department?.length ?? 0) > 0 ||
+      (filters.experience?.length ?? 0) > 0 ||
+      (filters.salary?.length ?? 0) > 0 ||
+      (filters.ageGroup?.length ?? 0) > 0 ||
+      (filters.tenure?.length ?? 0) > 0 ||
+      (filters.gender?.length ?? 0) > 0 ||
+      (filters.status?.length ?? 0) > 0
+    );
+  });
+  const activeFilterCount = useSelector((state: RootState) => {
+    const filters = state.teacherFilters.filters;
+    return [
+      ...(filters.department ?? []),
+      ...(filters.experience ?? []),
+      ...(filters.salary ?? []),
+      ...(filters.ageGroup ?? []),
+      ...(filters.tenure ?? []),
+      ...(filters.gender ?? []),
+      ...(filters.status ?? []),
+    ].filter(Boolean).length;
+  });
 
   const handleCheckbox = (
     key: keyof TeacherFilterValues,

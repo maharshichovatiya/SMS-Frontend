@@ -11,13 +11,8 @@ import {
   CircleDot,
   CheckCircle2,
 } from "lucide-react";
-import { useAppSelector, useAppDispatch } from "@/lib/hooks/Redux";
-import {
-  selectClassFilters,
-  selectFiltersPanelOpen,
-  selectHasActiveFilters,
-  selectActiveFilterCount,
-} from "@/lib/store/classFiltersSelectors";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store";
 import {
   setSearch,
   setType,
@@ -51,11 +46,29 @@ export default function ClassFilters({
   onFiltersChange,
   onClearFilters,
 }: ClassFiltersProps) {
-  const dispatch = useAppDispatch();
-  const filters = useAppSelector(selectClassFilters) as ClassFilterValues;
-  const isOpen = useAppSelector(selectFiltersPanelOpen);
-  const hasActiveFilters = useAppSelector(selectHasActiveFilters);
-  const activeFilterCount = useAppSelector(selectActiveFilterCount);
+  const dispatch = useDispatch<AppDispatch>();
+  const filters = useSelector(
+    (state: RootState) => state.classFilters.filters,
+  ) as ClassFilterValues;
+  const isOpen = useSelector((state: RootState) => state.classFilters.isOpen);
+  const hasActiveFilters = useSelector((state: RootState) => {
+    const filters = state.classFilters.filters;
+    return (
+      (filters.availability?.length ?? 0) > 0 ||
+      (filters.section?.length ?? 0) > 0 ||
+      (filters.capacity?.length ?? 0) > 0 ||
+      (filters.studentCount?.length ?? 0) > 0
+    );
+  });
+  const activeFilterCount = useSelector((state: RootState) => {
+    const filters = state.classFilters.filters;
+    return [
+      ...(filters.availability ?? []),
+      ...(filters.section ?? []),
+      ...(filters.capacity ?? []),
+      ...(filters.studentCount ?? []),
+    ].length;
+  });
 
   const handleCheckbox = (
     key: keyof ClassFilterValues,
