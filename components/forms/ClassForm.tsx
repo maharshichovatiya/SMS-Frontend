@@ -312,26 +312,17 @@ export default function ClassForm({
                   {...register("classTeacherId")}
                   className={`input-base pl-9 pr-9 appearance-none ${errors.classTeacherId ? "error" : ""}`}
                 >
-                  {/* In edit mode with existing teacher, only show that teacher */}
+                  {/* In edit mode with existing teacher, show all teachers with current one selected */}
                   {mode === "edit" && defaultValues?.classTeacherId ? (
-                    <option value={defaultValues.classTeacherId}>
-                      {
-                        teachers.find(
-                          t => t.id === defaultValues.classTeacherId,
-                        )?.user.firstName
-                      }{" "}
-                      {
-                        teachers.find(
-                          t => t.id === defaultValues.classTeacherId,
-                        )?.user.lastName
-                      }{" "}
-                      —{" "}
-                      {
-                        teachers.find(
-                          t => t.id === defaultValues.classTeacherId,
-                        )?.designation
-                      }
-                    </option>
+                    <>
+                      <option value="">Unassign Teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
                   ) : (
                     <>
                       <option value="">Select a teacher</option>
