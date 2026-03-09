@@ -190,7 +190,7 @@ function Page() {
                 disabled={currentPage === 1}
                 className="px-4 py-2 text-sm font-semibold text-[var(--text-2)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] hover:bg-[var(--bg-2)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
-                ← Prev
+                ← Previous
               </button>
               <button
                 onClick={handleNext}

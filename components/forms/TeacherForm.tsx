@@ -44,7 +44,7 @@ export default function TeacherForm({
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TeacherFormData>({
     resolver: zodResolver(schema) as Resolver<TeacherFormData>,
     defaultValues,
@@ -55,6 +55,31 @@ export default function TeacherForm({
   const [showPassword, setShowPassword] = useState(false);
   const [sameAsPermanent, setSameAsPermanent] = useState(false);
 
+  // Reset form when defaultValues change to establish proper baseline
+  useEffect(() => {
+    if (defaultValues) {
+      reset({
+        ...defaultValues,
+        // Handle middleName: get directly from defaultValues if available, otherwise empty string
+        middleName: defaultValues.middleName ?? "",
+      });
+    }
+  }, [defaultValues, reset]);
+
+  // In edit mode, we need to handle password specially
+  // isDirty will track all changes, but we need to ignore password if it's empty
+  const shouldEnableSubmit = () => {
+    if (mode !== "edit") return true;
+
+    // If not dirty, don't enable
+    if (!isDirty) {
+      return false;
+    }
+
+    // If dirty, enable the submit button
+    return true;
+  };
+
   const handleGeneratePassword = () => {
     const { password } = generatePassword({
       length: 12,
@@ -63,25 +88,10 @@ export default function TeacherForm({
       numbers: true,
       special: true,
     });
-    setValue("password", password);
+
+    setValue("password", password, { shouldDirty: true });
     setShowPassword(true);
-    showToast.success("Password generated successfully!");
-  };
-
-  const hasChanges = () => {
-    if (!defaultValues || mode !== "edit") return true;
-
-    const currentValues = watch();
-    return Object.keys(defaultValues).some(key => {
-      const defaultValue = defaultValues[key as keyof TeacherFormData];
-      const currentValue = currentValues[key as keyof TeacherFormData];
-
-      if (key === "profilePhoto") {
-        return false;
-      }
-
-      return String(defaultValue ?? "") !== String(currentValue ?? "");
-    });
+    // showToast.success("Password generated successfully!");
   };
 
   useEffect(() => {
@@ -135,7 +145,18 @@ export default function TeacherForm({
         accountNo: dataWithoutExperience.accountNo?.trim() || null,
         ifscCode: dataWithoutExperience.ifscCode?.trim() || null,
         branch: dataWithoutExperience.branch?.trim() || null,
-        ...(mode === "edit" && { password: undefined }),
+
+        middleName:
+          dataWithoutExperience.middleName?.trim() === ""
+            ? null
+            : dataWithoutExperience.middleName || null,
+        // Handle password properly: convert empty string to undefined, keep valid passwords
+        ...(mode === "edit" && {
+          password:
+            dataWithoutExperience.password?.trim() === ""
+              ? undefined
+              : dataWithoutExperience.password || undefined,
+        }),
         schoolId,
         roleId: teacherRoleId,
         profilePhoto:
@@ -216,7 +237,7 @@ export default function TeacherForm({
         </button>
         <button
           type="submit"
-          disabled={isLoading || (mode === "edit" && !hasChanges())}
+          disabled={isLoading || (mode === "edit" && !shouldEnableSubmit())}
           className="btn-primary"
         >
           {isLoading
