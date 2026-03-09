@@ -1,7 +1,7 @@
 "use client";
 
 import Modal from "@/components/ui/Modal";
-import ClassAssignmentForm from "@/components/forms/ClassAssignmentForm";
+import ClassAssignmentForm from "@/components/forms/SubjectSections/ClassAssignmentForm";
 import { Student } from "@/components/tables/StudentTable";
 
 interface StudentAssignClassModalProps {

@@ -2,9 +2,12 @@
 
 import React from "react";
 import { UseStudentForm } from "@/lib/hooks/UseStudentForm";
-import StudentFormFields from "@/components/forms/StudentFormFields";
-import StudentAddressSection from "@/components/forms/StudentAddressSection";
-import StudentFormActions from "@/components/forms/StudentFormActions";
+import PersonalDetailsSection from "./PersonalDetailsSection";
+import AcademicDetailsSection from "./AcademicDetailsSection";
+import FamilyDetailsSection from "./FamilyDetailsSection";
+import BankDetailsSection from "./BankDetailsSection";
+import StudentAddressSection from "./StudentAddressSection";
+import StudentFormActions from "./StudentFormActions";
 import { StudentFormValues } from "@/lib/validations/StudentSchema";
 
 interface StudentFormProps {
@@ -38,7 +41,6 @@ export default function StudentForm({
     sameAsPermanent,
     academicYears,
     filteredClasses,
-    selectedAcademicYear,
     fetchingData,
     hasChanges,
     showPassword,
@@ -56,23 +58,34 @@ export default function StudentForm({
   });
 
   return (
-    <div>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <StudentFormFields
+    <div className="w-full">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="flex flex-col gap-6"
+      >
+        <PersonalDetailsSection
           register={register}
           watch={watch}
           errors={errors}
-          academicYears={academicYears}
-          filteredClasses={filteredClasses}
-          selectedAcademicYear={selectedAcademicYear}
-          fetchingData={fetchingData}
           showPassword={showPassword}
           setShowPassword={setShowPassword}
           handleGeneratePassword={handleGeneratePassword}
-          handleAcademicYearChange={handleAcademicYearChange}
           isEditMode={isEditMode}
-          initialData={initialData}
         />
+
+        <AcademicDetailsSection
+          register={register}
+          errors={errors}
+          academicYears={academicYears}
+          filteredClasses={filteredClasses}
+          fetchingData={fetchingData}
+          handleAcademicYearChange={handleAcademicYearChange}
+        />
+
+        <FamilyDetailsSection register={register} errors={errors} />
+
+        <BankDetailsSection register={register} errors={errors} />
 
         <StudentAddressSection
           register={register}

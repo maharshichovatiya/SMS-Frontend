@@ -1,5 +1,5 @@
 "use client";
-import StudentForm from "@/components/forms/StudentForm";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import StudentsTable from "@/components/tables/StudentTable";
 import StudentFilters from "@/components/students/StudentFilters";
 import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
