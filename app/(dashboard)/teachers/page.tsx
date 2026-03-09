@@ -9,14 +9,16 @@ import { GetTeachers } from "@/lib/types/Teacher";
 import { Plus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/layout/PageHeader";
-import { useAppSelector } from "@/lib/hooks/Redux";
-import { selectTeacherFilters } from "@/lib/store/teacherFiltersSelectors";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/lib/store";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;
 
 export default function TeachersPage() {
-  const filters = useAppSelector(selectTeacherFilters);
+  const filters = useSelector(
+    (state: RootState) => state.teacherFilters.filters,
+  );
   const [open, setOpen] = useState(false);
   const [teachers, setTeachers] = useState<GetTeachers[]>([]);
   const [loading, setLoading] = useState(true);

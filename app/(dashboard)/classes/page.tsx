@@ -10,14 +10,14 @@ import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 import PageHeader from "@/components/layout/PageHeader";
-import { useAppSelector } from "@/lib/hooks/Redux";
-import { selectClassFilters } from "@/lib/store/classFiltersSelectors";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/lib/store";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;
 
 function Page() {
-  const filters = useAppSelector(selectClassFilters);
+  const filters = useSelector((state: RootState) => state.classFilters.filters);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
