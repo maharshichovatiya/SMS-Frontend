@@ -10,6 +10,7 @@ export const profileSchema = z.object({
     .string()
     .max(50, "Middle name is too long")
     .regex(/^[A-Za-z\s]*$/, "Middle name must contain only letters")
+    .nullable()
     .optional(),
   lastName: z
     .string()

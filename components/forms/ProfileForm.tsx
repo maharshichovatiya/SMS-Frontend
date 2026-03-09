@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getProfile, updateProfile } from "@/lib/api/Profile";
+import {
+  getProfile,
+  updateProfile,
+  UpdateProfilePayload,
+} from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
 import { User, Shield, Lock, Eye, EyeOff, Pencil, Phone } from "lucide-react";
 import {
@@ -77,19 +81,27 @@ export default function ProfileForm() {
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      await updateProfile(profileId, {
+      const payload: UpdateProfilePayload = {
         firstName: data.firstName,
-        middleName: data.middleName,
+        middleName:
+          data.middleName?.trim() === ""
+            ? null
+            : (data.middleName as string | null | undefined) || null,
         lastName: data.lastName,
-        phone: data.phone,
+        phone:
+          data.phone?.trim() === ""
+            ? null
+            : (data.phone as string | undefined) || null,
         password: data.password,
-      });
+      };
+
+      await updateProfile(profileId, payload);
       showToast.success("Profile updated successfully");
       const updated = {
         firstName: data.firstName,
-        middleName: data.middleName ?? "",
+        middleName: (data.middleName as string | null | undefined) ?? "",
         lastName: data.lastName,
-        phone: data.phone ?? "",
+        phone: (data.phone as string | undefined) ?? "",
       };
       reset({ ...data, password: "" });
       setSavedData(updated);

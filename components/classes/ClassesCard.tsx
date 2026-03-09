@@ -45,7 +45,7 @@ export default function ClassCard({ cls, onSuccess }: Props) {
 
   const level = getClassLevel(cls.className);
   const createdYear = new Date(cls.createdAt).getFullYear();
-  const academicYear = `${createdYear}–${String(createdYear + 1).slice(2)}`;
+
   const subjectCount = cls.subjectCount ?? cls.classSubjects?.length ?? 0;
   const teacherCount = cls.teacherCount ?? 0;
   const availableSeats = (cls.studentCapacity ?? 0) - (cls.studentCount ?? 0);
@@ -91,9 +91,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
                 -{cls.section}
               </span>
             </h2>
-            <p className="text-xs text-[var(--text-3)] mt-1 font-medium">
-              {academicYear}
-            </p>
           </div>
           <span className="text-xs px-2.5 py-1 rounded-full border border-[var(--border)] text-[var(--text-2)] bg-[var(--bg-2)] font-medium">
             {level}
@@ -233,7 +230,6 @@ export default function ClassCard({ cls, onSuccess }: Props) {
           teacherName={teacherName}
           teacherInitials={teacherInitials}
           level={level}
-          academicYear={academicYear}
           subjectCount={subjectCount}
           teacherCount={teacherCount}
           availableSeats={availableSeats}

@@ -312,13 +312,28 @@ export default function ClassForm({
                   {...register("classTeacherId")}
                   className={`input-base pl-9 pr-9 appearance-none ${errors.classTeacherId ? "error" : ""}`}
                 >
-                  <option value="">Select a teacher</option>
-                  {teachers.map(teacher => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.user.firstName} {teacher.user.lastName} —{" "}
-                      {teacher.designation}
-                    </option>
-                  ))}
+                  {/* In edit mode with existing teacher, show all teachers with current one selected */}
+                  {mode === "edit" && defaultValues?.classTeacherId ? (
+                    <>
+                      <option value="">Unassign Teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <option value="">Select a teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 <ChevronDown
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
