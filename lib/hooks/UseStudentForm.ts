@@ -368,7 +368,6 @@ export function UseStudentForm({
           classId !== (initialClassId || "") ||
           academicYearId !== (initialAcademicYearId || "");
 
-        // ✅ Add validation for rollNo when class/academic year is not assigned
         if (rollNo && !classId && !initialData.classId) {
           showToast.error("Class is required when Roll No is provided");
           return;
@@ -377,8 +376,6 @@ export function UseStudentForm({
           showToast.error("Academic Year is required when Roll No is provided");
           return;
         }
-
-        // ✅ Additional validation: Show error when both classId and rollNo are missing
         if (!rollNo && (!classId || classId.trim() === "")) {
           showToast.error(
             "Class assignment is required. Please select a class for this student.",

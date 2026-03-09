@@ -1,6 +1,6 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
-import CreateChapterForm from "@/components/forms/CreateChapterForm";
+import CreateChapterForm from "@/components/forms/SubjectSections/CreateChapterForm";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface CreateChaptersModalProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import Modal from "@/components/ui/Modal";
-import StudentForm from "@/components/forms/StudentForm";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import { Student } from "@/components/tables/StudentTable";
 
 interface StudentEditModalProps {
