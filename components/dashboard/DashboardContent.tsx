@@ -195,7 +195,6 @@ export default function DashboardContent() {
       B: "indigo",
       C: "amber",
       D: "rose",
-      rt: "cyan",
     };
     return variants[section] || "blue";
   };

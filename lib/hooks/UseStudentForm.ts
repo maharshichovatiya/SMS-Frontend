@@ -37,7 +37,6 @@ interface CreateStudentPayload {
   email: string;
   password: string;
   phone?: string;
-  rollNo: string;
   admissionDate: string;
   dob?: string;
   fatherName?: string;
@@ -87,6 +86,7 @@ export function UseStudentForm({
     reset,
     setValue,
     watch,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<StudentFormValues>({
     resolver: zodResolver(
@@ -98,7 +98,7 @@ export function UseStudentForm({
       lastName: "",
       email: "",
       phone: "",
-      rollNo: "",
+      rollNo: undefined,
       admissionDate: "",
       dob: undefined,
       fatherName: "",
@@ -144,19 +144,6 @@ export function UseStudentForm({
       const formValue = formData[key as keyof StudentFormValues];
       const initialValue = initialData?.[key as keyof typeof initialData];
 
-      if (key === "familyAnnualIncome") {
-        const formNum = formValue ? parseInt(formValue as string) : undefined;
-        const initialNum =
-          initialValue !== undefined && initialValue !== ""
-            ? Math.floor(Number(initialValue))
-            : undefined;
-
-        if (formNum !== initialNum) {
-          changedFields.familyAnnualIncome = (formValue as string) || "";
-        }
-        return;
-      }
-
       if (key === "sameAsPermanent") {
         // Skip sameAsPermanent - it's UI only and shouldn't go to API
         return;
@@ -199,6 +186,7 @@ export function UseStudentForm({
           "ifscCode",
           "branch",
           "gender",
+          "rollNo",
         ];
 
         if (optionalFields.includes(key)) {
@@ -230,6 +218,8 @@ export function UseStudentForm({
     const generatedPassword = generateStudentPassword();
     setValue("password", generatedPassword);
     setShowPassword(true);
+    // Trigger re-validation to clear Zod errors
+    trigger("password");
     // showToast.success("Password generated successfully!");
   };
 
@@ -308,6 +298,9 @@ export function UseStudentForm({
 
     if (academicYearId) {
       setFilteredClasses(classes);
+
+      // In edit mode, don't automatically select class - let user see the current assignment
+      // The class dropdown will show the current class but be disabled
     } else {
       setFilteredClasses([]);
       setValue("classId", "");
@@ -375,6 +368,32 @@ export function UseStudentForm({
           classId !== (initialClassId || "") ||
           academicYearId !== (initialAcademicYearId || "");
 
+        // ✅ Add validation for rollNo when class/academic year is not assigned
+        if (rollNo && !classId && !initialData.classId) {
+          showToast.error("Class is required when Roll No is provided");
+          return;
+        }
+        if (rollNo && !academicYearId && !initialData.academicYearId) {
+          showToast.error("Academic Year is required when Roll No is provided");
+          return;
+        }
+
+        // ✅ Additional validation: Show error when both classId and rollNo are missing
+        if (!rollNo && (!classId || classId.trim() === "")) {
+          showToast.error(
+            "Class assignment is required. Please select a class for this student.",
+          );
+          return;
+        }
+
+        if (rollNo && academicChanged && (!classId || !academicYearId)) {
+          const missingField = !classId ? "Class" : "Academic Year";
+          showToast.error(
+            `${missingField} must be selected when changing academic assignment for a student with Roll No`,
+          );
+          return;
+        }
+
         const rollNoChanged = rollNo !== (initialRollNo || "");
 
         const changedStudentFields = getChangedFields(
@@ -407,17 +426,27 @@ export function UseStudentForm({
           if (rollNoChanged) {
             academicPayload.rollNo = rollNo || null;
           }
-        } else if (
-          !academicChanged &&
-          rollNoChanged &&
-          classId &&
-          academicYearId
-        ) {
-          academicPayload = {
-            classId: classId,
-            academicYearId: academicYearId,
-            rollNo: rollNo || null,
-          };
+        } else if (!academicChanged && rollNoChanged) {
+          // Handle rollNo change - require BOTH classId AND academicYearId to be present
+          const finalClassId = classId || initialData.classId;
+          const finalAcademicYearId =
+            academicYearId || initialData.academicYearId;
+
+          if (finalClassId && finalAcademicYearId) {
+            // Both classId and academicYearId are present - allow rollNo update
+            academicPayload = {
+              classId: finalClassId,
+              academicYearId: finalAcademicYearId,
+              rollNo: rollNo || null,
+            };
+          } else {
+            // Missing classId or academicYearId - block the update
+            const missingField = !finalClassId ? "Class" : "Academic Year";
+            showToast.error(
+              `${missingField} is required to update Roll No. Both Class and Academic Year must be assigned.`,
+            );
+            return;
+          }
         }
         if (academicPayload) {
           updatePayload.academic = academicPayload;
@@ -433,10 +462,17 @@ export function UseStudentForm({
           ...studentData
         } = data;
 
+        // Validate that if rollNo is provided, classId and academicYearId must also be provided
+        if (rollNo && (!classId || !academicYearId)) {
+          showToast.error(
+            "Class and Academic Year are required when Roll No is provided",
+          );
+          return;
+        }
+
         const payload: CreateStudentPayload = {
           ...studentData,
           password: data.password || "",
-          rollNo: rollNo || "",
           familyAnnualIncome: data.familyAnnualIncome
             ? parseInt(data.familyAnnualIncome)
             : undefined,
@@ -444,6 +480,14 @@ export function UseStudentForm({
           schoolId,
         };
 
+        // Show info if rollNo is provided but class and academic year are not selected
+        if (rollNo && (!classId || !academicYearId)) {
+          showToast.info(
+            "Roll No will only be saved when Class and Academic Year are assigned",
+          );
+        }
+
+        // Include academic payload if classId and academicYearId are provided
         if (classId && academicYearId) {
           payload.academic = {
             classId,

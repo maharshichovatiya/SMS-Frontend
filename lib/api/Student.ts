@@ -16,8 +16,19 @@ const filterEmptyOptionalFields = (
   data:
     | StudentFormValues
     | Partial<StudentFormValues>
-    | (Omit<StudentFormValues, "familyAnnualIncome"> & {
+    | (Omit<StudentFormValues, "familyAnnualIncome" | "rollNo"> & {
         familyAnnualIncome?: number;
+      })
+    | ((Omit<StudentFormValues, "familyAnnualIncome" | "rollNo"> & {
+        familyAnnualIncome?: number;
+        roleId: string;
+        schoolId: string;
+      }) & {
+        academic?: {
+          classId: string;
+          academicYearId: string;
+          rollNo?: string | null;
+        };
       }),
 ) => {
   const filteredData: Record<string, unknown> = {};
@@ -54,7 +65,7 @@ export const studentApis = {
     return res.data;
   },
   addStudent: async (
-    data: (Omit<StudentFormValues, "familyAnnualIncome"> & {
+    data: (Omit<StudentFormValues, "familyAnnualIncome" | "rollNo"> & {
       familyAnnualIncome?: number;
       roleId: string;
       schoolId: string;

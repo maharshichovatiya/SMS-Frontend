@@ -20,7 +20,7 @@ export interface Student {
   lastName: string;
   email: string;
   phone: string | null;
-  rollNo: string;
+  rollNo?: string;
   admissionDate: string;
   class: string;
   classId?: string;

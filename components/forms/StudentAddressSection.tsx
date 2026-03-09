@@ -50,7 +50,7 @@ export default function StudentAddressSection({
             type="checkbox"
             id="sameAsPermanent"
             {...register("sameAsPermanent")}
-            className="w-4 h-4 text-[var(--blue)] bg-[var(--bg-2)] border-[var(--border)] rounded focus:ring-[var(--blue-light)] focus:ring-2"
+            className="w-4 h-4 text-[var(--blue)] bg-[var(--bg-2)] border-[var(--border)] rounded focus:ring-[var(--blue-light)] focus:ring-2 cursor-pointer"
           />
           <label
             htmlFor="sameAsPermanent"

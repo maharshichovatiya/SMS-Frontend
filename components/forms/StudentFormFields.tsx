@@ -404,6 +404,7 @@ export default function StudentFormFields({
                             : field.type
                       }
                       placeholder={field.placeholder}
+                      maxLength={field.name === "accountNo" ? 18 : undefined}
                       {...register(field.name)}
                       className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
                         error

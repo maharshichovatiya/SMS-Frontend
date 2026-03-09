@@ -74,7 +74,7 @@ export default function StudentTableRow({
             </p>
             <p className="text-xs font-semibold text-[var(--text-3)] flex items-center gap-1 mt-0.5">
               <span className="opacity-70">Roll No:</span>
-              {student.rollNo}
+              {student.rollNo || "N/A"}
             </p>
           </div>
         </div>

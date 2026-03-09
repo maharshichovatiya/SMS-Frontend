@@ -46,9 +46,14 @@ export const createStudentSchema = z.object({
     ),
   rollNo: z
     .string()
-    .min(1, "Roll No is required")
     .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d+$/, "Must be a number"),
+    .regex(/^\d*$/, "Must be a number")
+    .optional()
+    .or(z.literal(undefined))
+    .refine(
+      val => !val || (typeof val === "string" && val.length >= 1),
+      "Roll No must be at least 1 digit if provided",
+    ),
   admissionDate: z
     .string()
     .min(1, "Admission date is required")
@@ -188,7 +193,7 @@ export const createStudentSchema = z.object({
     .optional()
     .refine(
       val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
-      "Account number must contain only digits and be at least 8 characters",
+      "Account number must contain only digits and be between 8-18 characters",
     ),
   ifscCode: z
     .string()
@@ -261,9 +266,14 @@ export const updateStudentSchema = z.object({
     .optional(),
   rollNo: z
     .string()
-    .min(1, "Roll No is required")
     .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d+$/, "Roll No must contain only numbers"),
+    .regex(/^\d*$/, "Roll No must contain only numbers")
+    .optional()
+    .or(z.literal(undefined))
+    .refine(
+      val => !val || (typeof val === "string" && val.length >= 1),
+      "Roll No must be at least 1 digit if provided",
+    ),
   admissionDate: z
     .string()
     .min(1, "Admission date is required")
@@ -403,7 +413,7 @@ export const updateStudentSchema = z.object({
     .optional()
     .refine(
       val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
-      "Account number must contain only digits and be at least 8 characters",
+      "Account number must contain only digits and be between 8-18 characters",
     ),
   ifscCode: z
     .string()
@@ -434,7 +444,7 @@ export type StudentFormValues = {
   lastName: string;
   email: string;
   phone?: string;
-  rollNo: string;
+  rollNo?: string;
   admissionDate: string;
   dob?: string;
   gender?: "male" | "female" | "other" | "";
@@ -566,6 +576,7 @@ export const STUDENT_FIELDS: {
     label: "Roll No",
     type: "text",
     placeholder: "e.g. 1",
+    optional: true,
     section: "Academic Details",
   },
   {
