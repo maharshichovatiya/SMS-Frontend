@@ -23,7 +23,7 @@ export interface UseSubjectsReturn {
   editingSubject: SubjectWithClassSubjects | null;
   creatingChapters: {
     subject: SubjectWithClassSubjects;
-    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0] | null;
   } | null;
   deletingId: string | null;
   isDeleting: boolean;
@@ -60,7 +60,9 @@ export interface UseSubjectsReturn {
   setCreatingChapters: (
     data: {
       subject: SubjectWithClassSubjects;
-      classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
+      classInfo:
+        | NonNullable<SubjectWithClassSubjects["classSubjects"]>[0]
+        | null;
     } | null,
   ) => void;
   setDeletingId: (id: string | null) => void;
@@ -124,7 +126,7 @@ export function useSubjects(): UseSubjectsReturn {
     useState<SubjectWithClassSubjects | null>(null);
   const [creatingChapters, setCreatingChapters] = useState<{
     subject: SubjectWithClassSubjects;
-    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0] | null;
   } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

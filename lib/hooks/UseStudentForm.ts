@@ -12,10 +12,7 @@ import { studentApis } from "../api/Student";
 import { classApis, Class, AcademicYear } from "../api/Class";
 import { showToast } from "../utils/Toast";
 import { generateStudentPassword } from "../utils/PasswordGenerator";
-import {
-  handleStringField,
-  handleNonStringField,
-} from "../utils/FieldHandlers";
+import { handleStringField } from "../utils/FieldHandlers";
 
 interface UseStudentFormProps {
   initialData?: Partial<StudentFormValues> & {
@@ -155,9 +152,7 @@ export function UseStudentForm({
             : undefined;
 
         if (formNum !== initialNum) {
-          if (formValue !== undefined && formValue !== "") {
-            changedFields.familyAnnualIncome = formValue as string;
-          }
+          changedFields.familyAnnualIncome = (formValue as string) || "";
         }
         return;
       }
@@ -167,24 +162,64 @@ export function UseStudentForm({
         return;
       }
 
-      const normalizedFormValue = formValue ?? "";
-      const normalizedInitialValue = (initialValue as unknown) ?? "";
+      // Normalize both values using ?? "" to treat undefined, null, and "" consistently
+      const normalizedFormValue = (formValue ?? "") as string;
+      const normalizedInitialValue = (initialValue ?? "") as string;
 
-      if (normalizedFormValue !== normalizedInitialValue) {
-        if (
-          typeof normalizedFormValue === "string" &&
-          typeof normalizedInitialValue === "string"
-        ) {
-          if (normalizedFormValue.trim() !== normalizedInitialValue.trim()) {
-            handleStringField(
-              key,
-              normalizedFormValue as string,
-              changedFields,
-            );
-          }
+      // Check if form value is empty after normalization
+      const formIsEmpty = normalizedFormValue === "";
+      // Check if initial value was empty after normalization
+      const initialIsEmpty = normalizedInitialValue === "";
+
+      // If both are empty, no change
+      if (formIsEmpty && initialIsEmpty) {
+        return;
+      }
+
+      // If form is empty but initial had value, it's a change (send null for optional fields)
+      if (formIsEmpty && !initialIsEmpty) {
+        const optionalFields = [
+          "middleName",
+          "phone",
+          "password",
+          "dob",
+          "fatherName",
+          "fatherPhone",
+          "motherName",
+          "guardianName",
+          "familyAnnualIncome",
+          "medicalConditions",
+          "bloodGroup",
+          "aadhaarNo",
+          "panNo",
+          "permanentAddress",
+          "currentAddress",
+          "bankName",
+          "accountNo",
+          "ifscCode",
+          "branch",
+          "gender",
+        ];
+
+        if (optionalFields.includes(key)) {
+          (changedFields as Partial<StudentFormValues> & Record<string, null>)[
+            key
+          ] = null;
         } else {
-          handleNonStringField(key, normalizedFormValue, changedFields);
+          handleStringField(key, "", changedFields);
         }
+        return;
+      }
+
+      // If form has value but initial was empty, it's a change
+      if (!formIsEmpty && initialIsEmpty) {
+        handleStringField(key, normalizedFormValue, changedFields);
+        return;
+      }
+
+      // Both have values, compare them
+      if (normalizedFormValue.trim() !== normalizedInitialValue.trim()) {
+        handleStringField(key, normalizedFormValue, changedFields);
       }
     });
 
@@ -387,7 +422,6 @@ export function UseStudentForm({
         if (academicPayload) {
           updatePayload.academic = academicPayload;
         }
-
         await studentApis.updateStudent(initialData.id, updatePayload);
         showToast.success("Student updated successfully!");
       } else {

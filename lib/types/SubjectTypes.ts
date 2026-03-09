@@ -141,7 +141,7 @@ export interface CreateSubjectData {
   subjectCode: string;
   passingMarks: number;
   maxMarks: number;
-  chapters: Chapter[];
+  chapters?: Chapter[];
 }
 
 export interface UpdateSubjectData {

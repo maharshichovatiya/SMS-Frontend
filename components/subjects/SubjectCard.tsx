@@ -1,7 +1,6 @@
 import React from "react";
 import { Book, Plus, Pencil, Trash2 } from "lucide-react";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
-import { showToast } from "@/lib/utils/Toast";
 
 interface SubjectCardProps {
   subject: SubjectWithClassSubjects;
@@ -106,14 +105,7 @@ export function SubjectCard({
           <button
             onClick={e => {
               e.stopPropagation();
-              // Find first class for this subject to add chapters
-              if (subject.classSubjects && subject.classSubjects.length > 0) {
-                onAddChapter(subject);
-              } else {
-                showToast.error(
-                  "No classes assigned to this subject. Please assign a class first.",
-                );
-              }
+              onAddChapter(subject);
             }}
             className="w-7 h-7 sm:w-8 sm:h-8 cursor-pointer rounded-[var(--radius-sm)] bg-[var(--green-light)] text-[var(--green)] hover:bg-[var(--green)] hover:text-[var(--text-inverse)] flex items-center justify-center transition-all duration-[var(--duration)] border border-[var(--green-light)]"
             title="Add Chapter"

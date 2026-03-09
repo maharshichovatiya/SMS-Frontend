@@ -103,9 +103,6 @@ export function SubjectDetailsModal({
                       <div className="bg-[var(--surface-3)] px-5 py-3 border-b border-[var(--border)]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] text-[var(--text-2)] flex items-center justify-center text-sm font-bold">
-                              {cls.class.className}
-                            </div>
                             <div>
                               <h3 className="font-semibold text-[var(--text)]">
                                 Class {cls.class.className}-{cls.class.section}
@@ -144,9 +141,14 @@ export function SubjectDetailsModal({
                             key={chapter.id || index}
                             className="bg-[var(--surface-2)] border border-[var(--border)] rounded-lg p-4"
                           >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="w-8 h-8 rounded-lg bg-[var(--surface-3)] text-[var(--text-2)] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                {chapter.chapterNo}
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-[var(--text)] mb-1">
+                                  {chapter.chapterName}
+                                </h4>
+                                <p className="text-xs text-[var(--blue)]">
+                                  Chapter {chapter.chapterNo}
+                                </p>
                               </div>
                               {chapter.id && (
                                 <button
@@ -164,12 +166,6 @@ export function SubjectDetailsModal({
                                 </button>
                               )}
                             </div>
-                            <h4 className="font-medium text-[var(--text)] mb-1">
-                              {chapter.chapterName}
-                            </h4>
-                            <p className="text-xs text-[var(--blue)] mt-1">
-                              Chapter {chapter.chapterNo}
-                            </p>
                           </div>
                         ))}
                     </div>

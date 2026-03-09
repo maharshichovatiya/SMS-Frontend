@@ -30,7 +30,7 @@ export default function SubjectForm({
   >(
     isEditMode && initialData
       ? (initialData as SubjectWithClasses).chapters || []
-      : [{ chapterName: "", chapterNo: 1 }],
+      : [],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -54,7 +54,7 @@ export default function SubjectForm({
       maxMarks: initialData?.maxMarks || 100,
       chapters: isEditMode
         ? (initialData as SubjectWithClasses).chapters || []
-        : [{ chapterName: "", chapterNo: 1 }],
+        : [],
     },
     mode: "onSubmit",
   });
@@ -133,10 +133,10 @@ export default function SubjectForm({
     try {
       setIsSubmitting(true);
 
-      // Only validate chapters if they exist or if creating a new subject
+      // Only validate chapters if they exist
       let currentChapters: { chapterName: string; chapterNo: number }[] = [];
 
-      if (chapters.length > 0 || !isEditMode) {
+      if (chapters.length > 0) {
         const chaptersData = { chapters };
         const chapterValidation =
           createChaptersFormSchema.safeParse(chaptersData);
@@ -205,11 +205,13 @@ export default function SubjectForm({
         await subjectApis.update(initialData.id, changedFields);
         showToast.success("Subject updated successfully!");
       } else {
-        // For create mode, include all fields including chapters
+        // For create mode, omit chapters since they are added later
         const submitData = {
-          ...data,
-          chapters: currentChapters,
-        };
+          subjectName: data.subjectName,
+          subjectCode: data.subjectCode,
+          passingMarks: data.passingMarks,
+          maxMarks: data.maxMarks,
+        } as CreateSubjectFormValues;
 
         await subjectApis.create(submitData as CreateSubjectFormValues);
         showToast.success("Subject created successfully!");
@@ -330,8 +332,8 @@ export default function SubjectForm({
           </div>
         </div>
 
-        {/* Chapters - Show in create mode and edit mode only if chapters exist */}
-        {!isEditMode || chapters.length > 0 ? (
+        {/* Chapters - Show only in edit mode if chapters exist */}
+        {isEditMode && chapters.length > 0 ? (
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-[var(--text)] uppercase tracking-wide">

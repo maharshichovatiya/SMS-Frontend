@@ -12,7 +12,7 @@ import {
 
 interface CreateChapterFormProps {
   subject: SubjectWithClassSubjects;
-  classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
+  classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0] | null;
   chaptersCount?: number;
   onClose: () => void;
   onSubmitSuccess: () => void;
@@ -153,9 +153,13 @@ export default function CreateChapterForm({
           <p className="text-sm font-semibold text-[var(--text)]">
             {subject.subjectName}
           </p>
-          <p className="text-xs text-[var(--text-3)]">
-            Class {classInfo.class.className}-{classInfo.class.section}
-          </p>
+          {classInfo ? (
+            <p className="text-xs text-[var(--text-3)]">
+              Class {classInfo.class.className}-{classInfo.class.section}
+            </p>
+          ) : (
+            <p className="text-xs text-[var(--text-3)]">No class assigned</p>
+          )}
           <p className="text-xs text-[var(--text-3)] mt-1">
             Existing chapters: {currentChaptersCount}
           </p>

@@ -79,12 +79,10 @@ export default function Subjects() {
   };
 
   const handleAddChapter = (subject: SubjectWithClassSubjects) => {
-    if (subject.classSubjects && subject.classSubjects.length > 0) {
-      setCreatingChapters({
-        subject: subject,
-        classInfo: subject.classSubjects[0],
-      });
-    }
+    setCreatingChapters({
+      subject: subject,
+      classInfo: subject.classSubjects?.[0] || null,
+    });
   };
 
   const handleDeleteClass = (classId: string) => {

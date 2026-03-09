@@ -73,7 +73,7 @@ export default function StudentTableRow({
               {fullName}
             </p>
             <p className="text-xs font-semibold text-[var(--text-3)] flex items-center gap-1 mt-0.5">
-              <span className="opacity-70">#</span>
+              <span className="opacity-70">Roll No:</span>
               {student.rollNo}
             </p>
           </div>

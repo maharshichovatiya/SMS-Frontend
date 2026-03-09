@@ -152,7 +152,8 @@ export function PersonalDetailsForm({
               placeholder="admin@school.edu"
               maxLength={100}
               {...register("email", {
-                onChange: _e => {
+                onChange: e => {
+                  e.target.value = e.target.value.toLowerCase();
                   // Only trigger validation if there's already an error
                   if (errors.email) {
                     form.trigger("email");
@@ -372,7 +373,8 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               placeholder="contact@school.edu"
               maxLength={100}
               {...register("officialEmail", {
-                onChange: _e => {
+                onChange: e => {
+                  e.target.value = e.target.value.toLowerCase();
                   // Only trigger validation if there's already an error
                   if (errors.officialEmail) {
                     form.trigger("officialEmail");
@@ -535,7 +537,8 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               placeholder="Defaults to your email"
               maxLength={100}
               {...register("adminEmail", {
-                onChange: _e => {
+                onChange: e => {
+                  e.target.value = e.target.value.toLowerCase();
                   // Only trigger validation if there's already an error
                   if (errors.adminEmail) {
                     form.trigger("adminEmail");

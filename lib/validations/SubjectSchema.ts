@@ -20,7 +20,7 @@ export const createSubjectSchema = z
       .max(30, "Subject code cannot exceed 30 characters"),
     passingMarks: z.number().min(1, "Passing marks must be greater than 0"),
     maxMarks: z.number().min(1, "Maximum marks must be greater than 0"),
-    chapters: z.array(chapterSchema).min(1, "At least one chapter is required"),
+    chapters: z.array(chapterSchema).optional(),
   })
   .refine(data => data.passingMarks <= data.maxMarks, {
     message: "Passing marks cannot be greater than maximum marks",

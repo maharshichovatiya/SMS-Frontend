@@ -80,7 +80,13 @@ export const studentApis = {
       };
     },
   ) => {
-    const filteredData = filterEmptyOptionalFields(data);
+    const filteredData: Record<string, unknown> = {};
+    Object.keys(data).forEach(key => {
+      const value = (data as Record<string, unknown>)[key];
+      if (value !== undefined) {
+        filteredData[key] = value;
+      }
+    });
 
     const res = await api.patch<ApiResponse<Student>>(
       `/student/${id}`,

@@ -8,7 +8,7 @@ interface CreateChaptersModalProps {
   onClose: () => void;
   creatingChapters: {
     subject: SubjectWithClassSubjects;
-    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0];
+    classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0] | null;
   } | null;
   fetchSubjects: () => Promise<void>;
   selectedSubject: SubjectWithClassSubjects | null;
