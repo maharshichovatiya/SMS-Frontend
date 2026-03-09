@@ -131,6 +131,10 @@ export const createStudentSchema = z.object({
     .refine(
       val => !val || parseInt(val) > 0,
       "Family income must be greater than 0 if provided",
+    )
+    .refine(
+      val => !val || parseInt(val) <= 20000000,
+      "Family income cannot exceed 2 crore rupees",
     ),
   medicalConditions: z
     .string()
@@ -192,7 +196,11 @@ export const createStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      val =>
+        !val ||
+        (/^\d+$/.test(val) &&
+          val.trim().length >= 8 &&
+          val.trim().length <= 18),
       "Account number must contain only digits and be between 8-18 characters",
     ),
   ifscCode: z
@@ -351,6 +359,10 @@ export const updateStudentSchema = z.object({
     .refine(
       val => !val || parseInt(val) > 0,
       "Family income must be greater than 0 if provided",
+    )
+    .refine(
+      val => !val || parseInt(val) <= 20000000,
+      "Family income cannot exceed 2 crore rupees",
     ),
   medicalConditions: z
     .string()
@@ -412,7 +424,11 @@ export const updateStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      val =>
+        !val ||
+        (/^\d+$/.test(val) &&
+          val.trim().length >= 8 &&
+          val.trim().length <= 18),
       "Account number must contain only digits and be between 8-18 characters",
     ),
   ifscCode: z

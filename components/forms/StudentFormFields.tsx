@@ -285,7 +285,7 @@ export default function StudentFormFields({
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                          className="p-1 cursor-pointer text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                         >
                           {showPassword ? (
                             <EyeOff className="w-4 h-4" />
@@ -443,19 +443,34 @@ export default function StudentFormFields({
                                     e.currentTarget.value = numericValue;
                                   }
                                 }
-                              : field.name === "familyAnnualIncome"
+                              : field.name === "accountNo"
                                 ? e => {
                                     const value = e.currentTarget.value;
-                                    // Only allow numbers
-                                    const numericValue = value.replace(
-                                      /\D/g,
-                                      "",
-                                    );
+                                    // Only allow numbers and max 18 digits
+                                    const numericValue = value
+                                      .replace(/\D/g, "")
+                                      .slice(0, 18);
                                     if (value !== numericValue) {
                                       e.currentTarget.value = numericValue;
                                     }
                                   }
-                                : undefined
+                                : field.name === "familyAnnualIncome"
+                                  ? e => {
+                                      const value = e.currentTarget.value;
+                                      // Only allow numbers and max 2 crore (20,000,000)
+                                      const numericValue = value.replace(
+                                        /\D/g,
+                                        "",
+                                      );
+                                      const limitedValue =
+                                        parseInt(numericValue) > 20000000
+                                          ? "20000000"
+                                          : numericValue;
+                                      if (value !== limitedValue) {
+                                        e.currentTarget.value = limitedValue;
+                                      }
+                                    }
+                                  : undefined
                       }
                     />
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] pointer-events-none">
