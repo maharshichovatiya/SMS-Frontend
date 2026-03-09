@@ -79,7 +79,7 @@ export default function AccountInfoSection({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="p-1 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+                className="p-1 cursor-pointer text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />

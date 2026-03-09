@@ -36,7 +36,7 @@ export default function StudentEditModal({
               lastName: student.lastName,
               email: student.email,
               phone: student.phone || "",
-              rollNo: student.rollNo,
+              rollNo: student.rollNo || undefined,
               admissionDate: student.admissionDate,
               dob:
                 student.dob === "N/A" || student.dob === null
