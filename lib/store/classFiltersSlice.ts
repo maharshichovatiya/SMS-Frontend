@@ -35,16 +35,6 @@ const classFiltersSlice = createSlice({
     setFilters: (state, action: PayloadAction<ClassFilterValues>) => {
       state.filters = action.payload;
     },
-    updateFilter: (
-      state,
-      action: PayloadAction<{
-        key: keyof ClassFilterValues;
-        value: string | string[];
-      }>,
-    ) => {
-      const { key, value } = action.payload;
-      (state.filters[key] as string | string[]) = value;
-    },
     toggleFilterOption: (
       state,
       action: PayloadAction<{ key: keyof ClassFilterValues; option: string }>,
@@ -76,7 +66,6 @@ const classFiltersSlice = createSlice({
 
 export const {
   setFilters,
-  updateFilter,
   toggleFilterOption,
   clearFilters,
   toggleFiltersPanel,
