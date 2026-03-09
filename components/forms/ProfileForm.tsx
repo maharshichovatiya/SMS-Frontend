@@ -88,7 +88,10 @@ export default function ProfileForm() {
             ? null
             : (data.middleName as string | null | undefined) || null,
         lastName: data.lastName,
-        phone: data.phone,
+        phone:
+          data.phone?.trim() === ""
+            ? null
+            : (data.phone as string | undefined) || null,
         password: data.password,
       };
 

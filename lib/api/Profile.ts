@@ -16,7 +16,7 @@ export interface UpdateProfilePayload {
   firstName?: string;
   middleName?: string | null;
   lastName?: string;
-  phone?: string;
+  phone?: string | null;
   password?: string;
 }
 
