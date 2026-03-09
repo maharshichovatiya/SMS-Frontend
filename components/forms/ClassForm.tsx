@@ -331,10 +331,7 @@ export default function ClassForm({
         <button
           type="submit"
           disabled={
-            submitting ||
-            loadingTeachers ||
-            teachers.length === 0 ||
-            (mode === "edit" && !hasChanges())
+            submitting || loadingTeachers || (mode === "edit" && !hasChanges())
           }
           className="btn-primary disabled:opacity-60"
         >
