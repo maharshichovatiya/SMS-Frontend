@@ -8,6 +8,7 @@ export interface SchoolData {
   schoolCode: string | null;
   contact: string | null;
   emailOfficial: string | null;
+  emailAdmin: string | null;
   websiteUrl: string | null;
   logoUrl: string | null;
   schoolTimingStart: string | null;

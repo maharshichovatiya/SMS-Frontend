@@ -9,25 +9,16 @@ import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
 import { getRoles } from "@/lib/api/Role";
-
-import {
-  Award,
-  Building2,
-  Calendar,
-  CalendarCheck,
-  ChevronDown,
-  Clock,
-  Eye,
-  EyeOff,
-  GraduationCap,
-  Lock,
-  Mail,
-  Phone,
-  User,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { generatePassword } from "@/lib/utils/PasswordGenerator";
 import { Role } from "@/lib/types/Role";
+
+// Import section components
+import AccountInfoSection from "./TeacherSections/AccountInfoSection";
+import PersonalInfoSection from "./TeacherSections/PersonalInfoSection";
+import EmploymentInfoSection from "./TeacherSections/EmploymentInfoSection";
+import QualificationsSection from "./TeacherSections/QualificationsSection";
+import AdditionalInfoSection from "./TeacherSections/AdditionalInfoSection";
+import AddressInfoSection from "./TeacherSections/AddressInfoSection";
 
 interface TeacherFormProps {
   onCancel: () => void;
@@ -51,15 +42,58 @@ export default function TeacherForm({
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    watch,
+    setValue,
+    formState: { errors, isDirty },
   } = useForm<TeacherFormData>({
     resolver: zodResolver(schema) as Resolver<TeacherFormData>,
     defaultValues,
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [sameAsPermanent, setSameAsPermanent] = useState(false);
+
+  // Reset form when defaultValues change to establish proper baseline
+  useEffect(() => {
+    if (defaultValues) {
+      reset({
+        ...defaultValues,
+        // Handle middleName: get directly from defaultValues if available, otherwise empty string
+        middleName: defaultValues.middleName ?? "",
+      });
+    }
+  }, [defaultValues, reset]);
+
+  // In edit mode, we need to handle password specially
+  // isDirty will track all changes, but we need to ignore password if it's empty
+  const shouldEnableSubmit = () => {
+    if (mode !== "edit") return true;
+
+    // If not dirty, don't enable
+    if (!isDirty) {
+      return false;
+    }
+
+    // If dirty, enable the submit button
+    return true;
+  };
+
+  const handleGeneratePassword = () => {
+    const { password } = generatePassword({
+      length: 12,
+      uppercase: true,
+      lowercase: true,
+      numbers: true,
+      special: true,
+    });
+
+    setValue("password", password, { shouldDirty: true });
+    setShowPassword(true);
+    // showToast.success("Password generated successfully!");
+  };
+
   useEffect(() => {
     const loadRoles = async () => {
       const res = await getRoles();
@@ -67,9 +101,15 @@ export default function TeacherForm({
         setRoles(res.data);
       }
     };
-
     loadRoles();
   }, []);
+
+  useEffect(() => {
+    if (sameAsPermanent) {
+      const currentAddressValue = watch("currentAddress") || "";
+      setValue("permanentAddress", currentAddressValue);
+    }
+  }, [sameAsPermanent, watch, setValue]);
 
   const onSubmit: SubmitHandler<TeacherFormData> = async data => {
     try {
@@ -79,13 +119,52 @@ export default function TeacherForm({
         role => role.roleName.toLowerCase() === "teacher",
       )?.id;
 
-      const payload: Teacher = {
-        ...data,
-        ...(mode === "edit" && { password: undefined }),
+      // Handle experience - pass null if no experience is provided, otherwise calculate total months
+      const totalExpMonths =
+        !data.experienceYears && !data.experienceMonths
+          ? null
+          : Number(data.experienceYears || 0) * 12 +
+            Number(data.experienceMonths || 0);
+
+      // Convert empty strings to null for optional fields and exclude individual experience fields
+      const {
+        experienceYears: _experienceYears,
+        experienceMonths: _experienceMonths,
+        ...dataWithoutExperience
+      } = data;
+
+      const processedData = {
+        ...dataWithoutExperience,
+        bloodGroup: dataWithoutExperience.bloodGroup?.trim() || null,
+        aadhaarNo: dataWithoutExperience.aadhaarNo?.trim() || null,
+        panNo: dataWithoutExperience.panNo?.trim() || null,
+        permanentAddress:
+          dataWithoutExperience.permanentAddress?.trim() || null,
+        currentAddress: dataWithoutExperience.currentAddress?.trim() || null,
+        bankName: dataWithoutExperience.bankName?.trim() || null,
+        accountNo: dataWithoutExperience.accountNo?.trim() || null,
+        ifscCode: dataWithoutExperience.ifscCode?.trim() || null,
+        branch: dataWithoutExperience.branch?.trim() || null,
+
+        middleName:
+          dataWithoutExperience.middleName?.trim() === ""
+            ? null
+            : dataWithoutExperience.middleName || null,
+        // Handle password properly: convert empty string to undefined, keep valid passwords
+        ...(mode === "edit" && {
+          password:
+            dataWithoutExperience.password?.trim() === ""
+              ? undefined
+              : dataWithoutExperience.password || undefined,
+        }),
         schoolId,
         roleId: teacherRoleId,
-        profilePhoto: data.profilePhoto?.[0] || null,
+        profilePhoto:
+          (dataWithoutExperience.profilePhoto as FileList)?.[0] || null,
+        totalExpMonths,
       };
+
+      const payload: Teacher = processedData;
 
       let res;
 
@@ -101,16 +180,20 @@ export default function TeacherForm({
             ? "Teacher updated successfully "
             : "Teacher created successfully ",
         );
-
         reset();
         onSuccess?.();
       } else {
-        const message = Array.isArray(res.message)
-          ? res.message[0]
-          : res.message;
+        let message = res.message;
+        if (
+          res.message &&
+          res.message.length > 0 &&
+          typeof res.message === "object"
+        ) {
+          message = res.message[0];
+        }
         showToast.error(message || "Something went wrong");
       }
-    } catch (error) {
+    } catch (_error) {
       showToast.error("Something went wrong ");
     }
   };
@@ -120,401 +203,43 @@ export default function TeacherForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-6 w-full max-w-2xl mx-auto"
     >
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Account Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base min-h-[24px] flex items-center gap-1">
-              Email <span className="text-red-500 text-lg leading-none">*</span>
-            </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("email")}
-                type="email"
-                placeholder="example@school.com"
-                className={`input-base pl-9 ${errors.email ? "error" : ""}`}
-              />
-            </div>
-            {errors.email && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.email.message}
-              </span>
-            )}
-          </div>
+      <AccountInfoSection
+        register={register}
+        errors={errors}
+        mode={mode}
+        showPassword={showPassword}
+        setShowPassword={setShowPassword}
+        onGeneratePassword={handleGeneratePassword}
+      />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base min-h-[24px] flex items-center gap-1">
-              Password{" "}
-              {mode !== "edit" && (
-                <span className="text-red-500 text-lg leading-none">*</span>
-              )}
-            </label>
-            <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder={mode === "edit" ? "••••••••" : "Min. 8 characters"}
-                className={`input-base pl-9 ${errors.password ? "error" : ""}`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.password.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      <PersonalInfoSection register={register} errors={errors} />
 
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Personal Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              First Name <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <User
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("firstName")}
-                placeholder="First Name"
-                className={`input-base pl-9 ${errors.firstName ? "error" : ""}`}
-              />
-            </div>
-            {errors.firstName && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.firstName.message}
-              </span>
-            )}
-          </div>
+      <EmploymentInfoSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Last Name <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <User
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("lastName")}
-                placeholder="Last Name"
-                className={`input-base pl-9 ${errors.lastName ? "error" : ""}`}
-              />
-            </div>
-            {errors.lastName && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.lastName.message}
-              </span>
-            )}
-          </div>
+      <QualificationsSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Phone <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Phone
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("phone")}
-                placeholder="98765 43210"
-                className={`input-base pl-9 ${errors.phone ? "error" : ""}`}
-              />
-            </div>
-            {errors.phone && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.phone.message}
-              </span>
-            )}
-          </div>
+      <AdditionalInfoSection register={register} errors={errors} />
 
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Gender <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Users
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("gender")}
-                className={`input-base pl-9 appearance-none ${
-                  errors.gender ? "error" : ""
-                }`}
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.gender && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.gender.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Date of Birth <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Calendar
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("dob")}
-                max={new Date().toISOString().split("T")[0]}
-                type="date"
-                className={`input-base pl-9 cursor-pointer ${errors.dob ? "error" : ""}`}
-              />
-            </div>
-            {errors.dob && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.dob.message}
-              </span>
-            )}
-          </div>
-
-          {/* <div className="flex mt-3 flex-col gap-1">
-            <label className="label-base">Profile Photo</label>
-            <div className="relative">
-              <Camera
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("profilePhoto")}
-                type="file"
-                accept="image/*"
-                className="input-base pl-9 pt-3"
-              />
-            </div>
-          </div> */}
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Employment Info</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Department <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Building2
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <select
-                {...register("department")}
-                className={`input-base pl-9 appearance-none ${
-                  errors.department ? "error" : ""
-                }`}
-              >
-                <option value="">Select department</option>
-                <option value="academic">Academic</option>
-                <option value="administration">Administration</option>
-                <option value="sports">Sports</option>
-                <option value="laboratory">Laboratory</option>
-              </select>
-              <ChevronDown
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-            </div>
-            {errors.department && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.department.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Designation <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Award
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("designation")}
-                placeholder="Senior Teacher"
-                className={`input-base pl-9 ${
-                  errors.designation ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.designation && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.designation.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Date of Joining <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <CalendarCheck
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("dateOfJoining")}
-                type="date"
-                className={`input-base pl-9 cursor-pointer ${
-                  errors.dateOfJoining ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.dateOfJoining && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.dateOfJoining.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Salary Package (₹ Year){" "}
-              <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <Wallet
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("salaryPackage")}
-                type="number"
-                step="any"
-                placeholder="60000"
-                onKeyDown={e =>
-                  ["e", "E", "+", "-"].includes(e.key) && e.preventDefault()
-                }
-                className={`input-base pl-9 ${errors.salaryPackage ? "error" : ""}`}
-              />
-            </div>
-            {errors.salaryPackage && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.salaryPackage.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <span className="section-label">Qualifications</span>
-          <div className="flex-1 h-px bg-[var(--border)]" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="label-base">
-              Highest Qualification{" "}
-              <span className="text-red-500 text-lg">*</span>
-            </label>
-            <div className="relative">
-              <GraduationCap
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("highestQualification")}
-                placeholder="B.Ed / M.Sc / Ph.D"
-                className={`input-base pl-9 ${
-                  errors.highestQualification ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.highestQualification && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.highestQualification.message}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1 mt-3">
-            <label className="label-base">Experience (Years)</label>
-            <div className="relative">
-              <Clock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: "var(--text-3)" }}
-              />
-              <input
-                {...register("experienceYears")}
-                type="number"
-                placeholder="5"
-                className={`input-base pl-9 ${
-                  errors.experienceYears ? "error" : ""
-                }`}
-              />
-            </div>
-            {errors.experienceYears && (
-              <span className="text-xs text-[var(--rose)]">
-                {errors.experienceYears.message}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      <AddressInfoSection
+        register={register}
+        errors={errors}
+        sameAsPermanent={sameAsPermanent}
+        setSameAsPermanent={setSameAsPermanent}
+      />
 
       <div className="flex items-center justify-end gap-3 pt-2 border-t border-[var(--border)]">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 cursor-pointer py-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
+          className="px-7 cursor-pointer py-3 rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
         >
           Cancel
         </button>
-        <button type="submit" disabled={isLoading} className="btn-primary">
+        <button
+          type="submit"
+          disabled={isLoading || (mode === "edit" && !shouldEnableSubmit())}
+          className="btn-primary"
+        >
           {isLoading
             ? "Saving..."
             : mode === "edit"

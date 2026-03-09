@@ -139,7 +139,7 @@ export const logout = async (): Promise<ApiResponse<null>> => {
 
     Cookies.remove("refreshToken");
     Cookies.remove("accessToken");
-
+    localStorage.clear();
     return {
       success: true,
       statusCode: 200,

@@ -1,123 +1,30 @@
 import api from "../Axios";
+import {
+  Chapter,
+  Subject,
+  SubjectWithClassSubjects,
+  SubjectWithClasses,
+  CreateSubjectData,
+  UpdateSubjectData,
+  AssignClassData,
+  SubjectListResponse,
+  SubjectPaginatedResponse,
+  AssignClassResponse,
+  PaginationMeta,
+} from "@/lib/types/SubjectTypes";
 
-export interface Chapter {
-  id?: string;
-  chapterName: string;
-  chapterNo: number;
-}
-
-export interface Teacher {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-export interface Class {
-  id: string;
-  classNo: number;
-  section: string;
-  classTeacherId: string | null;
-  studentCapacity: number | null;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  classSubjects: ClassSubjectItem[];
-}
-
-export interface ClassSubjectItem {
-  id: string;
-  subject: Subject;
-  teacher?: Teacher;
-}
-
-export interface Subject {
-  id: string;
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  chapters?: Chapter[];
-
-  classInfo?: {
-    id: string;
-    classNo: number;
-    section: string;
-  };
-
-  classSubjectId?: string;
-}
-
-export interface SubjectWithClasses {
-  id: string;
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-
-  classes: {
-    classSubjectId: string;
-    classInfo: {
-      id: string;
-      classNo: number;
-      section: string;
-    };
-    chapters: Chapter[];
-    teacher?: Teacher;
-  }[];
-}
-
-/* =========================
-   REQUEST TYPES
-========================= */
-
-export interface CreateSubjectData {
-  subjectName: string;
-  subjectCode: string;
-  passingMarks: number;
-  maxMarks: number;
-  chapters: Chapter[];
-}
-
-export interface UpdateSubjectData {
-  subjectName?: string;
-  subjectCode?: string;
-  passingMarks?: number;
-  maxMarks?: number;
-  chapters?: Chapter[];
-  status?: "active" | "inactive";
-}
-
-export interface AssignClassData {
-  subjectId: string;
-  classId: string;
-  teacherId: string;
-}
-
-export interface SubjectListResponse {
-  data: Subject[];
-}
-
-export interface ClassSubjectListResponse {
-  statusCode: number;
-  message: string;
-  data: Class[];
-  Total_Records: number;
-}
-
-export interface AssignClassResponse {
-  id: string;
-  subjectId: string;
-  classId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export types for backward compatibility
+export type {
+  Chapter,
+  Subject,
+  SubjectWithClassSubjects,
+  SubjectWithClasses,
+  CreateSubjectData,
+  UpdateSubjectData,
+  AssignClassData,
+  SubjectListResponse,
+  AssignClassResponse,
+};
 
 export const subjectApis = {
   getAll: async (): Promise<Subject[]> => {
@@ -125,50 +32,30 @@ export const subjectApis = {
     return res.data.data;
   },
 
-  getAllForPage: async (search?: string): Promise<SubjectWithClasses[]> => {
-    const params = search ? { search } : {};
-    const res = await api.get<ClassSubjectListResponse>("/class-subject", {
+  getAllForPage: async (
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    minPassingMarks?: number,
+    maxPassingMarks?: number,
+    minTotalMarks?: number,
+    maxTotalMarks?: number,
+  ): Promise<{ data: SubjectWithClassSubjects[]; meta: PaginationMeta }> => {
+    const params: Record<string, string | number> = { page, limit };
+    if (search) params.search = search;
+    if (minPassingMarks !== undefined) params.minPassingMarks = minPassingMarks;
+    if (maxPassingMarks !== undefined) params.maxPassingMarks = maxPassingMarks;
+    if (minTotalMarks !== undefined) params.minTotalMarks = minTotalMarks;
+    if (maxTotalMarks !== undefined) params.maxTotalMarks = maxTotalMarks;
+
+    const res = await api.get<SubjectPaginatedResponse>("/subjects", {
       params,
     });
 
-    const subjectMap = new Map<string, SubjectWithClasses>();
-
-    res.data.data.forEach((classItem: Class) => {
-      if (!classItem.classSubjects?.length) return;
-
-      classItem.classSubjects.forEach((classSubject: ClassSubjectItem) => {
-        const subject = classSubject.subject;
-        if (!subject) return;
-
-        // create subject if not exists
-        if (!subjectMap.has(subject.id)) {
-          subjectMap.set(subject.id, {
-            id: subject.id,
-            subjectName: subject.subjectName,
-            subjectCode: subject.subjectCode,
-            passingMarks: subject.passingMarks,
-            maxMarks: subject.maxMarks,
-            status: subject.status,
-            createdAt: subject.createdAt,
-            updatedAt: subject.updatedAt,
-            classes: [],
-          });
-        }
-
-        subjectMap.get(subject.id)!.classes.push({
-          classSubjectId: classSubject.id,
-          classInfo: {
-            id: classItem.id,
-            classNo: classItem.classNo,
-            section: classItem.section,
-          },
-          chapters: subject.chapters || [],
-          teacher: classSubject.teacher,
-        });
-      });
-    });
-
-    return Array.from(subjectMap.values());
+    return {
+      data: res.data.data.data,
+      meta: res.data.data.meta,
+    };
   },
 
   getById: async (id: string): Promise<Subject> => {
@@ -193,17 +80,19 @@ export const subjectApis = {
 
   addChaptersToSubject: async (
     subjectId: string,
-    chapter: Chapter,
-  ): Promise<Subject> => {
-    const res = await api.post<{ data: Subject }>(
-      `/subjects/${subjectId}/chapters`,
-      chapter,
-    );
-    return res.data.data;
+    chaptersData: { chapters: { chapterNo: number; chapterName: string }[] },
+  ): Promise<{ chapters: { chapterNo: number; chapterName: string }[] }> => {
+    const res = await api.post<{
+      chapters: { chapterNo: number; chapterName: string }[];
+    }>(`/subjects/${subjectId}/chapters`, chaptersData);
+    return res.data;
   },
 
-  deleteChapter: async (subjectId: string, classId: string): Promise<void> => {
-    await api.delete(`/subjects/${subjectId}/chapters/${classId}`);
+  deleteChapter: async (
+    subjectId: string,
+    chapterId: string,
+  ): Promise<void> => {
+    await api.delete(`/subjects/${subjectId}/chapters/${chapterId}`);
   },
 
   update: async (id: string, data: UpdateSubjectData): Promise<Subject> => {
@@ -213,5 +102,9 @@ export const subjectApis = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/class-subject/${id}`);
+  },
+
+  deleteSubject: async (id: string): Promise<void> => {
+    await api.delete(`/subjects/${id}`);
   },
 };

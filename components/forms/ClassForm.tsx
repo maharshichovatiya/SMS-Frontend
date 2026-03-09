@@ -4,16 +4,42 @@ import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClassFormData, classSchema } from "@/lib/validations/ClassSchema";
 import { useEffect, useState } from "react";
-import { getAllTeachers } from "@/lib/api/Teacher";
-import { GetTeachers } from "@/lib/types/Teacher";
+import { getTeachersForAssignClass } from "@/lib/api/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
 
+interface AssignTeacher {
+  id: string;
+  employeeCode: string;
+  staffCategory: string;
+  department: string;
+  designation: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    school: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
 interface ClassFormProps {
   onCancel: () => void;
   onSuccess?: () => void;
-  defaultValues?: Partial<ClassFormData>;
+  defaultValues?: Partial<ClassFormData> & {
+    classTeacher?: {
+      id: string;
+      user: {
+        firstName: string;
+        lastName: string;
+      };
+    } | null;
+  };
   mode?: "add" | "edit";
   classId?: string;
 }
@@ -25,7 +51,7 @@ export default function ClassForm({
   mode = "add",
   classId,
 }: ClassFormProps) {
-  const [teachers, setTeachers] = useState<GetTeachers[]>([]);
+  const [teachers, setTeachers] = useState<AssignTeacher[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,17 +59,31 @@ export default function ClassForm({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ClassFormData>({
     resolver: zodResolver(classSchema) as Resolver<ClassFormData>,
     defaultValues,
-    mode: "onChange",
+    mode: "onSubmit",
   });
+
+  const formValues = watch();
+
+  const hasChanges = () => {
+    if (!defaultValues || mode !== "edit") return true;
+
+    return Object.keys(defaultValues).some(key => {
+      const defaultValue = defaultValues[key as keyof ClassFormData];
+      const currentValue = formValues[key as keyof ClassFormData];
+
+      return String(defaultValue ?? "") !== String(currentValue ?? "");
+    });
+  };
 
   useEffect(() => {
     if (defaultValues) {
       reset({
-        classNo: String(defaultValues.classNo ?? ""),
+        className: String(defaultValues.className ?? ""),
         section: defaultValues.section ?? "",
         classTeacherId: defaultValues.classTeacherId ?? null,
         studentCapacity: defaultValues.studentCapacity ?? undefined,
@@ -54,13 +94,18 @@ export default function ClassForm({
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await getAllTeachers();
+        const res = await getTeachersForAssignClass();
         if (res.success && res.data) {
           setTeachers(res.data);
         } else {
-          const message = Array.isArray(res.message)
-            ? res.message[0]
-            : res.message;
+          let message = res.message;
+          if (
+            res.message &&
+            res.message.length > 0 &&
+            typeof res.message === "object"
+          ) {
+            message = res.message[0];
+          }
           showToast.error(message || "Something went wrong");
         }
       } catch {
@@ -77,7 +122,13 @@ export default function ClassForm({
     try {
       const payload = {
         ...data,
-        classTeacherId: data.classTeacherId || null,
+        // Use teacher ID from classTeacher object if available, otherwise use form selection
+        classTeacherId:
+          defaultValues?.classTeacher?.id ||
+          (data.classTeacherId &&
+            teachers.some(t => t.id === data.classTeacherId))
+            ? data.classTeacherId
+            : null,
       };
 
       const res =
@@ -94,7 +145,15 @@ export default function ClassForm({
         reset();
         onSuccess?.();
       } else {
-        showToast.error(res.message || "Something went wrong");
+        let message = res.message;
+        if (
+          res.message &&
+          res.message.length > 0 &&
+          typeof res.message === "object"
+        ) {
+          message = res.message[0];
+        }
+        showToast.error(message || "Something went wrong");
       }
     } catch {
       showToast.error("Something went wrong");
@@ -116,7 +175,7 @@ export default function ClassForm({
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label className="label-base">
-              Class No <span className="text-red-500 text-lg">*</span>
+              Class Name <span className="text-red-500 text-lg">*</span>
             </label>
             <div className="relative">
               <Hash
@@ -124,15 +183,21 @@ export default function ClassForm({
                 style={{ color: "var(--text-3)" }}
               />
               <select
-                {...register("classNo")}
-                className={`input-base pl-9 pr-9 appearance-none ${errors.classNo ? "error" : ""}`}
+                {...register("className")}
+                className={`input-base pl-9 pr-9 appearance-none ${errors.className ? "error" : ""}`}
               >
                 <option value="">Select class</option>
+                <option value="LKG">class LKG</option>
+                <option value="UKG">class UKG</option>
                 {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
                   <option key={num} value={String(num)}>
-                    Class {num}
+                    class {num}
                   </option>
                 ))}
+                <option value="11-science">class 11 Science</option>
+                <option value="11-commerce">class 11 Commerce</option>
+                <option value="12-science">class 12 Science</option>
+                <option value="12-commerce">class 12 Commerce</option>
               </select>
               <ChevronDown
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -140,7 +205,7 @@ export default function ClassForm({
               />
             </div>
             <span className="text-xs text-[var(--rose)] min-h-[16px]">
-              {errors.classNo?.message}
+              {errors.className?.message}
             </span>
           </div>
 
@@ -158,7 +223,7 @@ export default function ClassForm({
                 className={`input-base pl-9 pr-9 appearance-none ${errors.section ? "error" : ""}`}
               >
                 <option value="">Select section</option>
-                {["A", "B", "C", "D", "E"].map(s => (
+                {["A", "B", "C", "D"].map(s => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -247,13 +312,28 @@ export default function ClassForm({
                   {...register("classTeacherId")}
                   className={`input-base pl-9 pr-9 appearance-none ${errors.classTeacherId ? "error" : ""}`}
                 >
-                  <option value="">Select a teacher</option>
-                  {teachers.map(teacher => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.user.firstName} {teacher.user.lastName} —{" "}
-                      {teacher.designation}
-                    </option>
-                  ))}
+                  {/* In edit mode with existing teacher, show all teachers with current one selected */}
+                  {mode === "edit" && defaultValues?.classTeacherId ? (
+                    <>
+                      <option value="">Unassign Teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <option value="">Select a teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.firstName} {teacher.user.lastName} —{" "}
+                          {teacher.designation}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 <ChevronDown
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -273,13 +353,15 @@ export default function ClassForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 cursor-pointer rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
+          className="px-7 py-3 cursor-pointer rounded-[var(--radius-md)] border border-[var(--border)] text-[var(--text-2)] font-medium hover:bg-[var(--bg-2)] transition"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={submitting || loadingTeachers || teachers.length === 0}
+          disabled={
+            submitting || loadingTeachers || (mode === "edit" && !hasChanges())
+          }
           className="btn-primary disabled:opacity-60"
         >
           {submitting

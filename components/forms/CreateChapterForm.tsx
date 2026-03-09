@@ -1,20 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { SubjectWithClasses } from "@/lib/api/Subject";
+import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import { subjectApis } from "@/lib/api/Subject";
 import { showToast } from "@/lib/utils/Toast";
+import { Plus, Trash2 } from "lucide-react";
+import {
+  createChaptersFormSchema,
+  CreateChaptersFormValues,
+} from "@/lib/validations/SubjectSchema";
 
 interface CreateChapterFormProps {
-  subject: SubjectWithClasses;
-  classInfo: SubjectWithClasses["classes"][0];
+  subject: SubjectWithClassSubjects;
+  classInfo: NonNullable<SubjectWithClassSubjects["classSubjects"]>[0] | null;
   chaptersCount?: number;
   onClose: () => void;
   onSubmitSuccess: () => void;
-  onChapterCreated?: (newChapter: {
-    chapterName: string;
-    chapterNo: number;
-  }) => void;
+  onChapterCreated?: (
+    newChapters: {
+      chapterName: string;
+      chapterNo: number;
+    }[],
+  ) => void;
 }
 
 export default function CreateChapterForm({
@@ -25,61 +32,107 @@ export default function CreateChapterForm({
   onSubmitSuccess,
   onChapterCreated,
 }: CreateChapterFormProps) {
-  const [chapter, setChapter] = useState<{
-    chapterName: string;
-    chapterNo: number;
-  }>({ chapterName: "", chapterNo: 1 });
+  const [chapters, setChapters] = useState<
+    {
+      chapterName: string;
+      chapterNo: number;
+    }[]
+  >([
+    {
+      chapterName: "",
+      chapterNo: (chaptersCount || subject.chapters?.length || 0) + 1,
+    },
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentChaptersCount, setCurrentChaptersCount] = useState(
-    chaptersCount || classInfo.chapters?.length || 0,
+    chaptersCount || subject.chapters?.length || 0,
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const addChapter = () => {
+    const nextChapterNo =
+      Math.max(...chapters.map(c => c.chapterNo), currentChaptersCount) + 1;
+    setChapters(prev => [
+      ...prev,
+      { chapterName: "", chapterNo: nextChapterNo },
+    ]);
+  };
+
+  const removeChapter = (index: number) => {
+    if (chapters.length > 1) {
+      setChapters(prev => prev.filter((_, i) => i !== index));
+    }
+  };
 
   const updateChapter = (
+    index: number,
     field: "chapterName" | "chapterNo",
     value: string | number,
   ) => {
-    setChapter(prev => ({
-      ...prev,
-      [field]: field === "chapterNo" ? Number(value) : value,
-    }));
+    setChapters(prev =>
+      prev.map((chapter, i) =>
+        i === index
+          ? {
+              ...chapter,
+              [field]: field === "chapterNo" ? Number(value) : value,
+            }
+          : chapter,
+      ),
+    );
   };
 
   const onSubmit = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
     }
+
     try {
       setIsSubmitting(true);
+      setErrors({});
 
-      // Validate that chapter name is not empty
-      if (chapter.chapterName.trim() === "") {
-        showToast.error("Chapter name cannot be empty");
+      // Prepare form data for Zod validation
+      const formData: CreateChaptersFormValues = {
+        chapters: chapters.map(chapter => ({
+          chapterName: chapter.chapterName.trim(),
+          chapterNo: chapter.chapterNo,
+        })),
+      };
+
+      // Validate with Zod schema
+      const validationResult = createChaptersFormSchema.safeParse(formData);
+
+      if (!validationResult.success) {
+        // Convert Zod errors to a more usable format
+        const fieldErrors: Record<string, string> = {};
+        validationResult.error.issues.forEach(issue => {
+          const fieldPath = issue.path.join(".");
+          fieldErrors[fieldPath] = issue.message;
+        });
+        setErrors(fieldErrors);
+
+        // Show the first error as a toast
+        const firstError = validationResult.error.issues[0];
+        showToast.error(firstError.message);
         return;
       }
 
-      // Validate chapter number
-      if (chapter.chapterNo < 1) {
-        showToast.error("Chapter number must be greater than 0");
-        return;
-      }
+      // All validations passed - make API call
+      const validChapters = validationResult.data.chapters;
 
-      // Validate chapter name length
-      if (chapter.chapterName.length > 50) {
-        showToast.error("Chapter name cannot exceed 50 characters");
-        return;
-      }
+      await subjectApis.addChaptersToSubject(subject.id, {
+        chapters: validChapters,
+      });
 
-      // Make API call to add chapter to this subject
-      await subjectApis.addChaptersToSubject(subject.id, chapter);
-
-      showToast.success("Chapter created successfully!");
+      showToast.success(
+        `${validChapters.length} chapters created successfully!`,
+      );
 
       // Update the local chapters count immediately
-      setCurrentChaptersCount(prev => prev + 1);
+      setCurrentChaptersCount((prev: number) => prev + validChapters.length);
 
-      // First notify about the new chapter, then handle success
+      // First notify about the new chapters, then handle success
       if (onChapterCreated) {
-        onChapterCreated(chapter);
+        onChapterCreated(validChapters);
       }
 
       // Close modal and refresh data after a brief delay to ensure state updates
@@ -100,64 +153,96 @@ export default function CreateChapterForm({
           <p className="text-sm font-semibold text-[var(--text)]">
             {subject.subjectName}
           </p>
-          <p className="text-xs text-[var(--text-3)]">
-            Class {classInfo.classInfo.classNo}-{classInfo.classInfo.section}
-          </p>
+          {classInfo ? (
+            <p className="text-xs text-[var(--text-3)]">
+              Class {classInfo.class.className}-{classInfo.class.section}
+            </p>
+          ) : (
+            <p className="text-xs text-[var(--text-3)]">No class assigned</p>
+          )}
           <p className="text-xs text-[var(--text-3)] mt-1">
             Existing chapters: {currentChaptersCount}
           </p>
         </div>
 
-        {/* Chapter */}
+        {/* Chapters */}
         <div>
-          <div className="mb-1.5">
+          <div className="mb-1.5 flex items-center justify-between">
             <label className="text-xs font-bold text-[var(--text)] uppercase tracking-wide">
-              Chapter
+              Chapters
               <span className="text-[var(--rose)] ml-0.5">*</span>
             </label>
+            <button
+              type="button"
+              onClick={addChapter}
+              className="btn-primary flex items-center gap-2 px-3 py-1.5 text-xs font-normal rounded-[var(--radius-sm)] cursor-pointer"
+              style={{ height: "32px", padding: "6px 12px" }}
+            >
+              <Plus size={14} />
+              Add Chapter
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              placeholder="No."
-              min="1"
-              value={chapter.chapterNo}
-              onChange={e => {
-                const value = parseInt(e.target.value) || 0;
-                if (value >= 1) {
-                  updateChapter("chapterNo", value);
-                }
-              }}
-              className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                chapter.chapterNo < 1
-                  ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-                  : "border-[var(--border)]"
-              }`}
-            />
-            <input
-              type="text"
-              placeholder="Chapter name"
-              value={chapter.chapterName}
-              onChange={e => updateChapter("chapterName", e.target.value)}
-              className={`flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                chapter.chapterName.trim() === ""
-                  ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-                  : "border-[var(--border)]"
-              }`}
-            />
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {chapters.map((chapter, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="number"
+                  placeholder="No."
+                  min="1"
+                  value={chapter.chapterNo}
+                  onChange={e => {
+                    const value = parseInt(e.target.value) || 0;
+                    if (value >= 1) {
+                      updateChapter(index, "chapterNo", value);
+                    }
+                  }}
+                  className={`w-16 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                    errors[`chapters.${index}.chapterNo`]
+                      ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                      : "border-[var(--border)]"
+                  }`}
+                />
+                <input
+                  type="text"
+                  placeholder="Chapter name"
+                  value={chapter.chapterName}
+                  onChange={e =>
+                    updateChapter(index, "chapterName", e.target.value)
+                  }
+                  className={`flex-1 px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                    errors[`chapters.${index}.chapterName`]
+                      ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                      : "border-[var(--border)]"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeChapter(index)}
+                  disabled={chapters.length === 1}
+                  className="w-8 h-8 flex items-center justify-center text-[var(--rose)] hover:text-[var(--rose-dark)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
           </div>
 
-          {chapter.chapterName.trim() === "" && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              Chapter name cannot be empty
-            </p>
-          )}
-          {chapter.chapterNo < 1 && (
-            <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              Chapter number must be greater than 0
-            </p>
-          )}
+          {/* Individual field error messages */}
+          {chapters.map((chapter, index) => (
+            <div key={index} className="space-y-1">
+              {errors[`chapters.${index}.chapterName`] && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors[`chapters.${index}.chapterName`]}
+                </p>
+              )}
+              {errors[`chapters.${index}.chapterNo`] && (
+                <p className="text-xs font-medium text-[var(--rose)]">
+                  {errors[`chapters.${index}.chapterNo`]}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -175,7 +260,9 @@ export default function CreateChapterForm({
           disabled={isSubmitting}
           className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isSubmitting ? "Creating..." : "Create Chapter"}
+          {isSubmitting
+            ? "Creating..."
+            : `Create ${chapters.length} Chapter${chapters.length > 1 ? "s" : ""}`}
         </button>
       </div>
     </form>

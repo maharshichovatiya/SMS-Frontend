@@ -125,9 +125,6 @@ export default function DashboardContent() {
   );
   const [recentTeachers, setRecentTeachers] = useState<RecentTeacher[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [role, setRole] = useState<string>("");
-  const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
@@ -198,46 +195,8 @@ export default function DashboardContent() {
       B: "indigo",
       C: "amber",
       D: "rose",
-      rt: "cyan",
     };
     return variants[section] || "blue";
-  };
-
-  const handleEdit = async (student: RecentAdmission) => {
-    setLoadingStudentId(student.id);
-    try {
-      const studentsResponse = await studentApis.getAll();
-      const fullStudent = studentsResponse.data?.data.find(
-        s => s.id === student.id,
-      );
-
-      if (fullStudent) {
-        setEditingStudent(fullStudent);
-      } else {
-        showToast.error(
-          "Complete student details not available. Redirecting to Students page for full editing...",
-        );
-        router.push("/students");
-      }
-    } catch {
-      showToast.error(
-        "Unable to load student details. Please try again from the Students page.",
-      );
-      router.push("/students");
-    } finally {
-      setLoadingStudentId(null);
-    }
-  };
-  const handleEditSuccess = () => {
-    setEditingStudent(null);
-    dashboardApis
-      .getRecentAdmissions()
-      .then(response => {
-        if (response?.data) {
-          setRecentAdmissions(response.data);
-        }
-      })
-      .catch(() => {});
   };
 
   const getGreeting = () => {
@@ -356,9 +315,9 @@ export default function DashboardContent() {
                       student.user.lastName,
                     );
                     const academic = student.academics?.[0];
-                    const classNo = academic?.class?.classNo || "-";
+                    const className = academic?.class?.className || "-";
                     const section = academic?.class?.section || "-";
-                    const classStr = `${classNo}-${section}`;
+                    const classStr = `${className}-${section}`;
                     const badgeVariant = getBadgeVariant(section);
                     const gradients: Record<string, string> = {
                       blue: "from-[#3d6cf4] to-[#6c47f5]",

@@ -7,7 +7,7 @@ import { showToast } from "@/lib/utils/Toast";
 
 interface ClassChapterFormProps {
   subject: SubjectWithClasses;
-  classInfo: SubjectWithClasses["classes"][0];
+  classInfo: SubjectWithClasses["classSubjects"][0];
   onClose: () => void;
   onSubmitSuccess: () => void;
 }
@@ -21,12 +21,11 @@ export default function ClassChapterForm({
   const [chapters, setChapters] = useState<
     { id?: string; chapterName: string; chapterNo: number }[]
   >(
-    classInfo.chapters.length > 0
-      ? classInfo.chapters
+    (subject.chapters || []).length > 0
+      ? subject.chapters || []
       : [{ chapterName: "", chapterNo: 1 }],
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [classInfoState, setClassInfoState] = useState(classInfo);
 
   const updateChapter = (
     index: number,
@@ -102,10 +101,6 @@ export default function ClassChapterForm({
 
       // Update local state with the API response
       setChapters(updatedSubject.chapters || cleanChapters);
-      setClassInfoState({
-        ...classInfoState,
-        chapters: updatedSubject.chapters || cleanChapters,
-      });
 
       showToast.success("Chapters updated successfully!");
       onSubmitSuccess();
@@ -124,7 +119,7 @@ export default function ClassChapterForm({
             {subject.subjectName}
           </p>
           <p className="text-xs text-[var(--text-3)]">
-            Class {classInfo.classInfo.classNo}-{classInfo.classInfo.section}
+            Class {classInfo.class.className}-{classInfo.class.section}
           </p>
         </div>
 

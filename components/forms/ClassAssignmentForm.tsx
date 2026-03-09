@@ -158,7 +158,7 @@ export default function ClassAssignmentForm({
             </option>
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>
-                Class {cls.classNo} - {cls.section}
+                Class {cls.className} - {cls.section}
                 {cls.studentCapacity && ` (Capacity: ${cls.studentCapacity})`}
                 {cls.status === "inactive" && " (Inactive)"}
               </option>
@@ -180,7 +180,7 @@ export default function ClassAssignmentForm({
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-3)]">Class Number:</span>
                 <span className="text-[var(--text)] font-medium">
-                  {selectedClass.classNo}
+                  {selectedClass.className}
                 </span>
               </div>
               <div className="flex justify-between text-xs">

@@ -25,6 +25,7 @@ export const createStudentSchema = z.object({
     .email("Enter a valid email address"),
   password: z
     .string()
+    .min(1, "Password is required")
     .min(8, "Password must be at least 8 characters")
     .max(20, "Password cannot exceed 20 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -39,17 +40,20 @@ export const createStudentSchema = z.object({
     .min(1, "Phone is required")
     .max(10, "Phone cannot exceed 10 digits")
     .min(10, "Phone must be exactly 10 digits")
-    .regex(/^\d{10}$/, "Phone must be a 10-digit number"),
-  admissionNo: z
-    .string()
-    .max(20, "Admission No cannot exceed 20 characters")
-    .regex(/^\d+$/, "Must be a number")
-    .optional(),
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    ),
   rollNo: z
     .string()
-    .min(1, "Roll No is required")
     .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d+$/, "Must be a number"),
+    .regex(/^\d*$/, "Must be a number")
+    .optional()
+    .or(z.literal(undefined))
+    .refine(
+      val => !val || (typeof val === "string" && val.length >= 1),
+      "Roll No must be at least 1 digit if provided",
+    ),
   admissionDate: z
     .string()
     .min(1, "Admission date is required")
@@ -81,7 +85,6 @@ export const createStudentSchema = z.object({
         birthDate >= minDate
       );
     }, "Student age must be between 5 and 25 years"),
-  status: z.enum(["active", "inactive"]).optional(),
   fatherName: z
     .string()
     .max(30, "Father name cannot exceed 30 characters")
@@ -94,7 +97,10 @@ export const createStudentSchema = z.object({
   fatherPhone: z
     .string()
     .max(10, "Father phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Father phone must be exactly 10 digits")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
   motherName: z
@@ -119,11 +125,7 @@ export const createStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || val.length <= 15,
-      "Family income cannot exceed 15 characters",
-    )
-    .refine(
-      val => !val || /^\d+$/.test(val),
+      val => !val || /^\d*$/.test(val),
       "Family income must contain only numbers",
     )
     .refine(
@@ -138,6 +140,80 @@ export const createStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  bloodGroup: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+    ),
+  aadhaarNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+      "Aadhaar number must contain only digits and be exactly 12 digits",
+    ),
+  panNo: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+          !/[a-z0-9]/.test(val.slice(0, 5)) &&
+          !/[a-z]/.test(val.slice(5, 9)) &&
+          !/[0-9]/.test(val.slice(9, 10))),
+      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+    ),
+  permanentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Permanent address must be at least 5 characters if provided",
+    ),
+  currentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Current address must be at least 5 characters if provided",
+    ),
+  bankName: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+    )
+    .optional(),
+  accountNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      "Account number must contain only digits and be between 8-18 characters",
+    ),
+  ifscCode: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+    ),
+  branch: z
+    .string()
+    .max(50, "Branch name cannot exceed 50 characters")
+    .optional()
+    .refine(
+      val =>
+        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+    )
+    .optional(),
+  sameAsPermanent: z.boolean().optional(),
+  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for create student
   classId: z.string().optional(),
   academicYearId: z.string().optional(),
@@ -177,23 +253,27 @@ export const updateStudentSchema = z.object({
       /[^a-zA-Z0-9]/,
       "Password must contain at least one special character",
     )
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   phone: z
     .string()
     .max(10, "Phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Phone must be a 10-digit number")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
-  admissionNo: z
-    .string()
-    .min(1, "Admission No is required")
-    .max(20, "Admission No cannot exceed 20 characters")
-    .regex(/^\d+$/, "Admission No must contain only numbers"),
   rollNo: z
     .string()
-    .min(1, "Roll No is required")
     .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d+$/, "Roll No must contain only numbers"),
+    .regex(/^\d*$/, "Roll No must contain only numbers")
+    .optional()
+    .or(z.literal(undefined))
+    .refine(
+      val => !val || (typeof val === "string" && val.length >= 1),
+      "Roll No must be at least 1 digit if provided",
+    ),
   admissionDate: z
     .string()
     .min(1, "Admission date is required")
@@ -225,7 +305,6 @@ export const updateStudentSchema = z.object({
         birthDate >= minDate
       );
     }, "Student age must be between 5 and 25 years"),
-  status: z.enum(["active", "inactive"]).optional(),
   fatherName: z
     .string()
     .max(30, "Father name cannot exceed 30 characters")
@@ -238,7 +317,10 @@ export const updateStudentSchema = z.object({
   fatherPhone: z
     .string()
     .max(10, "Father phone cannot exceed 10 digits")
-    .regex(/^\d{10}$/, "Father phone must be exactly 10 digits")
+    .regex(
+      /^[6-9]\d{9}$/,
+      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+    )
     .or(z.literal(""))
     .optional(),
   motherName: z
@@ -263,11 +345,7 @@ export const updateStudentSchema = z.object({
     .string()
     .optional()
     .refine(
-      val => !val || val.length <= 15,
-      "Family income cannot exceed 15 characters",
-    )
-    .refine(
-      val => !val || /^\d+$/.test(val),
+      val => !val || /^\d*$/.test(val),
       "Family income must contain only numbers",
     )
     .refine(
@@ -282,19 +360,117 @@ export const updateStudentSchema = z.object({
       "Medical conditions must be at least 3 characters if provided",
     )
     .optional(),
+  bloodGroup: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+    ),
+  aadhaarNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+      "Aadhaar number must contain only digits and be exactly 12 digits",
+    ),
+  panNo: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val ||
+        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+          !/[a-z0-9]/.test(val.slice(0, 5)) &&
+          !/[a-z]/.test(val.slice(5, 9)) &&
+          !/[0-9]/.test(val.slice(9, 10))),
+      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+    ),
+  permanentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Permanent address must be at least 5 characters if provided",
+    ),
+  currentAddress: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || val.trim().length >= 5,
+      "Current address must be at least 5 characters if provided",
+    ),
+  bankName: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+    )
+    .optional(),
+  accountNo: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^\d+$/.test(val) && val.trim().length >= 8),
+      "Account number must contain only digits and be between 8-18 characters",
+    ),
+  ifscCode: z
+    .string()
+    .optional()
+    .refine(
+      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+    ),
+  branch: z
+    .string()
+    .optional()
+    .refine(
+      val =>
+        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+    )
+    .optional(),
+  sameAsPermanent: z.boolean().optional(),
+  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
   // Optional class assignment fields for update student
   classId: z.string().optional(),
   academicYearId: z.string().optional(),
 });
 
-export type CreateStudentFormValues = z.infer<typeof createStudentSchema>;
-export type UpdateStudentFormValues = z.infer<typeof updateStudentSchema>;
-export type StudentFormValues =
-  | CreateStudentFormValues
-  | UpdateStudentFormValues;
+export type StudentFormValues = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  rollNo?: string;
+  admissionDate: string;
+  dob?: string;
+  gender?: "male" | "female" | "other" | "";
+  fatherName?: string;
+  fatherPhone?: string;
+  motherName?: string;
+  guardianName?: string;
+  familyAnnualIncome?: string;
+  medicalConditions?: string;
+  bloodGroup?: string;
+  aadhaarNo?: string;
+  panNo?: string;
+  permanentAddress?: string;
+  currentAddress?: string;
+  bankName?: string;
+  accountNo?: string;
+  ifscCode?: string;
+  branch?: string;
+  classId?: string;
+  academicYearId?: string;
+  password?: string;
+  sameAsPermanent?: boolean;
+};
 
 export const STUDENT_FIELDS: {
-  name: keyof CreateStudentFormValues;
+  name: keyof StudentFormValues;
   label: string;
   type: string;
   placeholder: string;
@@ -308,7 +484,6 @@ export const STUDENT_FIELDS: {
     label: "First Name",
     type: "text",
     placeholder: "e.g. Man",
-    fullWidth: true,
     section: "Personal Details",
   },
   {
@@ -317,7 +492,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Kumar",
     optional: true,
-    fullWidth: true,
     section: "Personal Details",
   },
   {
@@ -325,7 +499,6 @@ export const STUDENT_FIELDS: {
     label: "Last Name",
     type: "text",
     placeholder: "e.g. Lakhani",
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -334,7 +507,14 @@ export const STUDENT_FIELDS: {
     label: "Email",
     type: "email",
     placeholder: "e.g. student@gmail.com",
-    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Min. 8 characters",
     section: "Personal Details",
   },
 
@@ -343,7 +523,6 @@ export const STUDENT_FIELDS: {
     label: "Phone",
     type: "tel",
     placeholder: "e.g. 9099330195",
-    fullWidth: true,
     section: "Personal Details",
   },
 
@@ -353,7 +532,41 @@ export const STUDENT_FIELDS: {
     type: "date",
     placeholder: "",
     optional: true,
-    fullWidth: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "gender",
+    label: "Gender",
+    type: "select",
+    placeholder: "Select gender",
+    optional: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "bloodGroup",
+    label: "Blood Group",
+    type: "select",
+    placeholder: "Select blood group",
+    optional: true,
+    section: "Personal Details",
+  },
+
+  {
+    name: "aadhaarNo",
+    label: "Aadhaar Number",
+    type: "text",
+    placeholder: "e.g. 123456789012",
+    optional: true,
+    section: "Personal Details",
+  },
+  {
+    name: "panNo",
+    label: "PAN Number",
+    type: "text",
+    placeholder: "e.g. ABCDE1234F",
+    optional: true,
     section: "Personal Details",
   },
 
@@ -363,7 +576,7 @@ export const STUDENT_FIELDS: {
     label: "Roll No",
     type: "text",
     placeholder: "e.g. 1",
-    fullWidth: true,
+    optional: true,
     section: "Academic Details",
   },
   {
@@ -371,17 +584,6 @@ export const STUDENT_FIELDS: {
     label: "Admission Date",
     type: "date",
     placeholder: "",
-    fullWidth: true,
-    section: "Academic Details",
-  },
-
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    placeholder: "Select status",
-    optional: true,
-    fullWidth: true,
     section: "Academic Details",
   },
 
@@ -404,16 +606,6 @@ export const STUDENT_FIELDS: {
     section: "Academic Details",
   },
 
-  // Account Section
-  {
-    name: "password",
-    label: "Password",
-    type: "password",
-    placeholder: "Min 8 characters",
-    fullWidth: true,
-    section: "Account Details",
-  },
-
   // Family Details Section
   {
     name: "fatherName",
@@ -421,7 +613,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. John Doe",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
 
@@ -431,7 +622,6 @@ export const STUDENT_FIELDS: {
     type: "tel",
     placeholder: "e.g. 9099330195",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
   {
@@ -440,7 +630,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Jane Doe",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
 
@@ -450,7 +639,6 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. Guardian Name",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
   },
   {
@@ -459,8 +647,8 @@ export const STUDENT_FIELDS: {
     type: "text",
     placeholder: "e.g. 500000",
     optional: true,
-    fullWidth: true,
     section: "Family Details",
+    fullWidth: true,
   },
 
   {
@@ -471,5 +659,39 @@ export const STUDENT_FIELDS: {
     optional: true,
     fullWidth: true,
     section: "Family Details",
+  },
+
+  // Bank Details Section
+  {
+    name: "bankName",
+    label: "Bank Name",
+    type: "text",
+    placeholder: "e.g. State Bank of India",
+    optional: true,
+    section: "Bank Details",
+  },
+  {
+    name: "accountNo",
+    label: "Account Number",
+    type: "text",
+    placeholder: "e.g. 123456789012",
+    optional: true,
+    section: "Bank Details",
+  },
+  {
+    name: "ifscCode",
+    label: "IFSC Code",
+    type: "text",
+    placeholder: "e.g. SBIN0001234",
+    optional: true,
+    section: "Bank Details",
+  },
+  {
+    name: "branch",
+    label: "Branch Name",
+    type: "text",
+    placeholder: "e.g. Main Branch, Delhi",
+    optional: true,
+    section: "Bank Details",
   },
 ];

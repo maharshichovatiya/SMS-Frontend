@@ -23,12 +23,15 @@ export default function SignInForm() {
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
-    mode: "onChange",
+    mode: "onSubmit",
   });
 
   const onSubmit = async (data: SignInFormValues) => {
     try {
-      const result = await login(data);
+      const result = await login({
+        email: data.email.toLowerCase(),
+        password: data.password,
+      });
 
       if (result.statusCode === 200) {
         showToast.success("OTP sent to your login email");
