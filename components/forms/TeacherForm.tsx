@@ -4,8 +4,9 @@ import {
   createTeacherSchema,
   TeacherFormData,
 } from "@/lib/validations/TeacherSchema";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/store";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store";
+import { fetchAssignTeachers } from "@/lib/store/teacherSlice";
 import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
@@ -39,6 +40,7 @@ export default function TeacherForm({
   isLoading = false,
   teacherId,
 }: TeacherFormProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const { schoolId } = useSelector((state: RootState) => state.auth);
   const schema = createTeacherSchema(mode);
   const {
@@ -186,6 +188,8 @@ export default function TeacherForm({
             ? "Teacher updated successfully "
             : "Teacher created successfully ",
         );
+        // Force immediate API call to refresh teacher data
+        dispatch(fetchAssignTeachers());
         reset();
         onSuccess?.();
       } else {
