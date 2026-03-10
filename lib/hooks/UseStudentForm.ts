@@ -9,10 +9,12 @@ import {
   StudentFormValues,
 } from "../validations/StudentSchema";
 import { studentApis } from "../api/Student";
-import { classApis, Class, AcademicYear } from "../api/Class";
+import { Class } from "../api/Class";
 import { showToast } from "../utils/Toast";
 import { generateStudentPassword } from "../utils/PasswordGenerator";
 import { handleStringField } from "../utils/FieldHandlers";
+import { useSelector } from "react-redux";
+import { selectStudentFiltersData } from "../store/StudentFiltersSlice";
 
 interface UseStudentFormProps {
   initialData?: Partial<StudentFormValues> & {
@@ -72,11 +74,10 @@ export function UseStudentForm({
   roleId,
 }: UseStudentFormProps) {
   const isEditMode = !!initialData;
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  // Get classes and academic years from Redux instead of API calls
+  const { classes, academicYears } = useSelector(selectStudentFiltersData);
   const [filteredClasses, setFilteredClasses] = useState<Class[]>([]);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
-  const [fetchingData, setFetchingData] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -308,38 +309,57 @@ export function UseStudentForm({
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setFetchingData(true);
+    if (isEditMode && initialData) {
+      const changedStudentFields = getChangedFields(formData, initialData);
+      setHasChanges(Object.keys(changedStudentFields).length > 0);
+    }
+  }, [formData, initialData, isEditMode]);
 
-        const [academicYearsData, classesData] = await Promise.all([
-          classApis.getAcademicYears(),
-          classApis.getAll(),
-        ]);
+  useEffect(() => {
+    if (initialData) {
+      const formDataToReset: Partial<StudentFormValues> = {
+        firstName: initialData.firstName,
+        middleName: initialData.middleName,
+        lastName: initialData.lastName,
+        email: initialData.email,
+        phone: initialData.phone,
+        rollNo: initialData.rollNo,
+        admissionDate: initialData.admissionDate,
+        dob: initialData.dob,
+        fatherName: initialData.fatherName,
+        fatherPhone: initialData.fatherPhone,
+        motherName: initialData.motherName,
+        guardianName: initialData.guardianName,
+        familyAnnualIncome: initialData.familyAnnualIncome?.toString(),
+        medicalConditions: initialData.medicalConditions,
+        bloodGroup: initialData.bloodGroup,
+        aadhaarNo: initialData.aadhaarNo,
+        panNo: initialData.panNo,
+        permanentAddress: initialData.permanentAddress,
+        currentAddress: initialData.currentAddress,
+        bankName: initialData.bankName,
+        accountNo: initialData.accountNo,
+        ifscCode: initialData.ifscCode,
+        branch: initialData.branch,
+        gender:
+          (initialData.user?.gender as "male" | "female" | "other" | "") || "",
+        classId: initialData.classId || "",
+        academicYearId: initialData.academicYearId || "",
+        password: "",
+        sameAsPermanent: false,
+      };
+      reset(formDataToReset);
 
-        setAcademicYears(academicYearsData);
-        setClasses(classesData);
-
-        if (isEditMode && initialData) {
-          if (initialData.academicYearId) {
-            setValue("academicYearId", initialData.academicYearId);
-            setSelectedAcademicYear(initialData.academicYearId);
-
-            setFilteredClasses(classesData);
-          }
-          if (initialData.classId) {
-            setValue("classId", initialData.classId);
-          }
-        }
-      } catch {
-        showToast.error("Failed to fetch data");
-      } finally {
-        setFetchingData(false);
+      if (initialData.academicYearId) {
+        setValue("academicYearId", initialData.academicYearId);
+        setSelectedAcademicYear(initialData.academicYearId);
+        setFilteredClasses(classes);
       }
-    };
-
-    fetchData();
-  }, [isEditMode, initialData, setValue]);
+      if (initialData.classId) {
+        setValue("classId", initialData.classId);
+      }
+    }
+  }, [isEditMode, initialData, setValue, reset, classes]);
 
   const onSubmit = async (data: StudentFormValues) => {
     try {
@@ -523,7 +543,6 @@ export function UseStudentForm({
     academicYears,
     filteredClasses,
     selectedAcademicYear,
-    fetchingData,
     hasChanges,
     showPassword,
     setShowPassword,

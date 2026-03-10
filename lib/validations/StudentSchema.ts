@@ -1,458 +1,502 @@
 import { z } from "zod";
 
-export const createStudentSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, "First name is required")
-    .min(2, "First name must be at least 2 characters")
-    .max(30, "First name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]+$/, "First name can only contain letters and spaces"),
-  middleName: z
-    .string()
-    .max(30, "Middle name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Middle name can only contain letters and spaces")
-    .optional(),
-  lastName: z
-    .string()
-    .min(1, "Last name is required")
-    .min(2, "Last name must be at least 2 characters")
-    .max(30, "Last name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]+$/, "Last name can only contain letters and spaces"),
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .max(40, "Email cannot exceed 40 characters")
-    .email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^a-zA-Z0-9]/,
-      "Password must contain at least one special character",
-    ),
-  phone: z
-    .string()
-    .min(1, "Phone is required")
-    .max(10, "Phone cannot exceed 10 digits")
-    .min(10, "Phone must be exactly 10 digits")
-    .regex(
-      /^[6-9]\d{9}$/,
-      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
-    ),
-  rollNo: z
-    .string()
-    .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d*$/, "Must be a number")
-    .optional()
-    .or(z.literal(undefined))
-    .refine(
-      val => !val || (typeof val === "string" && val.length >= 1),
-      "Roll No must be at least 1 digit if provided",
-    ),
-  admissionDate: z
-    .string()
-    .min(1, "Admission date is required")
-    .refine(val => {
-      const date = new Date(val);
-      const today = new Date();
-      return !isNaN(date.getTime()) && date <= today;
-    }, "Admission date must be a valid date and cannot be in the future"),
-  dob: z
-    .string()
-    .optional()
-    .refine(val => {
-      if (!val) return true; // Allow empty/undefined
-      const birthDate = new Date(val);
-      const today = new Date();
-      const minDate = new Date(
-        today.getFullYear() - 25,
-        today.getMonth(),
-        today.getDate(),
-      );
-      const maxDate = new Date(
-        today.getFullYear() - 5,
-        today.getMonth(),
-        today.getDate(),
-      );
-      return (
-        !isNaN(birthDate.getTime()) &&
-        birthDate <= maxDate &&
-        birthDate >= minDate
-      );
-    }, "Student age must be between 5 and 25 years"),
-  fatherName: z
-    .string()
-    .max(30, "Father name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Father name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Father name must be at least 2 characters if provided",
-    )
-    .optional(),
-  fatherPhone: z
-    .string()
-    .max(10, "Father phone cannot exceed 10 digits")
-    .regex(
-      /^[6-9]\d{9}$/,
-      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
-    )
-    .or(z.literal(""))
-    .optional(),
-  motherName: z
-    .string()
-    .max(30, "Mother name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Mother name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Mother name must be at least 2 characters if provided",
-    )
-    .optional(),
-  guardianName: z
-    .string()
-    .max(30, "Guardian name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Guardian name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Guardian name must be at least 2 characters if provided",
-    )
-    .optional(),
-  familyAnnualIncome: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || /^\d*$/.test(val),
-      "Family income must contain only numbers",
-    )
-    .refine(
-      val => !val || parseInt(val) > 0,
-      "Family income must be greater than 0 if provided",
-    )
-    .refine(
-      val => !val || parseInt(val) <= 20000000,
-      "Family income cannot exceed 2 crore rupees",
-    ),
-  medicalConditions: z
-    .string()
-    .max(100, "Medical conditions cannot exceed 100 characters")
-    .refine(
-      val => !val || val.trim().length >= 3,
-      "Medical conditions must be at least 3 characters if provided",
-    )
-    .optional(),
-  bloodGroup: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
-      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
-    ),
-  aadhaarNo: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
-      "Aadhaar number must contain only digits and be exactly 12 digits",
-    ),
-  panNo: z
-    .string()
-    .optional()
-    .refine(
-      val =>
-        !val ||
-        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
-          !/[a-z0-9]/.test(val.slice(0, 5)) &&
-          !/[a-z]/.test(val.slice(5, 9)) &&
-          !/[0-9]/.test(val.slice(9, 10))),
-      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
-    ),
-  permanentAddress: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || val.trim().length >= 5,
-      "Permanent address must be at least 5 characters if provided",
-    ),
-  currentAddress: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || val.trim().length >= 5,
-      "Current address must be at least 5 characters if provided",
-    ),
-  bankName: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
-      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
-    )
-    .optional(),
-  accountNo: z
-    .string()
-    .optional()
-    .refine(
-      val =>
-        !val ||
-        (/^\d+$/.test(val) &&
-          val.trim().length >= 8 &&
-          val.trim().length <= 18),
-      "Account number must contain only digits and be between 8-18 characters",
-    ),
-  ifscCode: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
-      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
-    ),
-  branch: z
-    .string()
-    .max(50, "Branch name cannot exceed 50 characters")
-    .optional()
-    .refine(
-      val =>
-        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
-      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
-    )
-    .optional(),
-  sameAsPermanent: z.boolean().optional(),
-  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
-  // Optional class assignment fields for create student
-  classId: z.string().optional(),
-  academicYearId: z.string().optional(),
-});
+export const createStudentSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, "First name is required")
+      .min(2, "First name must be at least 2 characters")
+      .max(30, "First name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]+$/, "First name can only contain letters and spaces"),
+    middleName: z
+      .string()
+      .max(30, "Middle name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Middle name can only contain letters and spaces")
+      .optional(),
+    lastName: z
+      .string()
+      .min(1, "Last name is required")
+      .min(2, "Last name must be at least 2 characters")
+      .max(30, "Last name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]+$/, "Last name can only contain letters and spaces"),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .max(40, "Email cannot exceed 40 characters")
+      .email("Enter a valid email address"),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .max(20, "Password cannot exceed 20 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      ),
+    phone: z
+      .string()
+      .min(1, "Phone is required")
+      .max(10, "Phone cannot exceed 10 digits")
+      .min(10, "Phone must be exactly 10 digits")
+      .regex(
+        /^[6-9]\d{9}$/,
+        "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+      ),
+    rollNo: z
+      .string()
+      .max(10, "Roll No cannot exceed 10 characters")
+      .regex(/^\d*$/, "Must be a number")
+      .optional()
+      .or(z.literal(undefined))
+      .refine(
+        val => !val || (typeof val === "string" && val.length >= 1),
+        "Roll No must be at least 1 digit if provided",
+      ),
+    admissionDate: z
+      .string()
+      .min(1, "Admission date is required")
+      .refine(val => {
+        const date = new Date(val);
+        const today = new Date();
+        return !isNaN(date.getTime()) && date <= today;
+      }, "Admission date must be a valid date and cannot be in the future"),
+    dob: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val) return true; // Allow empty/undefined
+        const birthDate = new Date(val);
+        const today = new Date();
+        const minDate = new Date(
+          today.getFullYear() - 25,
+          today.getMonth(),
+          today.getDate(),
+        );
+        const maxDate = new Date(
+          today.getFullYear() - 5,
+          today.getMonth(),
+          today.getDate(),
+        );
+        return (
+          !isNaN(birthDate.getTime()) &&
+          birthDate <= maxDate &&
+          birthDate >= minDate
+        );
+      }, "Student age must be between 5 and 25 years"),
+    fatherName: z
+      .string()
+      .max(30, "Father name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Father name can only contain letters and spaces")
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Father name must be at least 2 characters if provided",
+      )
+      .optional(),
+    fatherPhone: z
+      .string()
+      .max(10, "Father phone cannot exceed 10 digits")
+      .regex(
+        /^[6-9]\d{9}$/,
+        "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+      )
+      .or(z.literal(""))
+      .optional(),
+    motherName: z
+      .string()
+      .max(30, "Mother name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Mother name can only contain letters and spaces")
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Mother name must be at least 2 characters if provided",
+      )
+      .optional(),
+    guardianName: z
+      .string()
+      .max(30, "Guardian name cannot exceed 30 characters")
+      .regex(
+        /^[a-zA-Z\s]*$/,
+        "Guardian name can only contain letters and spaces",
+      )
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Guardian name must be at least 2 characters if provided",
+      )
+      .optional(),
+    familyAnnualIncome: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || /^\d*\.?\d*$/.test(val),
+        "Family income must contain only numbers",
+      )
+      .refine(
+        val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
+        "Family income must be greater than 0 if provided",
+      )
+      .refine(
+        val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) <= 20000000),
+        "Family income cannot exceed 2 crore rupees",
+      ),
+    medicalConditions: z
+      .string()
+      .max(100, "Medical conditions cannot exceed 100 characters")
+      .refine(
+        val => !val || val.trim().length >= 3,
+        "Medical conditions must be at least 3 characters if provided",
+      )
+      .refine(
+        val => !val || !/^\d+$/.test(val.trim()),
+        "Medical conditions cannot contain only numbers",
+      )
+      .optional(),
+    bloodGroup: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+        "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+      ),
+    aadhaarNo: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+        "Aadhaar number must contain only digits and be exactly 12 digits",
+      ),
+    panNo: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val ||
+          (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+            !/[a-z0-9]/.test(val.slice(0, 5)) &&
+            !/[a-z]/.test(val.slice(5, 9)) &&
+            !/[0-9]/.test(val.slice(9, 10))),
+        "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+      ),
+    permanentAddress: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || val.trim().length >= 5,
+        "Permanent address must be at least 5 characters if provided",
+      ),
+    currentAddress: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || val.trim().length >= 5,
+        "Current address must be at least 5 characters if provided",
+      ),
+    bankName: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+        "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+      )
+      .optional(),
+    accountNo: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val ||
+          (/^\d+$/.test(val) &&
+            val.trim().length >= 8 &&
+            val.trim().length <= 18),
+        "Account number must contain only digits and be between 8-18 characters",
+      ),
+    ifscCode: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+        "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+      ),
+    branch: z
+      .string()
+      .max(50, "Branch name cannot exceed 50 characters")
+      .optional()
+      .refine(
+        val =>
+          !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+        "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+      )
+      .optional(),
+    sameAsPermanent: z.boolean().optional(),
+    gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
+    // Optional class assignment fields for create student
+    classId: z.string().optional(),
+    academicYearId: z.string().optional(),
+  })
+  .refine(
+    data => {
+      // If academicYearId is provided, classId must also be provided
+      if (data.academicYearId && !data.classId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Class selection is required when academic year is selected",
+      path: ["classId"], // Show error on classId field
+    },
+  );
 
-export const updateStudentSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, "First name is required")
-    .min(2, "First name must be at least 2 characters")
-    .max(30, "First name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]+$/, "First name can only contain letters and spaces"),
-  middleName: z
-    .string()
-    .max(30, "Middle name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Middle name can only contain letters and spaces")
-    .optional(),
-  lastName: z
-    .string()
-    .min(1, "Last name is required")
-    .min(2, "Last name must be at least 2 characters")
-    .max(30, "Last name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]+$/, "Last name can only contain letters and spaces"),
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .max(40, "Email cannot exceed 40 characters")
-    .email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^a-zA-Z0-9]/,
-      "Password must contain at least one special character",
-    )
-    .optional()
-    .or(z.literal("")),
-  phone: z
-    .string()
-    .max(10, "Phone cannot exceed 10 digits")
-    .regex(
-      /^[6-9]\d{9}$/,
-      "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
-    )
-    .or(z.literal(""))
-    .optional(),
-  rollNo: z
-    .string()
-    .max(10, "Roll No cannot exceed 10 characters")
-    .regex(/^\d*$/, "Roll No must contain only numbers")
-    .optional()
-    .or(z.literal(undefined))
-    .refine(
-      val => !val || (typeof val === "string" && val.length >= 1),
-      "Roll No must be at least 1 digit if provided",
-    ),
-  admissionDate: z
-    .string()
-    .min(1, "Admission date is required")
-    .refine(val => {
-      const date = new Date(val);
-      const today = new Date();
-      return !isNaN(date.getTime()) && date <= today;
-    }, "Admission date must be a valid date and cannot be in the future"),
-  dob: z
-    .string()
-    .optional()
-    .refine(val => {
-      if (!val) return true; // Allow empty/undefined
-      const birthDate = new Date(val);
-      const today = new Date();
-      const minDate = new Date(
-        today.getFullYear() - 25,
-        today.getMonth(),
-        today.getDate(),
-      );
-      const maxDate = new Date(
-        today.getFullYear() - 5,
-        today.getMonth(),
-        today.getDate(),
-      );
-      return (
-        !isNaN(birthDate.getTime()) &&
-        birthDate <= maxDate &&
-        birthDate >= minDate
-      );
-    }, "Student age must be between 5 and 25 years"),
-  fatherName: z
-    .string()
-    .max(30, "Father name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Father name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Father name must be at least 2 characters if provided",
-    )
-    .optional(),
-  fatherPhone: z
-    .string()
-    .max(10, "Father phone cannot exceed 10 digits")
-    .regex(
-      /^[6-9]\d{9}$/,
-      "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
-    )
-    .or(z.literal(""))
-    .optional(),
-  motherName: z
-    .string()
-    .max(30, "Mother name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Mother name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Mother name must be at least 2 characters if provided",
-    )
-    .optional(),
-  guardianName: z
-    .string()
-    .max(30, "Guardian name cannot exceed 30 characters")
-    .regex(/^[a-zA-Z\s]*$/, "Guardian name can only contain letters and spaces")
-    .refine(
-      val => !val || val.trim().length >= 2,
-      "Guardian name must be at least 2 characters if provided",
-    )
-    .optional(),
-  familyAnnualIncome: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || /^\d*$/.test(val),
-      "Family income must contain only numbers",
-    )
-    .refine(
-      val => !val || parseInt(val) > 0,
-      "Family income must be greater than 0 if provided",
-    )
-    .refine(
-      val => !val || parseInt(val) <= 20000000,
-      "Family income cannot exceed 2 crore rupees",
-    ),
-  medicalConditions: z
-    .string()
-    .max(100, "Medical conditions cannot exceed 100 characters")
-    .refine(
-      val => !val || val.trim().length >= 3,
-      "Medical conditions must be at least 3 characters if provided",
-    )
-    .optional(),
-  bloodGroup: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
-      "Invalid blood group format (e.g., A+, B-, AB+, O+)",
-    ),
-  aadhaarNo: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
-      "Aadhaar number must contain only digits and be exactly 12 digits",
-    ),
-  panNo: z
-    .string()
-    .optional()
-    .refine(
-      val =>
-        !val ||
-        (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
-          !/[a-z0-9]/.test(val.slice(0, 5)) &&
-          !/[a-z]/.test(val.slice(5, 9)) &&
-          !/[0-9]/.test(val.slice(9, 10))),
-      "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
-    ),
-  permanentAddress: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || val.trim().length >= 5,
-      "Permanent address must be at least 5 characters if provided",
-    ),
-  currentAddress: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || val.trim().length >= 5,
-      "Current address must be at least 5 characters if provided",
-    ),
-  bankName: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
-      "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
-    )
-    .optional(),
-  accountNo: z
-    .string()
-    .optional()
-    .refine(
-      val =>
-        !val ||
-        (/^\d+$/.test(val) &&
-          val.trim().length >= 8 &&
-          val.trim().length <= 18),
-      "Account number must contain only digits and be between 8-18 characters",
-    ),
-  ifscCode: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
-      "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
-    ),
-  branch: z
-    .string()
-    .optional()
-    .refine(
-      val =>
-        !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
-      "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
-    )
-    .optional(),
-  sameAsPermanent: z.boolean().optional(),
-  gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
-  // Optional class assignment fields for update student
-  classId: z.string().optional(),
-  academicYearId: z.string().optional(),
-});
+export const updateStudentSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, "First name is required")
+      .min(2, "First name must be at least 2 characters")
+      .max(30, "First name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]+$/, "First name can only contain letters and spaces"),
+    middleName: z
+      .string()
+      .max(30, "Middle name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Middle name can only contain letters and spaces")
+      .optional(),
+    lastName: z
+      .string()
+      .min(1, "Last name is required")
+      .min(2, "Last name must be at least 2 characters")
+      .max(30, "Last name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]+$/, "Last name can only contain letters and spaces"),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .max(40, "Email cannot exceed 40 characters")
+      .email("Enter a valid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(20, "Password cannot exceed 20 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[^a-zA-Z0-9]/,
+        "Password must contain at least one special character",
+      )
+      .optional()
+      .or(z.literal("")),
+    phone: z
+      .string()
+      .max(10, "Phone cannot exceed 10 digits")
+      .regex(
+        /^[6-9]\d{9}$/,
+        "Phone number must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+      )
+      .or(z.literal(""))
+      .optional(),
+    rollNo: z
+      .string()
+      .max(10, "Roll No cannot exceed 10 characters")
+      .regex(/^\d*$/, "Roll No must contain only numbers")
+      .optional()
+      .or(z.literal(undefined))
+      .refine(
+        val => !val || (typeof val === "string" && val.length >= 1),
+        "Roll No must be at least 1 digit if provided",
+      ),
+    admissionDate: z
+      .string()
+      .min(1, "Admission date is required")
+      .refine(val => {
+        const date = new Date(val);
+        const today = new Date();
+        return !isNaN(date.getTime()) && date <= today;
+      }, "Admission date must be a valid date and cannot be in the future"),
+    dob: z
+      .string()
+      .optional()
+      .refine(val => {
+        if (!val) return true; // Allow empty/undefined
+        const birthDate = new Date(val);
+        const today = new Date();
+        const minDate = new Date(
+          today.getFullYear() - 25,
+          today.getMonth(),
+          today.getDate(),
+        );
+        const maxDate = new Date(
+          today.getFullYear() - 5,
+          today.getMonth(),
+          today.getDate(),
+        );
+        return (
+          !isNaN(birthDate.getTime()) &&
+          birthDate <= maxDate &&
+          birthDate >= minDate
+        );
+      }, "Student age must be between 5 and 25 years"),
+    fatherName: z
+      .string()
+      .max(30, "Father name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Father name can only contain letters and spaces")
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Father name must be at least 2 characters if provided",
+      )
+      .optional(),
+    fatherPhone: z
+      .string()
+      .max(10, "Father phone cannot exceed 10 digits")
+      .regex(
+        /^[6-9]\d{9}$/,
+        "Father phone must be a valid Indian mobile number (starting with 6, 7, 8, or 9)",
+      )
+      .or(z.literal(""))
+      .optional(),
+    motherName: z
+      .string()
+      .max(30, "Mother name cannot exceed 30 characters")
+      .regex(/^[a-zA-Z\s]*$/, "Mother name can only contain letters and spaces")
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Mother name must be at least 2 characters if provided",
+      )
+      .optional(),
+    guardianName: z
+      .string()
+      .max(30, "Guardian name cannot exceed 30 characters")
+      .regex(
+        /^[a-zA-Z\s]*$/,
+        "Guardian name can only contain letters and spaces",
+      )
+      .refine(
+        val => !val || val.trim().length >= 2,
+        "Guardian name must be at least 2 characters if provided",
+      )
+      .optional(),
+    familyAnnualIncome: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || /^\d*\.?\d*$/.test(val),
+        "Family income must contain only numbers",
+      )
+      .refine(
+        val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
+        "Family income must be greater than 0 if provided",
+      )
+      .refine(
+        val => !val || (!isNaN(parseFloat(val)) && parseFloat(val) <= 20000000),
+        "Family income cannot exceed 2 crore rupees",
+      ),
+    medicalConditions: z
+      .string()
+      .max(100, "Medical conditions cannot exceed 100 characters")
+      .refine(
+        val => !val || val.trim().length >= 3,
+        "Medical conditions must be at least 3 characters if provided",
+      )
+      .refine(
+        val => !val || !/^\d+$/.test(val.trim()),
+        "Medical conditions cannot contain only numbers",
+      )
+      .optional(),
+    bloodGroup: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || /^(A|B|AB|O)[+-]?$/i.test(val),
+        "Invalid blood group format (e.g., A+, B-, AB+, O+)",
+      ),
+    aadhaarNo: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || (/^\d{12}$/.test(val) && !/[a-zA-Z]/.test(val)),
+        "Aadhaar number must contain only digits and be exactly 12 digits",
+      ),
+    panNo: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val ||
+          (/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val) &&
+            !/[a-z0-9]/.test(val.slice(0, 5)) &&
+            !/[a-z]/.test(val.slice(5, 9)) &&
+            !/[0-9]/.test(val.slice(9, 10))),
+        "PAN must follow format: 5 letters, 4 digits, 1 letter (case-sensitive)",
+      ),
+    permanentAddress: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || val.trim().length >= 5,
+        "Permanent address must be at least 5 characters if provided",
+      ),
+    currentAddress: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || val.trim().length >= 5,
+        "Current address must be at least 5 characters if provided",
+      ),
+    bankName: z
+      .string()
+      .optional()
+      .refine(
+        val => !val || (val.trim().length >= 2 && /^[a-zA-Z\s&.-]+$/.test(val)),
+        "Bank name must be at least 2 characters and contain only letters, spaces, &, ., -",
+      )
+      .optional(),
+    accountNo: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val ||
+          (/^\d+$/.test(val) &&
+            val.trim().length >= 8 &&
+            val.trim().length <= 18),
+        "Account number must contain only digits and be between 8-18 characters",
+      ),
+    ifscCode: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val || (/^[A-Z]{4}0[A-Z0-9]{6}$/.test(val) && !/[a-z]/.test(val)),
+        "IFSC code must contain only uppercase letters and digits (e.g., SBIN0001234)",
+      ),
+    branch: z
+      .string()
+      .optional()
+      .refine(
+        val =>
+          !val || (val.trim().length >= 2 && /^[a-zA-Z0-9\s&.-]+$/.test(val)),
+        "Branch name must be at least 2 characters and contain only letters, numbers, spaces, &, ., -",
+      )
+      .optional(),
+    sameAsPermanent: z.boolean().optional(),
+    gender: z.enum(["male", "female", "other"]).or(z.literal("")).optional(),
+    // Optional class assignment fields for update student
+    classId: z.string().optional(),
+    academicYearId: z.string().optional(),
+  })
+  .refine(
+    data => {
+      // If academicYearId is provided, classId must also be provided
+      if (data.academicYearId && !data.classId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Class selection is required when academic year is selected",
+      path: ["classId"], // Show error on classId field
+    },
+  );
 
 export type StudentFormValues = {
   firstName: string;

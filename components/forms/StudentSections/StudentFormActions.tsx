@@ -4,7 +4,7 @@ import React from "react";
 
 interface StudentFormActionsProps {
   isSubmitting: boolean;
-  fetchingData: boolean;
+  fetchingData?: boolean;
   isEditMode: boolean;
   hasChanges: boolean;
   onCancel: () => void;

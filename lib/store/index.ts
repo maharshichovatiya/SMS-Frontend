@@ -1,11 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
-import classFiltersReducer from "./classFiltersSlice";
-import teacherFiltersReducer from "./teacherFiltersSlice";
+import classFiltersReducer from "./ClassFiltersSlice";
+import teacherFiltersReducer from "./TeacherFiltersSlice";
+import studentFiltersReducer from "./StudentFiltersSlice";
+import studentDataReducer from "./StudentDataSlice";
 
 export const store = configureStore({
   reducer: {
     classFilters: classFiltersReducer,
     teacherFilters: teacherFiltersReducer,
+    studentFilters: studentFiltersReducer,
+    studentData: studentDataReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

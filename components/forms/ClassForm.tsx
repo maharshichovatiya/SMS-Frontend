@@ -8,6 +8,9 @@ import { getTeachersForAssignClass } from "@/lib/api/Teacher";
 import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
+import { fetchStudentFilterData } from "@/lib/store/StudentFiltersSlice";
 
 interface AssignTeacher {
   id: string;
@@ -51,6 +54,7 @@ export default function ClassForm({
   mode = "add",
   classId,
 }: ClassFormProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const [teachers, setTeachers] = useState<AssignTeacher[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -144,6 +148,11 @@ export default function ClassForm({
         );
         reset();
         onSuccess?.();
+
+        // Refresh student filter data when class is created/updated of the classes to the student classes slice
+        if (mode === "add" || mode === "edit") {
+          dispatch(fetchStudentFilterData());
+        }
       } else {
         let message = res.message;
         if (

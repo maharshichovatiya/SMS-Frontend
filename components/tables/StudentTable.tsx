@@ -4,10 +4,8 @@ import { useState } from "react";
 import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
 import StudentTableRow from "./StudentTableRow";
 import Pagination from "@/components/ui/Pagination";
-import { UseStudentData } from "@/lib/hooks/UseStudentData";
-import { UseStudentPagination } from "@/lib/hooks/UseStudentPagination";
 import { showToast } from "@/lib/utils/Toast";
-import { studentApis, RecordStatus } from "@/lib/api/Student";
+import { studentApis } from "@/lib/api/Student";
 import StudentEditModal from "@/components/students/Modals/StudentEditModal";
 import StudentDeleteModal from "@/components/students/Modals/StudentDeleteModal";
 import StudentAssignClassModal from "@/components/students/Modals/StudentAssignClassModal";
@@ -50,49 +48,28 @@ export interface Student {
   branch: string;
 }
 
-const DEFAULT_PAGE_SIZE = 5;
-
 export default function StudentsTable({
+  students,
+  totalStudents,
+  loading,
+  currentPage,
+  pageSize,
+  setCurrentPage,
+  setPageSize,
   roleId,
   onRefresh,
-  searchParams,
-  onTotalCountChange,
 }: {
+  students: Student[];
+  totalStudents: number;
+  loading: boolean;
+  currentPage: number;
+  pageSize: number;
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
   roleId: string;
   onRefresh?: () => void;
-  searchParams?: {
-    search?: string;
-    status?: RecordStatus;
-    classId?: string | string[];
-    sectionId?: string;
-    gender?: string | string[];
-    academicYearId?: string;
-    fromDate?: string;
-    toDate?: string;
-    fromFamilyIncome?: number;
-    toFamilyIncome?: number;
-  };
-  onTotalCountChange?: (count: number) => void;
 }) {
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-
-  // Custom hooks - order matters here, pagination first
-  const { currentPage, setCurrentPage } = UseStudentPagination({
-    searchParams,
-    pageSize,
-  });
-
-  const { students, totalStudents, loading, error, fetchStudents } =
-    UseStudentData({
-      currentPage,
-      pageSize,
-      searchParams,
-      onTotalCountChange,
-    });
-
   const totalPages = Math.ceil(totalStudents / pageSize);
-  const paginatedStudents = students;
-
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -109,7 +86,6 @@ export default function StudentsTable({
   const handleEdit = (student: Student) => setEditingStudent(student);
   const handleEditSuccess = () => {
     setEditingStudent(null);
-    fetchStudents();
     onRefresh?.();
   };
 
@@ -122,7 +98,6 @@ export default function StudentsTable({
 
   const handleClassAssignmentSuccess = () => {
     setAssigningClassStudent(null);
-    fetchStudents();
     onRefresh?.();
   };
 
@@ -131,7 +106,7 @@ export default function StudentsTable({
     setIsDeleting(true);
     try {
       await studentApis.deleteStudent(deletingStudent.id);
-      fetchStudents(); // Refetch data instead of manipulating local state
+      onRefresh?.(); // Use onRefresh instead of fetchStudents
       setDeletingStudent(null);
       showToast.apiSuccess("Deleted successfully");
     } catch (error: unknown) {
@@ -152,8 +127,8 @@ export default function StudentsTable({
       const newStatus = student.status === "Active" ? "inactive" : "active";
       await studentApis.updateStudentStatus(student.id, newStatus);
 
-      // Refetch data to get updated state
-      fetchStudents();
+      // Use onRefresh to get updated data
+      onRefresh?.();
 
       showToast.apiSuccess(
         `Student status updated to ${newStatus === "active" ? "Active" : "Inactive"}`,
@@ -206,10 +181,6 @@ export default function StudentsTable({
 
       {loading ? (
         <StudentTableSkeleton />
-      ) : error ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-sm text-[var(--rose)]">{error}</div>
-        </div>
       ) : students.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4 cursor-pointer">
@@ -253,7 +224,7 @@ export default function StudentsTable({
               </thead>
 
               <tbody>
-                {paginatedStudents.map(student => (
+                {students.map((student: Student) => (
                   <StudentTableRow
                     key={student.id}
                     student={student}

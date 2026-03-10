@@ -10,8 +10,9 @@ interface AcademicDetailsSectionProps {
   errors: FieldErrors<StudentFormValues>;
   academicYears: AcademicYear[];
   filteredClasses: Class[];
-  fetchingData: boolean;
+  fetchingData?: boolean;
   handleAcademicYearChange: (academicYearId: string) => void;
+  selectedAcademicYear?: string;
 }
 
 export default function AcademicDetailsSection({
@@ -21,6 +22,7 @@ export default function AcademicDetailsSection({
   filteredClasses,
   fetchingData,
   handleAcademicYearChange,
+  selectedAcademicYear,
 }: AcademicDetailsSectionProps) {
   const academicFields = STUDENT_FIELDS.filter(
     field => field.section === "Academic Details",
@@ -110,12 +112,15 @@ export default function AcademicDetailsSection({
                         handleAcademicYearChange(e.target.value);
                       }
                     }}
-                    disabled={field.name === "classId" && fetchingData}
+                    disabled={
+                      field.name === "classId" &&
+                      (!selectedAcademicYear || fetchingData)
+                    }
                     className={`w-full px-3.5 py-2.5 pl-10 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] appearance-none cursor-pointer ${
                       error
                         ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                         : "border-[var(--border)]"
-                    } ${field.name === "classId" && fetchingData ? "opacity-60 cursor-not-allowed" : ""}`}
+                    } ${field.name === "classId" && (!selectedAcademicYear || fetchingData) ? "opacity-60 cursor-not-allowed" : ""}`}
                   >
                     <option value="">{field.placeholder}</option>
                     {field.name === "academicYearId" &&
@@ -163,6 +168,13 @@ export default function AcademicDetailsSection({
                     Loading classes...
                   </p>
                 )}
+                {field.name === "classId" &&
+                  !fetchingData &&
+                  !selectedAcademicYear && (
+                    <p className="mt-1 text-xs text-[var(--text-3)]">
+                      Please select an academic year first to choose a class
+                    </p>
+                  )}
               </div>
             );
           }

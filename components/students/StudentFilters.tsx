@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Filter,
   X,
@@ -10,23 +10,21 @@ import {
   ChevronRight,
   IndianRupee,
 } from "lucide-react";
-import { classApis, Class, AcademicYear } from "@/lib/api/Class";
-import { showToast } from "@/lib/utils/Toast";
+import { useSelector, useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
+import {
+  selectStudentFilters,
+  selectStudentFiltersData,
+  selectStudentFiltersLoading,
+  selectStudentFiltersOpen,
+  selectActiveStudentFiltersCount,
+  toggleFilterOption,
+  updateFilter,
+  clearFilters,
+  toggleFiltersPanel,
+  fetchStudentFilterData,
+} from "@/lib/store/StudentFiltersSlice";
 import FiltersLoadingSkeleton from "@/components/skeletons/FiltersLoadingSkeleton";
-
-interface StudentFiltersProps {
-  filters: {
-    classId?: string[];
-    academicYearId?: string;
-    gender?: string[];
-    fromDate?: string;
-    toDate?: string;
-    fromFamilyIncome?: string;
-    toFamilyIncome?: string;
-  };
-  onFiltersChange: (filters: StudentFiltersProps["filters"]) => void;
-  onClearFilters: () => void;
-}
 
 const GENDER_OPTIONS = [
   { value: "male", label: "Male" },
@@ -34,97 +32,46 @@ const GENDER_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-export default function StudentFilters({
-  filters,
-  onFiltersChange,
-  onClearFilters,
-}: StudentFiltersProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
-  const [loading, setLoading] = useState(false);
+export default function StudentFilters() {
+  const dispatch = useDispatch<AppDispatch>();
 
-  const hasActiveFilters = Object.values(filters).some(
-    value => value !== undefined && value !== "",
-  );
+  // Redux selectors
+  const filters = useSelector(selectStudentFilters);
+  const { classes, academicYears } = useSelector(selectStudentFiltersData);
+  const loading = useSelector(selectStudentFiltersLoading);
+  const isOpen = useSelector(selectStudentFiltersOpen);
+  const activeFiltersCount = useSelector(selectActiveStudentFiltersCount);
+
+  const hasActiveFilters = activeFiltersCount > 0;
+
+  const hasData = classes.length > 0 && academicYears.length > 0;
 
   useEffect(() => {
-    if (isOpen) {
-      fetchFilterData();
+    if (isOpen && !hasData) {
+      dispatch(fetchStudentFilterData());
     }
-  }, [isOpen]);
-
-  const fetchFilterData = async () => {
-    try {
-      setLoading(true);
-      const [classesData, academicYearsData] = await Promise.all([
-        classApis.getAll(),
-        classApis.getAcademicYears(),
-      ]);
-      setClasses(classesData);
-      setAcademicYears(academicYearsData);
-    } catch (error) {
-      showToast.apiError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isOpen, dispatch, hasData]);
 
   const handleDateRangeChange = (
     type: "fromDate" | "toDate" | "fromFamilyIncome" | "toFamilyIncome",
     value: string,
   ) => {
-    onFiltersChange({
-      ...filters,
-      [type]: value || undefined,
-    });
+    dispatch(updateFilter({ key: type, value: value || undefined }));
   };
 
   const handleCheckboxChange = (
-    filterName: keyof StudentFiltersProps["filters"],
+    filterName: keyof typeof filters,
     value: string,
     checked: boolean,
   ) => {
-    if (filterName === "gender" || filterName === "classId") {
-      // Handle multiple selections for gender and classId
-      const currentValues = filters[filterName] || [];
-      let newValues: string[];
-
-      if (checked) {
-        // Add the value if it's not already selected
-        newValues = currentValues.includes(value)
-          ? currentValues
-          : [...currentValues, value];
-      } else {
-        // Remove the value
-        newValues = currentValues.filter(v => v !== value);
-      }
-
-      onFiltersChange({
-        ...filters,
-        [filterName]: newValues.length > 0 ? newValues : undefined,
-      });
-    } else {
-      // Handle single selection filters (academicYearId)
-      if (checked) {
-        onFiltersChange({
-          ...filters,
-          [filterName]: value,
-        });
-      } else {
-        onFiltersChange({
-          ...filters,
-          [filterName]: undefined,
-        });
-      }
-    }
+    dispatch(toggleFilterOption({ key: filterName, option: value, checked }));
   };
 
   return (
     <>
       {/* Filter Button - positioned beside search bar */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => dispatch(toggleFiltersPanel(true))}
         className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-[var(--duration)] cursor-pointer ${
           hasActiveFilters
             ? "bg-[var(--blue-light)] text-[var(--blue)] border border-[var(--blue)] hover:bg-[var(--blue)] hover:text-[var(--text-inverse)]"
@@ -135,11 +82,7 @@ export default function StudentFilters({
         Filters
         {hasActiveFilters && (
           <span className="w-5 h-5 bg-[var(--blue)] text-[var(--text-inverse)] text-xs rounded-full flex items-center justify-center">
-            {
-              Object.values(filters).filter(
-                value => value !== undefined && value !== "",
-              ).length
-            }
+            {activeFiltersCount}
           </span>
         )}
         <ChevronRight size={16} className={isOpen ? "rotate-180" : ""} />
@@ -151,7 +94,7 @@ export default function StudentFilters({
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/20 z-40 cursor-pointer"
-            onClick={() => setIsOpen(false)}
+            onClick={() => dispatch(toggleFiltersPanel(false))}
           />
 
           {/* Sidebar */}
@@ -165,7 +108,7 @@ export default function StudentFilters({
                 <div className="flex items-center gap-2">
                   {hasActiveFilters && (
                     <button
-                      onClick={onClearFilters}
+                      onClick={() => dispatch(clearFilters())}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] rounded-[var(--radius-sm)] transition-colors duration-[var(--duration)] cursor-pointer"
                     >
                       <X size={14} />
@@ -173,7 +116,7 @@ export default function StudentFilters({
                     </button>
                   )}
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => dispatch(toggleFiltersPanel(false))}
                     className="w-8 h-8 rounded-[var(--radius-sm)] hover:bg-[var(--surface-2)] flex items-center justify-center transition-colors duration-[var(--duration)] cursor-pointer"
                   >
                     <X size={18} />

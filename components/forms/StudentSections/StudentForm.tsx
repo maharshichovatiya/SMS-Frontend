@@ -41,7 +41,7 @@ export default function StudentForm({
     sameAsPermanent,
     academicYears,
     filteredClasses,
-    fetchingData,
+    selectedAcademicYear,
     hasChanges,
     showPassword,
     setShowPassword,
@@ -79,8 +79,8 @@ export default function StudentForm({
           errors={errors}
           academicYears={academicYears}
           filteredClasses={filteredClasses}
-          fetchingData={fetchingData}
           handleAcademicYearChange={handleAcademicYearChange}
+          selectedAcademicYear={selectedAcademicYear}
         />
 
         <FamilyDetailsSection register={register} errors={errors} />
@@ -95,7 +95,6 @@ export default function StudentForm({
 
         <StudentFormActions
           isSubmitting={isSubmitting}
-          fetchingData={fetchingData}
           isEditMode={isEditMode}
           hasChanges={hasChanges}
           onCancel={handleCancel}

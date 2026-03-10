@@ -19,7 +19,7 @@ import {
   toggleFilterOption,
   clearFilters,
   toggleFiltersPanel,
-} from "@/lib/store/classFiltersSlice";
+} from "@/lib/store/ClassFiltersSlice";
 import {
   TYPE_OPTIONS,
   SECTION_OPTIONS,

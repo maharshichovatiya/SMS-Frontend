@@ -21,7 +21,7 @@ import {
   toggleFilterOption,
   clearFilters,
   toggleFiltersPanel,
-} from "@/lib/store/teacherFiltersSlice";
+} from "@/lib/store/TeacherFiltersSlice";
 import {
   AGE_OPTIONS,
   DEPARTMENTS,
