@@ -129,7 +129,12 @@ export default function TeacherForm({
 
       // Handle experience - pass null if no experience is provided, otherwise calculate total months
       const totalExpMonths =
-        !data.experienceYears && !data.experienceMonths
+        (data.experienceYears === undefined ||
+          data.experienceYears === null ||
+          String(data.experienceYears).trim() === "") &&
+        (data.experienceMonths === undefined ||
+          data.experienceMonths === null ||
+          String(data.experienceMonths).trim() === "")
           ? null
           : Number(data.experienceYears || 0) * 12 +
             Number(data.experienceMonths || 0);

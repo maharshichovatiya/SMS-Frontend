@@ -7,15 +7,10 @@ export const classSchema = z.object({
 
   classTeacherId: z.string().nullable().optional(),
 
-  studentCapacity: z
-    .union([
-      z.coerce
-        .number()
-        .min(10, "Minimum capacity is 10 students")
-        .max(120, "Maximum capacity is 120 students"),
-      z.literal("").transform(() => undefined),
-    ])
-    .optional(),
+  studentCapacity: z.coerce
+    .number()
+    .min(10, "Minimum capacity is 10 students")
+    .max(120, "Maximum capacity is 120 students"),
 });
 
 export type ClassFormData = z.infer<typeof classSchema>;

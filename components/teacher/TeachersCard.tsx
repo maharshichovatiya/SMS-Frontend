@@ -64,7 +64,9 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     const res = await updateTeacherStatus(teacher.id, newStatus);
     setStatusLoading(false);
     if (res.success) {
-      showToast.success("Status updated");
+      showToast.success(
+        `Teacher status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+      );
       // Force immediate API call to refresh teacher data
       dispatch(fetchAssignTeachers());
       onSuccess();

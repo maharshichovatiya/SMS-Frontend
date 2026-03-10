@@ -74,7 +74,7 @@ export default function ClassForm({
         className: String(defaultValues.className ?? ""),
         section: defaultValues.section ?? "",
         classTeacherId: defaultValues.classTeacherId ?? null,
-        studentCapacity: defaultValues.studentCapacity ?? undefined,
+        studentCapacity: defaultValues.studentCapacity ?? 60,
       });
     }
   }, [defaultValues]);
