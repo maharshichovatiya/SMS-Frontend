@@ -393,6 +393,14 @@ export function UseStudentForm({
           classId !== (initialClassId || "") ||
           academicYearId !== (initialAcademicYearId || "");
 
+        const rollNoChanged = rollNo !== (initialRollNo || "");
+
+        // Only validate class assignment if student was previously assigned or if rollNo is provided
+        const wasPreviouslyAssigned = !!(
+          initialData.classId && initialData.academicYearId
+        );
+        const isTryingToAssign = !!(classId && academicYearId);
+
         if (rollNo && !classId && !initialData.classId) {
           showToast.error("Class is required when Roll No is provided");
           return;
@@ -401,7 +409,15 @@ export function UseStudentForm({
           showToast.error("Academic Year is required when Roll No is provided");
           return;
         }
-        if (!rollNo && (!classId || classId.trim() === "")) {
+
+        // Only require class assignment if:
+        // 1. Student was previously assigned and is trying to change assignment, OR
+        // 2. Roll No is provided (need class for roll No assignment)
+        if (
+          wasPreviouslyAssigned &&
+          !isTryingToAssign &&
+          (academicChanged || rollNoChanged)
+        ) {
           showToast.error(
             "Class assignment is required. Please select a class for this student.",
           );
@@ -415,8 +431,6 @@ export function UseStudentForm({
           );
           return;
         }
-
-        const rollNoChanged = rollNo !== (initialRollNo || "");
 
         const changedStudentFields = getChangedFields(
           studentFieldsFromForm as StudentFormValues,
