@@ -68,7 +68,7 @@ export function SubjectCard({
               </span>
             </div>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Pass Marks
+              Passing Marks
             </span>
           </div>
         </div>
