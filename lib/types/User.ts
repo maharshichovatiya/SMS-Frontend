@@ -11,7 +11,7 @@ export type User = {
   lastName: string;
 
   phone: string;
-  gender: "male" | "female" | "other";
+  gender: "male" | "female" | "other" | null;
   dob: string;
 
   bloodGroup: string | null;

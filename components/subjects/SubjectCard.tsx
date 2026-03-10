@@ -1,5 +1,5 @@
 import React from "react";
-import { Book, Plus, Pencil, Trash2 } from "lucide-react";
+import { Book, Plus, Pencil, Trash2, Target, Award } from "lucide-react";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface SubjectCardProps {
@@ -29,7 +29,7 @@ export function SubjectCard({
       {/* Card Body */}
       <div className="flex-1 flex flex-col gap-4">
         {/* Icon + Title Row */}
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex items-start gap-3 mb-2">
           <div className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center bg-blue-light text-blue">
             <Book className="w-5 h-5" />
           </div>
@@ -46,6 +46,41 @@ export function SubjectCard({
             >
               Code: {subject.subjectCode}
             </p>
+          </div>
+        </div>
+
+        {/* Marks Information - Full width outside icon container */}
+        <div className="grid grid-cols-3 gap-1.5 w-full">
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
+            <div className="flex items-center gap-0.5 text-[var(--blue)] leading-none">
+              <Target size={14} strokeWidth={2.5} />
+              <span className="text-lg font-extrabold">{subject.maxMarks}</span>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Max Marks
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
+            <div className="flex items-center gap-0.5 text-[var(--amber)] leading-none">
+              <Award size={14} strokeWidth={2.5} />
+              <span className="text-lg font-extrabold">
+                {subject.passingMarks}
+              </span>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Min Marks
+            </span>
+          </div>
+          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
+            <div className="flex items-center gap-0.5 text-[var(--green)] leading-none">
+              <Award size={14} strokeWidth={2.5} />
+              <span className="text-lg font-extrabold">
+                {Math.round(subject.passingMarks)}
+              </span>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
+              Pass Marks
+            </span>
           </div>
         </div>
 

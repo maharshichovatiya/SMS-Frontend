@@ -94,7 +94,10 @@ export default function TeacherForm({
       special: true,
     });
 
-    setValue("password", password, { shouldDirty: true });
+    setValue("password", password, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     setShowPassword(true);
     // showToast.success("Password generated successfully!");
   };

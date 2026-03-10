@@ -344,7 +344,11 @@ export function UseStudentForm({
         ifscCode: initialData.ifscCode,
         branch: initialData.branch,
         gender:
-          (initialData.user?.gender as "male" | "female" | "other" | "") || "",
+          ((initialData.gender || initialData.user?.gender) as
+            | "male"
+            | "female"
+            | "other"
+            | "") || "",
         classId: initialData.classId || "",
         academicYearId: initialData.academicYearId || "",
         password: "",

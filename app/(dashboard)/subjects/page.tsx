@@ -6,6 +6,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { BookOpen, Search, Plus } from "lucide-react";
 import SubjectCardSkeleton from "@/components/skeletons/SubjectCardSkeleton";
 import { SubjectCard } from "@/components/subjects/SubjectCard";
+import { SubjectWithClassSubjects } from "@/lib/types/SubjectTypes";
 import { SubjectDetailsModal } from "@/components/subjects/Modals/SubjectDetailsModal";
 import { AssignClassModal } from "@/components/subjects/Modals/AssignClassModal";
 import { SubjectFormModal } from "@/components/subjects/Modals/SubjectFormModal";
@@ -14,7 +15,6 @@ import { SubjectDeleteModal } from "@/components/subjects/Modals/SubjectDeleteMo
 import { CreateChaptersModal } from "@/components/subjects/Modals/CreateChaptersModal";
 import { ChapterDeleteModal } from "@/components/subjects/Modals/ChapterDeleteModal";
 import SubjectFilters from "@/components/subjects/SubjectFilters";
-import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import Pagination from "@/components/ui/Pagination";
 import {
   fetchSubjects,
@@ -46,7 +46,7 @@ import {
 import { fetchStudentFilterData } from "@/lib/store/StudentFiltersSlice";
 import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 import { showToast } from "@/lib/utils/Toast";
-import { RootState, AppDispatch } from "@/lib/store/Index";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
 
 export default function Subjects() {
   const PAGE_SIZE_OPTIONS = [6, 9, 12];
