@@ -18,7 +18,7 @@ const DEFAULT_FILTERS: ClassFilterValues = {
   studentCount: [],
 };
 
-interface ClassFiltersState {
+export interface ClassFiltersState {
   filters: ClassFilterValues;
   isOpen: boolean;
 }

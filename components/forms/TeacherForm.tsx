@@ -4,6 +4,8 @@ import {
   createTeacherSchema,
   TeacherFormData,
 } from "@/lib/validations/TeacherSchema";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/lib/store";
 import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
@@ -37,6 +39,7 @@ export default function TeacherForm({
   isLoading = false,
   teacherId,
 }: TeacherFormProps) {
+  const { schoolId } = useSelector((state: RootState) => state.auth);
   const schema = createTeacherSchema(mode);
   const {
     register,
@@ -113,7 +116,10 @@ export default function TeacherForm({
 
   const onSubmit: SubmitHandler<TeacherFormData> = async data => {
     try {
-      const schoolId = localStorage.getItem("schoolId") || undefined;
+      if (!schoolId) {
+        showToast.error("School ID not found. Please login again.");
+        return;
+      }
 
       const teacherRoleId = roles.find(
         role => role.roleName.toLowerCase() === "teacher",

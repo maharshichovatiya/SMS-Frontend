@@ -13,6 +13,8 @@ import { classApis, Class, AcademicYear } from "../api/Class";
 import { showToast } from "../utils/Toast";
 import { generateStudentPassword } from "../utils/PasswordGenerator";
 import { handleStringField } from "../utils/FieldHandlers";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store";
 
 interface UseStudentFormProps {
   initialData?: Partial<StudentFormValues> & {
@@ -71,6 +73,7 @@ export function UseStudentForm({
   onClose,
   roleId,
 }: UseStudentFormProps) {
+  const { schoolId } = useSelector((state: RootState) => state.auth);
   const isEditMode = !!initialData;
   const [classes, setClasses] = useState<Class[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
@@ -343,7 +346,6 @@ export function UseStudentForm({
 
   const onSubmit = async (data: StudentFormValues) => {
     try {
-      const schoolId = localStorage.getItem("schoolId");
       if (!schoolId) {
         showToast.error("School ID not found. Please login again.");
         return;
