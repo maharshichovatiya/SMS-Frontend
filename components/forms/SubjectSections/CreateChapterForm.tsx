@@ -109,10 +109,6 @@ export default function CreateChapterForm({
           fieldErrors[fieldPath] = issue.message;
         });
         setErrors(fieldErrors);
-
-        // Show the first error as a toast
-        const firstError = validationResult.error.issues[0];
-        showToast.error(firstError.message);
         return;
       }
 

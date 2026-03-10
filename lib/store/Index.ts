@@ -5,6 +5,7 @@ import studentFiltersReducer from "./StudentFiltersSlice";
 import studentDataReducer from "./StudentDataSlice";
 import authReducer from "./AuthSlice";
 import teacherReducer from "./TeacherSlice";
+import subjectsReducer from "./SubjectsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     studentData: studentDataReducer,
     auth: authReducer,
     teacher: teacherReducer,
+    subjects: subjectsReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

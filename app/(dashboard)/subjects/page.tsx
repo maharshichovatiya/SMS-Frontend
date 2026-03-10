@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import PageHeader from "@/components/layout/PageHeader";
 import { BookOpen, Search, Plus } from "lucide-react";
 import SubjectCardSkeleton from "@/components/skeletons/SubjectCardSkeleton";
@@ -13,16 +14,51 @@ import { SubjectDeleteModal } from "@/components/subjects/Modals/SubjectDeleteMo
 import { CreateChaptersModal } from "@/components/subjects/Modals/CreateChaptersModal";
 import { ChapterDeleteModal } from "@/components/subjects/Modals/ChapterDeleteModal";
 import SubjectFilters from "@/components/subjects/SubjectFilters";
-import { useSubjects } from "@/lib/hooks/UseSubjects";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import Pagination from "@/components/ui/Pagination";
+import {
+  fetchSubjects,
+  assignClassToSubject,
+  deleteClassAssignment,
+  deleteSubject,
+  deleteChapter,
+  setSearchQuery,
+  setDebouncedSearch,
+  setMinPassingMarks,
+  setMaxPassingMarks,
+  setMinTotalMarks,
+  setMaxTotalMarks,
+  clearFilters,
+  setCurrentPage,
+  setPageSize,
+  setSelectedSubject,
+  setEditingSubject,
+  setCreatingChapters,
+  setDeletingId,
+  setDeletingSubject,
+  setDeletingChapter,
+  setIsAssignModalOpen,
+  setSelectedSubjectId,
+  setSelectedClassId,
+  setSelectedTeacherId,
+  setActiveTab,
+} from "@/lib/store/SubjectsSlice";
+import { fetchStudentFilterData } from "@/lib/store/StudentFiltersSlice";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
+import { showToast } from "@/lib/utils/Toast";
+import { RootState, AppDispatch } from "@/lib/store/Index";
 
 export default function Subjects() {
   const PAGE_SIZE_OPTIONS = [6, 9, 12];
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Select subjects state
+  const subjectsState = useSelector((state: RootState) => state.subjects);
   const {
     subjects,
     loading,
     searchQuery,
+    debouncedSearch,
     minPassingMarks,
     maxPassingMarks,
     minTotalMarks,
@@ -35,8 +71,6 @@ export default function Subjects() {
     deletingSubject,
     deletingChapter,
     isAssignModalOpen,
-    allClasses,
-    allTeachers,
     selectedSubjectId,
     selectedClassId,
     selectedTeacherId,
@@ -46,47 +80,84 @@ export default function Subjects() {
     pageSize,
     totalSubjects,
     totalPages,
-    setSearchQuery,
-    setMinPassingMarks,
-    setMaxPassingMarks,
-    setMinTotalMarks,
-    setMaxTotalMarks,
-    clearFilters,
-    setSelectedSubject,
-    setEditingSubject,
-    setCreatingChapters,
-    setDeletingId,
-    setDeletingSubject,
-    setDeletingChapter,
-    setIsAssignModalOpen,
-    setSelectedSubjectId,
-    setSelectedClassId,
-    setSelectedTeacherId,
-    setActiveTab,
-    setPageSize,
-    setCurrentPage,
-    handleAssignModalOpen,
-    handleAssign,
-    handleDelete,
-    handleDeleteSubject,
-    handleDeleteChapter,
-    fetchSubjects,
-  } = useSubjects();
+  } = subjectsState;
+
+  // Select classes and teachers state
+  const studentFiltersState = useSelector(
+    (state: RootState) => state.studentFilters,
+  );
+  const teacherState = useSelector((state: RootState) => state.teacher);
+  const { data: studentFiltersData } = studentFiltersState;
+  const { classes: allClasses } = studentFiltersData;
+  const { assignTeachers: allTeachers } = teacherState;
+
+  // Debounce search query effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setDebouncedSearch(searchQuery));
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, dispatch]);
+
+  // Fetch subjects when dependencies change
+  useEffect(() => {
+    dispatch(fetchSubjects());
+  }, [
+    dispatch,
+    currentPage,
+    pageSize,
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    dispatch(setCurrentPage(1));
+  }, [
+    dispatch,
+    debouncedSearch,
+    minPassingMarks,
+    maxPassingMarks,
+    minTotalMarks,
+    maxTotalMarks,
+  ]);
+
+  // Preload classes and teachers data on page mount
+  useEffect(() => {
+    // Load classes data if not already loaded
+    if (!studentFiltersState.data.classes.length) {
+      dispatch(fetchStudentFilterData());
+    }
+    // Load teachers data if not already loaded
+    if (!teacherState.hasLoadedOnce) {
+      dispatch(fetchAssignTeachers());
+    }
+  }, [
+    dispatch,
+    studentFiltersState.data.classes.length,
+    teacherState.hasLoadedOnce,
+  ]);
 
   const handleAssignClass = (subjectId: string) => {
-    setSelectedSubjectId(subjectId);
-    handleAssignModalOpen();
+    dispatch(setSelectedSubjectId(subjectId));
+    dispatch(setIsAssignModalOpen(true));
   };
 
   const handleAddChapter = (subject: SubjectWithClassSubjects) => {
-    setCreatingChapters({
-      subject: subject,
-      classInfo: subject.classSubjects?.[0] || null,
-    });
+    dispatch(
+      setCreatingChapters({
+        subject: subject,
+        classInfo: subject.classSubjects?.[0] || null,
+      }),
+    );
   };
 
   const handleDeleteClass = (classId: string) => {
-    setDeletingId(classId);
+    dispatch(setDeletingId(classId));
   };
 
   const handleDeleteChapterFromModal = (
@@ -94,12 +165,76 @@ export default function Subjects() {
     chapterName: string,
   ) => {
     if (selectedSubject) {
-      setDeletingChapter({
-        subjectId: selectedSubject.id,
-        chapterId,
-        chapterName,
-      });
+      dispatch(
+        setDeletingChapter({
+          subjectId: selectedSubject.id,
+          chapterId,
+          chapterName,
+        }),
+      );
     }
+  };
+
+  const handleAssign = async () => {
+    try {
+      await dispatch(
+        assignClassToSubject({
+          subjectId: selectedSubjectId,
+          classId: selectedClassId,
+          teacherId: selectedTeacherId,
+        }),
+      ).unwrap();
+      showToast.success("Assigned subject to class successfully!");
+      dispatch(fetchSubjects());
+    } catch (error) {
+      showToast.apiError(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await dispatch(deleteClassAssignment(deletingId)).unwrap();
+      showToast.success("Assignment removed successfully!");
+      dispatch(fetchSubjects());
+    } catch (error) {
+      showToast.apiError(error);
+    }
+  };
+
+  const handleDeleteSubject = async () => {
+    if (!deletingSubject) return;
+    try {
+      await dispatch(deleteSubject(deletingSubject.id)).unwrap();
+      showToast.success("Subject deleted successfully!");
+      dispatch(fetchSubjects());
+    } catch (error) {
+      showToast.apiError(error);
+    }
+  };
+
+  const handleDeleteChapter = async () => {
+    if (!deletingChapter) return;
+    try {
+      await dispatch(
+        deleteChapter({
+          subjectId: deletingChapter.subjectId,
+          chapterId: deletingChapter.chapterId,
+        }),
+      ).unwrap();
+      showToast.success("Chapter deleted successfully!");
+      dispatch(fetchSubjects());
+    } catch (error) {
+      showToast.apiError(error);
+    }
+  };
+
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    dispatch(setPageSize(newPageSize));
   };
 
   return (
@@ -111,7 +246,9 @@ export default function Subjects() {
         iconBgColor="--amber-light"
         iconColor="--amber"
         buttonText="Add Subject"
-        onButtonClick={() => setEditingSubject({} as SubjectWithClassSubjects)}
+        onButtonClick={() =>
+          dispatch(setEditingSubject({} as SubjectWithClassSubjects))
+        }
         buttonIcon={Plus}
       />
 
@@ -130,12 +267,12 @@ export default function Subjects() {
               minTotalMarks,
               maxTotalMarks,
             }}
-            onClearFilters={clearFilters}
+            onClearFilters={handleClearFilters}
             onApplyFilters={filters => {
-              setMinPassingMarks(filters.minPassingMarks || "");
-              setMaxPassingMarks(filters.maxPassingMarks || "");
-              setMinTotalMarks(filters.minTotalMarks || "");
-              setMaxTotalMarks(filters.maxTotalMarks || "");
+              dispatch(setMinPassingMarks(filters.minPassingMarks || ""));
+              dispatch(setMaxPassingMarks(filters.maxPassingMarks || ""));
+              dispatch(setMinTotalMarks(filters.minTotalMarks || ""));
+              dispatch(setMaxTotalMarks(filters.maxTotalMarks || ""));
             }}
           />
 
@@ -148,7 +285,7 @@ export default function Subjects() {
               type="text"
               placeholder="Search subjects..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => dispatch(setSearchQuery(e.target.value))}
               className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
             />
           </div>
@@ -185,16 +322,15 @@ export default function Subjects() {
               key={subject.id}
               subject={subject}
               index={idx}
-              onViewDetails={setSelectedSubject}
+              onViewDetails={subject => dispatch(setSelectedSubject(subject))}
               onAssignClass={handleAssignClass}
               onAddChapter={handleAddChapter}
-              onEditSubject={setEditingSubject}
-              onDeleteSubject={setDeletingSubject}
+              onEditSubject={subject => dispatch(setEditingSubject(subject))}
+              onDeleteSubject={subject => dispatch(setDeletingSubject(subject))}
             />
           ))
         )}
       </div>
-
       {/* Pagination Controls */}
       {!loading && subjects.length > 0 && (
         <Pagination
@@ -203,8 +339,8 @@ export default function Subjects() {
           pageSize={pageSize}
           totalItems={totalSubjects}
           itemsPerPage={PAGE_SIZE_OPTIONS}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
+          onPageChange={page => dispatch(setCurrentPage(page))}
+          onPageSizeChange={handlePageSizeChange}
           itemName="subjects"
         />
       )}
@@ -212,10 +348,10 @@ export default function Subjects() {
       {/* Subject Details Modal */}
       <SubjectDetailsModal
         isOpen={!!selectedSubject}
-        onClose={() => setSelectedSubject(null)}
+        onClose={() => dispatch(setSelectedSubject(null))}
         subject={selectedSubject}
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={tab => dispatch(setActiveTab(tab))}
         onDeleteClass={handleDeleteClass}
         onDeleteChapter={handleDeleteChapterFromModal}
       />
@@ -223,15 +359,17 @@ export default function Subjects() {
       {/* Subject Form Modal */}
       <SubjectFormModal
         isOpen={!!editingSubject}
-        onClose={() => setEditingSubject(null)}
+        onClose={() => dispatch(setEditingSubject(null))}
         editingSubject={editingSubject}
-        fetchSubjects={fetchSubjects}
+        fetchSubjects={async () => {
+          await dispatch(fetchSubjects());
+        }}
       />
 
       {/* Delete Assignment Modal */}
       <DeleteAssignmentModal
         isOpen={!!deletingId}
-        onClose={() => setDeletingId(null)}
+        onClose={() => dispatch(setDeletingId(null))}
         isDeleting={isDeleting}
         handleDelete={handleDelete}
       />
@@ -239,15 +377,15 @@ export default function Subjects() {
       {/* Assign Class Modal */}
       <AssignClassModal
         isOpen={isAssignModalOpen}
-        onClose={() => setIsAssignModalOpen(false)}
+        onClose={() => dispatch(setIsAssignModalOpen(false))}
         modalLoading={modalLoading}
         allClasses={allClasses}
         allTeachers={allTeachers}
         selectedSubjectId={selectedSubjectId}
         selectedClassId={selectedClassId}
         selectedTeacherId={selectedTeacherId}
-        setSelectedClassId={setSelectedClassId}
-        setSelectedTeacherId={setSelectedTeacherId}
+        setSelectedClassId={id => dispatch(setSelectedClassId(id))}
+        setSelectedTeacherId={id => dispatch(setSelectedTeacherId(id))}
         onAssign={handleAssign}
         subjects={subjects}
       />
@@ -255,7 +393,7 @@ export default function Subjects() {
       {/* Subject Delete Modal */}
       <SubjectDeleteModal
         isOpen={!!deletingSubject}
-        onClose={() => setDeletingSubject(null)}
+        onClose={() => dispatch(setDeletingSubject(null))}
         isDeleting={isDeleting}
         deletingSubject={deletingSubject}
         handleDeleteSubject={handleDeleteSubject}
@@ -264,18 +402,20 @@ export default function Subjects() {
       {/* Create Chapters Modal */}
       <CreateChaptersModal
         isOpen={!!creatingChapters}
-        onClose={() => setCreatingChapters(null)}
+        onClose={() => dispatch(setCreatingChapters(null))}
         creatingChapters={creatingChapters}
-        fetchSubjects={fetchSubjects}
+        fetchSubjects={async () => {
+          await dispatch(fetchSubjects());
+        }}
         selectedSubject={selectedSubject}
-        setSelectedSubject={setSelectedSubject}
+        setSelectedSubject={subject => dispatch(setSelectedSubject(subject))}
         subjects={subjects}
       />
 
       {/* Chapter Delete Modal */}
       <ChapterDeleteModal
         isOpen={!!deletingChapter}
-        onClose={() => setDeletingChapter(null)}
+        onClose={() => dispatch(setDeletingChapter(null))}
         isDeleting={isDeleting}
         deletingChapter={deletingChapter}
         handleDeleteChapter={handleDeleteChapter}
