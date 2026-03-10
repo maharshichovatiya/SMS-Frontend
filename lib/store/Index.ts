@@ -3,6 +3,8 @@ import classFiltersReducer from "./ClassFiltersSlice";
 import teacherFiltersReducer from "./TeacherFiltersSlice";
 import studentFiltersReducer from "./StudentFiltersSlice";
 import studentDataReducer from "./StudentDataSlice";
+import authReducer from "./AuthSlice";
+import teacherReducer from "./TeacherSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
     teacherFilters: teacherFiltersReducer,
     studentFilters: studentFiltersReducer,
     studentData: studentDataReducer,
+    auth: authReducer,
+    teacher: teacherReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });

@@ -4,6 +4,9 @@ import {
   createTeacherSchema,
   TeacherFormData,
 } from "@/lib/validations/TeacherSchema";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
@@ -37,6 +40,8 @@ export default function TeacherForm({
   isLoading = false,
   teacherId,
 }: TeacherFormProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { schoolId } = useSelector((state: RootState) => state.auth);
   const schema = createTeacherSchema(mode);
   const {
     register,
@@ -113,7 +118,10 @@ export default function TeacherForm({
 
   const onSubmit: SubmitHandler<TeacherFormData> = async data => {
     try {
-      const schoolId = localStorage.getItem("schoolId") || undefined;
+      if (!schoolId) {
+        showToast.error("School ID not found. Please login again.");
+        return;
+      }
 
       const teacherRoleId = roles.find(
         role => role.roleName.toLowerCase() === "teacher",
@@ -121,7 +129,12 @@ export default function TeacherForm({
 
       // Handle experience - pass null if no experience is provided, otherwise calculate total months
       const totalExpMonths =
-        !data.experienceYears && !data.experienceMonths
+        (data.experienceYears === undefined ||
+          data.experienceYears === null ||
+          String(data.experienceYears).trim() === "") &&
+        (data.experienceMonths === undefined ||
+          data.experienceMonths === null ||
+          String(data.experienceMonths).trim() === "")
           ? null
           : Number(data.experienceYears || 0) * 12 +
             Number(data.experienceMonths || 0);
@@ -180,6 +193,8 @@ export default function TeacherForm({
             ? "Teacher updated successfully "
             : "Teacher created successfully ",
         );
+        // Force immediate API call to refresh teacher data
+        dispatch(fetchAssignTeachers());
         reset();
         onSuccess?.();
       } else {

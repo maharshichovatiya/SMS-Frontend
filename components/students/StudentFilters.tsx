@@ -11,7 +11,7 @@ import {
   IndianRupee,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { AppDispatch } from "@/lib/store";
+import { AppDispatch } from "@/lib/store/Index";
 import {
   selectStudentFilters,
   selectStudentFiltersData,

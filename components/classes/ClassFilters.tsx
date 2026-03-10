@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "@/lib/store";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
 import {
   setSearch,
   setType,

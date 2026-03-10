@@ -11,6 +11,7 @@ import {
   VerifyOtpResponse,
 } from "../types/Auth";
 import { AxiosError } from "axios";
+import { AppDispatchAction } from "../types/Redux";
 
 export const login = async (data: {
   email: string;
@@ -40,10 +41,13 @@ export const login = async (data: {
   }
 };
 
-export const verifyOtp = async (data: {
-  email: string;
-  otp: string;
-}): Promise<ApiResponse<VerifyOtpResponse>> => {
+export const verifyOtp = async (
+  data: {
+    email: string;
+    otp: string;
+  },
+  dispatch?: (action: AppDispatchAction) => void,
+): Promise<ApiResponse<VerifyOtpResponse>> => {
   try {
     const res = await api.post<VerifyOtpResponse>("/auth/verify-otp", data);
 
@@ -56,6 +60,18 @@ export const verifyOtp = async (data: {
       expires: 7,
       path: "/",
     });
+
+    // Dispatch auth data to Redux if dispatch function is provided
+    if (dispatch && res.data.data.userId && res.data.data.schoolId) {
+      dispatch({
+        type: "auth/setAuth",
+        payload: {
+          userId: res.data.data.userId,
+          schoolId: res.data.data.schoolId,
+        },
+      });
+    }
+
     return {
       success: true,
       statusCode: 200,
@@ -131,7 +147,9 @@ export const forgotPassword = async (email: {
   }
 };
 
-export const logout = async (): Promise<ApiResponse<null>> => {
+export const logout = async (
+  dispatch?: (action: AppDispatchAction) => void,
+): Promise<ApiResponse<null>> => {
   try {
     const refreshToken = Cookies.get("refreshToken");
 
@@ -140,6 +158,14 @@ export const logout = async (): Promise<ApiResponse<null>> => {
     Cookies.remove("refreshToken");
     Cookies.remove("accessToken");
     localStorage.clear();
+
+    // Clear auth state from Redux if dispatch function is provided
+    if (dispatch) {
+      dispatch({
+        type: "auth/clearAuth",
+      });
+    }
+
     return {
       success: true,
       statusCode: 200,
@@ -242,7 +268,10 @@ export const authApi = {
     return response.data;
   },
 
-  registerSchool: async (data: RegisterSchoolPayload) => {
+  registerSchool: async (
+    data: RegisterSchoolPayload,
+    dispatch?: (action: AppDispatchAction) => void,
+  ) => {
     const response = await api.post<ApiResponse<SchoolResponse>>(
       "/auth/register-school",
       data,
@@ -260,6 +289,21 @@ export const authApi = {
       Cookies.set("refreshToken", response.data.data.refreshToken, {
         expires: 7,
       });
+
+      // Dispatch auth data to Redux if dispatch function is provided
+      if (
+        dispatch &&
+        response.data.data.user?.id &&
+        response.data.data.user?.schoolId
+      ) {
+        dispatch({
+          type: "auth/setAuth",
+          payload: {
+            userId: response.data.data.user.id,
+            schoolId: response.data.data.user.schoolId,
+          },
+        });
+      }
     }
 
     return response.data;

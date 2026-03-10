@@ -12,7 +12,7 @@ import {
   selectStudentFiltersLoading,
   fetchStudentFilterData,
 } from "@/lib/store/StudentFiltersSlice";
-import type { AppDispatch } from "@/lib/store";
+import type { AppDispatch } from "@/lib/store/Index";
 
 const classAssignmentSchema = z.object({
   classId: z.string().min(1, "Please select a class"),

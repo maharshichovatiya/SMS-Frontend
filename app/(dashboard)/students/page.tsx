@@ -30,7 +30,7 @@ import {
   invalidateCache,
   fetchStudents,
 } from "@/lib/store/StudentDataSlice";
-import type { AppDispatch } from "@/lib/store";
+import type { AppDispatch } from "@/lib/store/Index";
 import { Users, Plus, Search } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 

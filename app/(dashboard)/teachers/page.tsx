@@ -10,7 +10,7 @@ import { Plus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/layout/PageHeader";
 import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/store";
+import type { RootState } from "@/lib/store/Index";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;

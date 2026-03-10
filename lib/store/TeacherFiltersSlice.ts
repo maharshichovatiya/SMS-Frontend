@@ -22,7 +22,7 @@ const DEFAULT_FILTERS: TeacherFilterValues = {
   status: [],
 };
 
-interface TeacherFiltersState {
+export interface TeacherFiltersState {
   filters: TeacherFilterValues;
   isOpen: boolean;
 }
