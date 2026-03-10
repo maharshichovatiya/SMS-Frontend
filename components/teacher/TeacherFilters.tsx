@@ -14,14 +14,14 @@ import {
   IndianRupee,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "@/lib/store";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
 import {
   setSearch,
   setStatus,
   toggleFilterOption,
   clearFilters,
   toggleFiltersPanel,
-} from "@/lib/store/teacherFiltersSlice";
+} from "@/lib/store/TeacherFiltersSlice";
 import {
   AGE_OPTIONS,
   DEPARTMENTS,

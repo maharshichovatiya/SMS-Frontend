@@ -8,8 +8,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
-import type { RootState, AppDispatch } from "@/lib/store";
-import { clearError } from "@/lib/store/teacherSlice";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { clearError } from "@/lib/store/TeacherSlice";
 
 interface ClassFormProps {
   onCancel: () => void;

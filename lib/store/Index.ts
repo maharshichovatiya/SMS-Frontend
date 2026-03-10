@@ -1,8 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import classFiltersReducer from "./classFiltersSlice";
-import teacherFiltersReducer from "./teacherFiltersSlice";
-import authReducer from "./authSlice";
-import teacherReducer from "./teacherSlice";
+import classFiltersReducer from "./ClassFiltersSlice";
+import teacherFiltersReducer from "./TeacherFiltersSlice";
+import authReducer from "./AuthSlice";
+import teacherReducer from "./TeacherSlice";
 
 export const store = configureStore({
   reducer: {

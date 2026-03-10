@@ -10,7 +10,7 @@ import { Settings } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/store";
+import type { RootState } from "@/lib/store/Index";
 import { showToast } from "@/lib/utils/Toast";
 
 export default function SettingsPage() {

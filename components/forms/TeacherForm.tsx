@@ -5,8 +5,8 @@ import {
   TeacherFormData,
 } from "@/lib/validations/TeacherSchema";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState, AppDispatch } from "@/lib/store";
-import { fetchAssignTeachers } from "@/lib/store/teacherSlice";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 import { showToast } from "@/lib/utils/Toast";
 import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";

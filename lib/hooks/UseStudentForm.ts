@@ -14,7 +14,7 @@ import { showToast } from "../utils/Toast";
 import { generateStudentPassword } from "../utils/PasswordGenerator";
 import { handleStringField } from "../utils/FieldHandlers";
 import { useSelector } from "react-redux";
-import type { RootState } from "../store";
+import type { RootState } from "../store/Index";
 
 interface UseStudentFormProps {
   initialData?: Partial<StudentFormValues> & {

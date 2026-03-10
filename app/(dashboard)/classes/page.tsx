@@ -11,8 +11,8 @@ import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 import PageHeader from "@/components/layout/PageHeader";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState, AppDispatch } from "@/lib/store";
-import { fetchAssignTeachers } from "@/lib/store/teacherSlice";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;
