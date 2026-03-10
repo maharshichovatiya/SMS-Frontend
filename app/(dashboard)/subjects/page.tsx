@@ -16,6 +16,10 @@ import SubjectFilters from "@/components/subjects/SubjectFilters";
 import { useSubjects } from "@/lib/hooks/UseSubjects";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 import Pagination from "@/components/ui/Pagination";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 
 export default function Subjects() {
   const PAGE_SIZE_OPTIONS = [6, 9, 12];
@@ -72,6 +76,18 @@ export default function Subjects() {
     handleDeleteChapter,
     fetchSubjects,
   } = useSubjects();
+
+  const { hasLoadedOnce, assignTeachers } = useSelector(
+    (state: RootState) => state.teacher,
+  );
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Load teacher data only once when subjects page loads
+  useEffect(() => {
+    if (!hasLoadedOnce && assignTeachers.length === 0) {
+      dispatch(fetchAssignTeachers());
+    }
+  }, [hasLoadedOnce, assignTeachers.length, dispatch]);
 
   const handleAssignClass = (subjectId: string) => {
     setSelectedSubjectId(subjectId);
