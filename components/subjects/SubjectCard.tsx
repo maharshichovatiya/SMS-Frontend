@@ -50,7 +50,7 @@ export function SubjectCard({
         </div>
 
         {/* Marks Information - Full width outside icon container */}
-        <div className="grid grid-cols-3 gap-1.5 w-full">
+        <div className="grid grid-cols-2 gap-1.5 w-full">
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
             <div className="flex items-center gap-0.5 text-[var(--blue)] leading-none">
               <Target size={14} strokeWidth={2.5} />
@@ -58,17 +58,6 @@ export function SubjectCard({
             </div>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
               Max Marks
-            </span>
-          </div>
-          <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
-            <div className="flex items-center gap-0.5 text-[var(--amber)] leading-none">
-              <Award size={14} strokeWidth={2.5} />
-              <span className="text-lg font-extrabold">
-                {subject.passingMarks}
-              </span>
-            </div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] mt-1">
-              Min Marks
             </span>
           </div>
           <div className="flex flex-col items-center py-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-2)] w-full">
