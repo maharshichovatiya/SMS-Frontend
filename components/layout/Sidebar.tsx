@@ -14,6 +14,9 @@ import { showToast } from "@/lib/utils/Toast";
 import { logout } from "@/lib/api/Auth";
 import Modal from "../ui/Modal";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
+import { SIDEBAR_MENUS, DEFAULT_MENU } from "@/lib/constants/SidebarMenu";
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -80,6 +83,23 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const userRole =
+    useSelector((state: RootState) => state.auth.role) || "admin";
+
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      Home: <Home className="w-[18px] h-[18px]" />,
+      Users: <Users className="w-[18px] h-[18px]" />,
+      BookOpen: <BookOpen className="w-[18px] h-[18px]" />,
+      Building: <Building className="w-[18px] h-[18px]" />,
+      GraduationCap: <GraduationCap className="w-6 h-6" />,
+      UserCircle: <UserCircle className="w-6 h-6" />,
+    };
+    return iconMap[iconName] || <Home className="w-[18px] h-[18px]" />;
+  };
+
+  const menuItems =
+    SIDEBAR_MENUS[userRole as keyof typeof SIDEBAR_MENUS] || DEFAULT_MENU;
 
   const handleLogout = async () => {
     const res = await logout();
@@ -146,70 +166,33 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden overflow-x-hidden p-[10px] scrollbar-thin scrollbar-thumb-[var(--border-2)]">
-          <div
-            className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
-          >
-            Overview
-          </div>
-          <NavItem
-            icon={<Home className="w-[18px] h-[18px]" />}
-            label="Dashboard"
-            active={isActive("/dashboard")}
-            collapsed={collapsed}
-            onClick={() => router.push("/dashboard")}
-          />
-
-          <div
-            className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
-          >
-            Modules
-          </div>
-
-          <NavItem
-            icon={<Users className="w-[18px] h-[18px]" />}
-            label="Teachers"
-            badge="86"
-            badgeColor="bg-[var(--green)]"
-            active={isActive("/teachers")}
-            collapsed={collapsed}
-            onClick={() => router.push("/teachers")}
-          />
-          <NavItem
-            icon={<GraduationCap className="w-6 h-6" />}
-            label="Students"
-            badge="1.2k"
-            badgeColor="bg-[var(--blue)]"
-            active={isActive("/students")}
-            collapsed={collapsed}
-            onClick={() => router.push("/students")}
-          />
-          <NavItem
-            icon={<BookOpen className="w-[18px] h-[18px]" />}
-            label="Subjects"
-            active={isActive("/subjects")}
-            collapsed={collapsed}
-            onClick={() => router.push("/subjects")}
-          />
-          <NavItem
-            icon={<Building className="w-[18px] h-[18px]" />}
-            label="Classes"
-            active={isActive("/classes")}
-            collapsed={collapsed}
-            onClick={() => router.push("/classes")}
-          />
+          {menuItems.map((section, sectionIndex) => (
+            <div key={sectionIndex}>
+              <div
+                className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
+              >
+                {section.title}
+              </div>
+              {section.items.map((item, itemIndex) => (
+                <NavItem
+                  key={itemIndex}
+                  icon={getIconComponent(item.icon)}
+                  label={item.label}
+                  badge={item.badge}
+                  badgeColor={item.badgeColor}
+                  active={isActive(item.path)}
+                  collapsed={collapsed}
+                  onClick={() => router.push(item.path)}
+                />
+              ))}
+            </div>
+          ))}
 
           <div
             className={`text-[10px] font-bold tracking-[0.8px] uppercase text-[var(--text-3)] px-2 py-3 pb-1 whitespace-nowrap transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`}
           >
             General
           </div>
-          <NavItem
-            icon={<UserCircle className="w-6 h-6" />}
-            label="Profile"
-            active={isActive("/profile")}
-            collapsed={collapsed}
-            onClick={() => router.push("/profile")}
-          />
           <NavItem
             icon={<LogOut className="w-6 h-6" />}
             label="Logout"
