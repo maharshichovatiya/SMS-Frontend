@@ -101,6 +101,11 @@ export interface SubjectWithClassSubjects {
       dateOfJoining?: string;
       createdAt: string;
       updatedAt: string;
+      user?: {
+        id?: string;
+        firstName: string;
+        lastName: string;
+      };
     };
   }[];
 }

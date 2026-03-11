@@ -4,8 +4,15 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { classApis, Class, AcademicYear } from "@/lib/api/Class";
+import { classApis } from "@/lib/api/Class";
 import { showToast } from "@/lib/utils/Toast";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectStudentFiltersData,
+  selectStudentFiltersLoading,
+  fetchStudentFilterData,
+} from "@/lib/store/StudentFiltersSlice";
+import type { AppDispatch } from "@/lib/store/Index";
 
 const classAssignmentSchema = z.object({
   classId: z.string().min(1, "Please select a class"),
@@ -29,10 +36,11 @@ export default function ClassAssignmentForm({
   onSubmitSuccess,
   onCancel,
 }: ClassAssignmentFormProps) {
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  // Get classes and academic years from Redux
+  const { classes, academicYears } = useSelector(selectStudentFiltersData);
+  const filtersLoading = useSelector(selectStudentFiltersLoading);
+  const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = useState(false);
-  const [fetchingData, setFetchingData] = useState(true);
 
   const {
     register,
@@ -50,50 +58,37 @@ export default function ClassAssignmentForm({
 
   const selectedAcademicYearId = watch("academicYearId");
 
+  // Fetch filter data if not available
   useEffect(() => {
-    const fetchAcademicYears = async () => {
-      try {
-        const academicYearsData = await classApis.getAcademicYears();
-        setAcademicYears(academicYearsData);
-        if (!currentAcademicYearId) {
-          const currentYear = academicYearsData.find(year => year.isCurrent);
-          if (currentYear) {
-            setValue("academicYearId", currentYear.id);
-          }
-        }
-      } catch {
-        showToast.error("Failed to fetch academic years");
-      } finally {
-        setFetchingData(false);
-      }
-    };
-
-    fetchAcademicYears();
-  }, [currentAcademicYearId, setValue]);
-
-  useEffect(() => {
-    if (!selectedAcademicYearId) {
-      setClasses([]);
-      return;
+    if (classes.length === 0 && academicYears.length === 0 && !filtersLoading) {
+      dispatch(fetchStudentFilterData());
     }
+  }, [classes.length, academicYears.length, filtersLoading, dispatch]);
 
-    const fetchClasses = async () => {
-      try {
-        setLoading(true);
-        const classesData = await classApis.getAll();
-        setClasses(classesData);
-      } catch {
-        showToast.error("Failed to fetch classes");
-      } finally {
-        setLoading(false);
+  // Set current academic year if provided and no academic year is selected
+  useEffect(() => {
+    if (currentAcademicYearId && !selectedAcademicYearId) {
+      const currentYear = academicYears.find(year => year.isCurrent);
+      if (currentYear) {
+        setValue("academicYearId", currentYear.id);
       }
-    };
+    }
+  }, [currentAcademicYearId, selectedAcademicYearId, setValue, academicYears]);
 
-    fetchClasses();
-  }, [selectedAcademicYearId]);
+  // Show loading state while fetching data
+  if (filtersLoading || (classes.length === 0 && academicYears.length === 0)) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-sm text-[var(--text-3)]">
+          Loading classes and academic years...
+        </div>
+      </div>
+    );
+  }
 
   const onSubmit = async (data: ClassAssignmentValues) => {
     try {
+      setLoading(true);
       await classApis.assignStudentToClass(
         studentId,
         data.classId,
@@ -103,6 +98,8 @@ export default function ClassAssignmentForm({
       onSubmitSuccess?.();
     } catch (error) {
       showToast.apiError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,16 +114,14 @@ export default function ClassAssignmentForm({
           </label>
           <select
             {...register("academicYearId")}
-            disabled={fetchingData}
+            disabled={loading}
             className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] disabled:opacity-50 cursor-pointer ${
               errors.academicYearId
                 ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                 : "border-[var(--border)]"
             }`}
           >
-            <option value="">
-              {fetchingData ? "Loading..." : "Select Academic Year"}
-            </option>
+            <option value="">Select Academic Year</option>
             {academicYears.map(year => (
               <option key={year.id} value={year.id}>
                 {year.yearName} {year.isCurrent && "(Current)"} - {year.status}
@@ -146,16 +141,14 @@ export default function ClassAssignmentForm({
           </label>
           <select
             {...register("classId")}
-            disabled={!selectedAcademicYearId || loading || fetchingData}
+            disabled={loading}
             className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] disabled:opacity-50 cursor-pointer ${
               errors.classId
                 ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                 : "border-[var(--border)]"
             }`}
           >
-            <option value="">
-              {loading ? "Loading classes..." : "Select Class"}
-            </option>
+            <option value="">Select Class</option>
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>
                 Class {cls.className} - {cls.section}
@@ -240,7 +233,7 @@ export default function ClassAssignmentForm({
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || fetchingData || loading}
+          disabled={isSubmitting || loading}
           className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Assigning..." : "Assign Class"}

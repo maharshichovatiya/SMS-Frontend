@@ -9,10 +9,13 @@ import {
   StudentFormValues,
 } from "../validations/StudentSchema";
 import { studentApis } from "../api/Student";
-import { classApis, Class, AcademicYear } from "../api/Class";
+import { Class } from "../api/Class";
 import { showToast } from "../utils/Toast";
 import { generateStudentPassword } from "../utils/PasswordGenerator";
 import { handleStringField } from "../utils/FieldHandlers";
+import { useSelector } from "react-redux";
+import { selectStudentFiltersData } from "../store/StudentFiltersSlice";
+import type { RootState } from "../store/Index";
 
 interface UseStudentFormProps {
   initialData?: Partial<StudentFormValues> & {
@@ -71,12 +74,12 @@ export function UseStudentForm({
   onClose,
   roleId,
 }: UseStudentFormProps) {
+  const { schoolId } = useSelector((state: RootState) => state.auth);
   const isEditMode = !!initialData;
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  // Get classes and academic years from Redux instead of API calls
+  const { classes, academicYears } = useSelector(selectStudentFiltersData);
   const [filteredClasses, setFilteredClasses] = useState<Class[]>([]);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
-  const [fetchingData, setFetchingData] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -308,42 +311,64 @@ export function UseStudentForm({
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setFetchingData(true);
+    if (isEditMode && initialData) {
+      const changedStudentFields = getChangedFields(formData, initialData);
+      setHasChanges(Object.keys(changedStudentFields).length > 0);
+    }
+  }, [formData, initialData, isEditMode]);
 
-        const [academicYearsData, classesData] = await Promise.all([
-          classApis.getAcademicYears(),
-          classApis.getAll(),
-        ]);
+  useEffect(() => {
+    if (initialData) {
+      const formDataToReset: Partial<StudentFormValues> = {
+        firstName: initialData.firstName,
+        middleName: initialData.middleName,
+        lastName: initialData.lastName,
+        email: initialData.email,
+        phone: initialData.phone,
+        rollNo: initialData.rollNo,
+        admissionDate: initialData.admissionDate,
+        dob: initialData.dob,
+        fatherName: initialData.fatherName,
+        fatherPhone: initialData.fatherPhone,
+        motherName: initialData.motherName,
+        guardianName: initialData.guardianName,
+        familyAnnualIncome: initialData.familyAnnualIncome?.toString(),
+        medicalConditions: initialData.medicalConditions,
+        bloodGroup: initialData.bloodGroup,
+        aadhaarNo: initialData.aadhaarNo,
+        panNo: initialData.panNo,
+        permanentAddress: initialData.permanentAddress,
+        currentAddress: initialData.currentAddress,
+        bankName: initialData.bankName,
+        accountNo: initialData.accountNo,
+        ifscCode: initialData.ifscCode,
+        branch: initialData.branch,
+        gender:
+          ((initialData.gender || initialData.user?.gender) as
+            | "male"
+            | "female"
+            | "other"
+            | "") || "",
+        classId: initialData.classId || "",
+        academicYearId: initialData.academicYearId || "",
+        password: "",
+        sameAsPermanent: false,
+      };
+      reset(formDataToReset);
 
-        setAcademicYears(academicYearsData);
-        setClasses(classesData);
-
-        if (isEditMode && initialData) {
-          if (initialData.academicYearId) {
-            setValue("academicYearId", initialData.academicYearId);
-            setSelectedAcademicYear(initialData.academicYearId);
-
-            setFilteredClasses(classesData);
-          }
-          if (initialData.classId) {
-            setValue("classId", initialData.classId);
-          }
-        }
-      } catch {
-        showToast.error("Failed to fetch data");
-      } finally {
-        setFetchingData(false);
+      if (initialData.academicYearId) {
+        setValue("academicYearId", initialData.academicYearId);
+        setSelectedAcademicYear(initialData.academicYearId);
+        setFilteredClasses(classes);
       }
-    };
-
-    fetchData();
-  }, [isEditMode, initialData, setValue]);
+      if (initialData.classId) {
+        setValue("classId", initialData.classId);
+      }
+    }
+  }, [isEditMode, initialData, setValue, reset, classes]);
 
   const onSubmit = async (data: StudentFormValues) => {
     try {
-      const schoolId = localStorage.getItem("schoolId");
       if (!schoolId) {
         showToast.error("School ID not found. Please login again.");
         return;
@@ -368,7 +393,14 @@ export function UseStudentForm({
           classId !== (initialClassId || "") ||
           academicYearId !== (initialAcademicYearId || "");
 
-        // ✅ Add validation for rollNo when class/academic year is not assigned
+        const rollNoChanged = rollNo !== (initialRollNo || "");
+
+        // Only validate class assignment if student was previously assigned or if rollNo is provided
+        const wasPreviouslyAssigned = !!(
+          initialData.classId && initialData.academicYearId
+        );
+        const isTryingToAssign = !!(classId && academicYearId);
+
         if (rollNo && !classId && !initialData.classId) {
           showToast.error("Class is required when Roll No is provided");
           return;
@@ -378,8 +410,14 @@ export function UseStudentForm({
           return;
         }
 
-        // ✅ Additional validation: Show error when both classId and rollNo are missing
-        if (!rollNo && (!classId || classId.trim() === "")) {
+        // Only require class assignment if:
+        // 1. Student was previously assigned and is trying to change assignment, OR
+        // 2. Roll No is provided (need class for roll No assignment)
+        if (
+          wasPreviouslyAssigned &&
+          !isTryingToAssign &&
+          (academicChanged || rollNoChanged)
+        ) {
           showToast.error(
             "Class assignment is required. Please select a class for this student.",
           );
@@ -393,8 +431,6 @@ export function UseStudentForm({
           );
           return;
         }
-
-        const rollNoChanged = rollNo !== (initialRollNo || "");
 
         const changedStudentFields = getChangedFields(
           studentFieldsFromForm as StudentFormValues,
@@ -526,7 +562,6 @@ export function UseStudentForm({
     academicYears,
     filteredClasses,
     selectedAcademicYear,
-    fetchingData,
     hasChanges,
     showPassword,
     setShowPassword,

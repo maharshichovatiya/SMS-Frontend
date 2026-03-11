@@ -1,7 +1,7 @@
 "use client";
 
 import Modal from "@/components/ui/Modal";
-import StudentForm from "@/components/forms/StudentForm";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import { Student } from "@/components/tables/StudentTable";
 
 interface StudentEditModalProps {
@@ -36,7 +36,7 @@ export default function StudentEditModal({
               lastName: student.lastName,
               email: student.email,
               phone: student.phone || "",
-              rollNo: student.rollNo,
+              rollNo: student.rollNo || undefined,
               admissionDate: student.admissionDate,
               dob:
                 student.dob === "N/A" || student.dob === null

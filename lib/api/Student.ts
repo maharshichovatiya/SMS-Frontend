@@ -46,18 +46,35 @@ const filterEmptyOptionalFields = (
 
 export const studentApis = {
   getAll: async (params?: StudentQueryParams) => {
+    if (!params) {
+      const res = await api.get<ApiResponse<StudentListResponse>>("/student");
+      return res.data;
+    }
+
     // Convert classId and gender arrays to comma-separated strings for API
-    const convertedParams = params
-      ? {
-          ...params,
-          classId: Array.isArray(params.classId)
-            ? params.classId.join(",")
-            : params.classId,
-          gender: Array.isArray(params.gender)
-            ? params.gender.join(",")
-            : params.gender,
+    // Only include the parameter if it has values
+    const convertedParams: Record<string, string | number | undefined> = {};
+
+    Object.keys(params).forEach(key => {
+      const value = params[key as keyof StudentQueryParams];
+
+      if (value !== undefined && value !== null && value !== "") {
+        if (key === "classId" && Array.isArray(value)) {
+          if (value.length > 0) {
+            convertedParams[key] = value.join(",");
+          }
+        } else if (key === "gender" && Array.isArray(value)) {
+          if (value.length > 0) {
+            convertedParams[key] = value.join(",");
+          }
+        } else {
+          // Type assertion for non-array values
+          (convertedParams as Record<string, string | number>)[key] = value as
+            | string
+            | number;
         }
-      : params;
+      }
+    });
 
     const res = await api.get<ApiResponse<StudentListResponse>>("/student", {
       params: convertedParams,

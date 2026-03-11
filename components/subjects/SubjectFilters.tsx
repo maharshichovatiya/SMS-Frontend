@@ -38,6 +38,10 @@ export default function SubjectFilters({
     filterName: keyof SubjectFiltersProps["filters"],
     value: string,
   ) => {
+    // Prevent negative values
+    if (value.startsWith("-")) {
+      return;
+    }
     setLocalFilters({
       ...localFilters,
       [filterName]: value || undefined,

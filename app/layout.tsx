@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Josefin_Sans } from "next/font/google";
 import { ToasterProvider } from "@/components/ui/Toaster";
+import { ReduxProvider } from "@/components/providers/ReduxProvider";
 import "./globals.css";
 
 const josefinSans = Josefin_Sans({
@@ -22,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${josefinSans.className} antialiased`}>
-        {children}
-        <ToasterProvider />
+        <ReduxProvider>
+          {children}
+          <ToasterProvider />
+        </ReduxProvider>
       </body>
     </html>
   );

@@ -5,28 +5,24 @@ import { Building2, Plus } from "lucide-react";
 import ClassCard from "@/components/classes/ClassesCard";
 import ClassForm from "@/components/forms/ClassForm";
 import Modal from "@/components/ui/Modal";
-import ClassFilters, {
-  ClassFilterValues,
-} from "@/components/classes/ClassFilters";
+import ClassFilters from "@/components/classes/ClassFilters";
 import ClassCardSkeleton from "@/components/skeletons/ClassCardSkeleton";
 import { getClassSummary } from "@/lib/api/Classes";
 import { ClassItem } from "@/lib/types/Class";
 import PageHeader from "@/components/layout/PageHeader";
-
-const DEFAULT_FILTERS: ClassFilterValues = {
-  search: "",
-  type: "all",
-  availability: [],
-  section: [],
-  capacity: [],
-  studentCount: [],
-};
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;
 
 function Page() {
-  const [filters, setFilters] = useState<ClassFilterValues>(DEFAULT_FILTERS);
+  const filters = useSelector((state: RootState) => state.classFilters.filters);
+  const { hasLoadedOnce, assignTeachers } = useSelector(
+    (state: RootState) => state.teacher,
+  );
+  const dispatch = useDispatch<AppDispatch>();
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -35,6 +31,13 @@ function Page() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [totalRecords, setTotalRecords] = useState(0);
+
+  // Load teacher data only once when classes page loads
+  useEffect(() => {
+    if (!hasLoadedOnce && assignTeachers.length === 0) {
+      dispatch(fetchAssignTeachers());
+    }
+  }, [hasLoadedOnce, assignTeachers.length, dispatch]);
 
   const totalPages = Math.ceil(totalRecords / pageSize);
 
@@ -95,16 +98,6 @@ function Page() {
     setCurrentPage(1);
   };
 
-  const handleFiltersChange = (val: ClassFilterValues) => {
-    setCurrentPage(1);
-    setFilters(val);
-  };
-
-  const handleClearFilters = () => {
-    setCurrentPage(1);
-    setFilters(DEFAULT_FILTERS);
-  };
-
   const showingFrom = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const showingTo = Math.min(currentPage * pageSize, totalRecords);
 
@@ -133,11 +126,7 @@ function Page() {
         buttonIcon={Plus}
       />
 
-      <ClassFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onClearFilters={handleClearFilters}
-      />
+      <ClassFilters />
 
       {loading ? (
         <ClassCardSkeleton />

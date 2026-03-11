@@ -1,36 +1,64 @@
 "use client";
-import StudentForm from "@/components/forms/StudentForm";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import StudentsTable from "@/components/tables/StudentTable";
 import StudentFilters from "@/components/students/StudentFilters";
 import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
 import Modal from "@/components/ui/Modal";
 import PageHeader from "@/components/layout/PageHeader";
-import { authApi, Role } from "@/lib/api/Auth";
 import { RecordStatus } from "@/lib/api/Student";
-import { showToast } from "@/lib/utils/Toast";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectStudentFilters,
+  selectStudentFiltersData,
+  selectStudentFiltersLoading,
+  fetchStudentFilterData,
+} from "@/lib/store/StudentFiltersSlice";
+import {
+  fetchRoles,
+  selectStudentRoleId,
+  selectRolesLoading,
+  selectStudentData,
+  selectStudentTotal,
+  selectStudentLoading,
+  selectStudentPagination,
+  selectSearchQuery,
+  selectStatus,
+  setCurrentPage,
+  setPageSize,
+  setSearchQuery,
+  setStatus,
+  invalidateCache,
+  fetchStudents,
+} from "@/lib/store/StudentDataSlice";
+import type { AppDispatch } from "@/lib/store/Index";
 import { Users, Plus, Search } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface StudentFilters {
-  classId?: string[];
-  academicYearId?: string;
-  gender?: string[];
-  fromDate?: string;
-  toDate?: string;
-  fromFamilyIncome?: string;
-  toFamilyIncome?: string;
-}
+import { useEffect, useState, useCallback } from "react";
 
 function Page() {
-  const [status, setStatus] = useState<RecordStatus | "all">("all");
+  // UI States (keep local)
   const [isOpen, setIsOpen] = useState(false);
-  const [role, setRole] = useState<string>("");
-  const [rolesLoading, setRolesLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [studentCount, setStudentCount] = useState<number>(0);
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-  const [filters, setFilters] = useState<StudentFilters>({});
+
+  // Redux selectors
+  const filters = useSelector(selectStudentFilters);
+  const { classes, academicYears } = useSelector(selectStudentFiltersData);
+  const filtersLoading = useSelector(selectStudentFiltersLoading);
+  const studentRoleId = useSelector(selectStudentRoleId);
+  const rolesLoading = useSelector(selectRolesLoading);
+
+  // Student data selectors
+  const students = useSelector(selectStudentData);
+  const totalStudents = useSelector(selectStudentTotal);
+  const studentsLoading = useSelector(selectStudentLoading);
+
+  // Pagination selectors
+  const pagination = useSelector(selectStudentPagination);
+
+  // UI State selectors (persistent across navigation)
+  const searchQuery = useSelector(selectSearchQuery);
+  const status = useSelector(selectStatus);
+
+  const dispatch = useDispatch<AppDispatch>();
 
   // Debounce search query (500ms delay)
   useEffect(() => {
@@ -41,42 +69,71 @@ function Page() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleFiltersChange = (newFilters: StudentFilters) => {
-    setFilters(newFilters);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({});
-  };
+  // Fetch classes and academic years if not available in Redux
   useEffect(() => {
-    async function getStudentRoleID() {
-      setRolesLoading(true);
-      try {
-        const res = await authApi.getRoles();
-        const studentRole = res.data?.find(
-          (role: Role) => role.roleName.toLowerCase() === "student",
-        );
-        if (studentRole) {
-          setRole(studentRole.id);
-        }
-      } catch (err: unknown) {
-        showToast.apiError(err);
-      } finally {
-        setRolesLoading(false);
-      }
+    if (classes.length === 0 && academicYears.length === 0 && !filtersLoading) {
+      dispatch(fetchStudentFilterData());
     }
-    getStudentRoleID();
-  }, []);
+  }, [classes.length, academicYears.length, filtersLoading, dispatch]);
+
+  // Fetch roles if not available
+  useEffect(() => {
+    if (!studentRoleId && !rolesLoading) {
+      dispatch(fetchRoles());
+    }
+  }, [studentRoleId, rolesLoading, dispatch]);
+
+  // Refresh handler
+  const handleRefresh = useCallback(() => {
+    dispatch(invalidateCache());
+    dispatch(
+      fetchStudents({
+        page: pagination.currentPage,
+        pageSize: pagination.pageSize,
+        searchParams: {
+          search: debouncedSearch || undefined,
+          status: status === "all" ? undefined : status,
+          classId: filters.classId,
+          academicYearId: filters.academicYearId,
+          gender: filters.gender,
+          fromDate: filters.fromDate,
+          toDate: filters.toDate,
+          fromFamilyIncome: filters.fromFamilyIncome
+            ? parseInt(filters.fromFamilyIncome)
+            : undefined,
+          toFamilyIncome: filters.toFamilyIncome
+            ? parseInt(filters.toFamilyIncome)
+            : undefined,
+        },
+        forceRefresh: true,
+      }),
+    );
+  }, [
+    dispatch,
+    debouncedSearch,
+    status,
+    filters,
+    pagination.currentPage,
+    pagination.pageSize,
+  ]);
+
+  // Fetch students on mount and when search params change
+  useEffect(() => {
+    handleRefresh();
+  }, [
+    debouncedSearch,
+    status,
+    filters,
+    pagination.currentPage,
+    pagination.pageSize,
+    handleRefresh,
+  ]);
 
   return (
     <div>
       <PageHeader
         title="Students"
-        description={`${studentCount} students enrolled · Academic Year`}
+        description={`${totalStudents} students enrolled · Academic Year`}
         icon={Users}
         iconBgColor="--blue-light"
         iconColor="--blue"
@@ -94,7 +151,7 @@ function Page() {
           ].map(s => (
             <button
               key={s.id}
-              onClick={() => setStatus(s.id as RecordStatus | "all")}
+              onClick={() => dispatch(setStatus(s.id as RecordStatus | "all"))}
               className={`px-4 cursor-pointer py-1.5 rounded-full text-sm font-medium border transition ${
                 status === s.id
                   ? "text-white border-transparent"
@@ -116,11 +173,7 @@ function Page() {
 
         {/* Search Bar and Filter Button - Right side */}
         <div className="flex items-center gap-3">
-          <StudentFilters
-            filters={filters}
-            onFiltersChange={handleFiltersChange}
-            onClearFilters={handleClearFilters}
-          />
+          <StudentFilters />
 
           <div className="relative">
             <Search
@@ -131,7 +184,7 @@ function Page() {
               type="text"
               placeholder="Search students..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => dispatch(setSearchQuery(e.target.value))}
               className="pl-9 pr-4 py-2 text-sm border border-[var(--border)] rounded-full bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--blue-muted)] focus:border-[var(--border-focus)] w-64 transition-all duration-[var(--duration)]"
             />
           </div>
@@ -143,25 +196,15 @@ function Page() {
           <StudentTableSkeleton />
         ) : (
           <StudentsTable
-            key={refreshKey}
-            roleId={role}
+            students={students}
+            totalStudents={totalStudents}
+            loading={studentsLoading}
+            currentPage={pagination.currentPage}
+            pageSize={pagination.pageSize}
+            setCurrentPage={page => dispatch(setCurrentPage(page))}
+            setPageSize={size => dispatch(setPageSize(size))}
+            roleId={studentRoleId || ""}
             onRefresh={handleRefresh}
-            onTotalCountChange={setStudentCount}
-            searchParams={{
-              search: debouncedSearch || undefined,
-              status: status === "all" ? undefined : status,
-              classId: filters.classId,
-              academicYearId: filters.academicYearId,
-              gender: filters.gender,
-              fromDate: filters.fromDate,
-              toDate: filters.toDate,
-              fromFamilyIncome: filters.fromFamilyIncome
-                ? parseInt(filters.fromFamilyIncome)
-                : undefined,
-              toFamilyIncome: filters.toFamilyIncome
-                ? parseInt(filters.toFamilyIncome)
-                : undefined,
-            }}
           />
         )}
       </div>
@@ -175,7 +218,7 @@ function Page() {
         <div className="w-[800px]">
           <StudentForm
             onClose={() => setIsOpen(false)}
-            roleId={role}
+            roleId={studentRoleId || ""}
             onSubmitSuccess={handleRefresh}
           />
         </div>

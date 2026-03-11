@@ -1,7 +1,7 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
 import { Class } from "@/lib/api/Class";
-import { GetTeachers } from "@/lib/types/Teacher";
+import { AssignTeacher } from "@/lib/store/TeacherSlice";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface AssignClassModalProps {
@@ -9,7 +9,7 @@ interface AssignClassModalProps {
   onClose: () => void;
   modalLoading: boolean;
   allClasses: Class[];
-  allTeachers: GetTeachers[];
+  allTeachers: AssignTeacher[];
   selectedSubjectId: string;
   selectedClassId: string;
   selectedTeacherId: string;

@@ -4,29 +4,13 @@ import { useForm, SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClassFormData, classSchema } from "@/lib/validations/ClassSchema";
 import { useEffect, useState } from "react";
-import { getTeachersForAssignClass } from "@/lib/api/Teacher";
+import { useSelector, useDispatch } from "react-redux";
 import { showToast } from "@/lib/utils/Toast";
 import { createClass, updateClass } from "@/lib/api/Classes";
 import { Hash, ChevronDown, Users, GraduationCap } from "lucide-react";
-
-interface AssignTeacher {
-  id: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    school: {
-      id: string;
-      name: string;
-    };
-  };
-}
+import type { RootState, AppDispatch } from "@/lib/store/Index";
+import { clearError } from "@/lib/store/TeacherSlice";
+import { fetchStudentFilterData } from "@/lib/store/StudentFiltersSlice";
 
 interface ClassFormProps {
   onCancel: () => void;
@@ -51,8 +35,13 @@ export default function ClassForm({
   mode = "add",
   classId,
 }: ClassFormProps) {
-  const [teachers, setTeachers] = useState<AssignTeacher[]>([]);
-  const [loadingTeachers, setLoadingTeachers] = useState(true);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    assignTeachers: teachers,
+    loading: loadingTeachers,
+    error: teacherError,
+    hasLoadedOnce,
+  } = useSelector((state: RootState) => state.teacher);
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -86,36 +75,20 @@ export default function ClassForm({
         className: String(defaultValues.className ?? ""),
         section: defaultValues.section ?? "",
         classTeacherId: defaultValues.classTeacherId ?? null,
-        studentCapacity: defaultValues.studentCapacity ?? undefined,
+        studentCapacity: defaultValues.studentCapacity ?? 60,
       });
     }
   }, [defaultValues]);
 
+  // No useEffect here - data is loaded at app level, not modal level
+
+  // Show error toast if teacher data fails to load
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await getTeachersForAssignClass();
-        if (res.success && res.data) {
-          setTeachers(res.data);
-        } else {
-          let message = res.message;
-          if (
-            res.message &&
-            res.message.length > 0 &&
-            typeof res.message === "object"
-          ) {
-            message = res.message[0];
-          }
-          showToast.error(message || "Something went wrong");
-        }
-      } catch {
-        showToast.error("Failed to load teachers");
-      } finally {
-        setLoadingTeachers(false);
-      }
-    };
-    load();
-  }, []);
+    if (teacherError) {
+      showToast.error(teacherError);
+      dispatch(clearError());
+    }
+  }, [teacherError, dispatch]);
 
   const onSubmit: SubmitHandler<ClassFormData> = async data => {
     setSubmitting(true);
@@ -144,6 +117,11 @@ export default function ClassForm({
         );
         reset();
         onSuccess?.();
+
+        // Refresh student filter data when class is created/updated of the classes to the student classes slice
+        if (mode === "add" || mode === "edit") {
+          dispatch(fetchStudentFilterData());
+        }
       } else {
         let message = res.message;
         if (

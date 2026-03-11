@@ -1,6 +1,6 @@
 import React from "react";
 import Modal from "@/components/ui/Modal";
-import SubjectForm from "@/components/forms/SubjectForm";
+import SubjectForm from "@/components/forms/SubjectSections/SubjectForm";
 import { SubjectWithClassSubjects } from "@/lib/api/Subject";
 
 interface SubjectFormModalProps {

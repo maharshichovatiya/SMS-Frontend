@@ -2,35 +2,26 @@
 import TeacherForm from "@/components/forms/TeacherForm";
 import TeacherCardSkeleton from "@/components/skeletons/TeacherCardSkeleton";
 import TeacherCard from "@/components/teacher/TeachersCard";
-import TeacherFilters, {
-  TeacherFilterValues,
-} from "@/components/teacher/TeacherFilters";
+import TeacherFilters from "@/components/teacher/TeacherFilters";
 import Modal from "@/components/ui/Modal";
 import { getAllTeachers } from "@/lib/api/Teacher";
 import { GetTeachers } from "@/lib/types/Teacher";
 import { Plus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/layout/PageHeader";
-
-const DEFAULT_FILTERS: TeacherFilterValues = {
-  search: "",
-  department: [],
-  experience: [],
-  salary: [],
-  ageGroup: [],
-  tenure: [],
-  gender: [],
-  status: [],
-};
+import { useSelector } from "react-redux";
+import type { RootState } from "@/lib/store/Index";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12];
 const DEFAULT_PAGE_SIZE = 6;
 
 export default function TeachersPage() {
+  const filters = useSelector(
+    (state: RootState) => state.teacherFilters.filters,
+  );
   const [open, setOpen] = useState(false);
   const [teachers, setTeachers] = useState<GetTeachers[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<TeacherFilterValues>(DEFAULT_FILTERS);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,16 +92,6 @@ export default function TeachersPage() {
     setCurrentPage(1);
   };
 
-  const handleFiltersChange = (val: TeacherFilterValues) => {
-    setCurrentPage(1);
-    setFilters(val);
-  };
-
-  const handleClearFilters = () => {
-    setCurrentPage(1);
-    setFilters(DEFAULT_FILTERS);
-  };
-
   const hasActiveFilters =
     (filters.department?.length ?? 0) > 0 ||
     (filters.experience?.length ?? 0) > 0 ||
@@ -136,11 +117,7 @@ export default function TeachersPage() {
         buttonIcon={Plus}
       />
 
-      <TeacherFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        onClearFilters={handleClearFilters}
-      />
+      <TeacherFilters />
 
       {loading ? (
         <TeacherCardSkeleton />

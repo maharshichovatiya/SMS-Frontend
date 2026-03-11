@@ -9,17 +9,18 @@ import { deleteUser } from "@/lib/api/Profile";
 import { Settings } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/lib/store/Index";
 import { showToast } from "@/lib/utils/Toast";
 
 export default function SettingsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
+  const { userId, schoolId } = useSelector((state: RootState) => state.auth);
+
   const handleDelete = async () => {
     try {
-      const schoolId = localStorage.getItem("schoolId");
-      const userId = localStorage.getItem("userId");
-
       if (!schoolId || !userId) {
         showToast.error("User or School ID not found");
         return;

@@ -9,6 +9,7 @@ import {
   IndianRupee,
 } from "lucide-react";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import Modal from "@/components/ui/Modal";
 import TeacherForm from "../forms/TeacherForm";
 import TeacherViewModal from "./TeacherViewModal";
@@ -17,6 +18,8 @@ import { showToast } from "@/lib/utils/Toast";
 import { deleteTeacher, updateTeacherStatus } from "@/lib/api/Teacher";
 import { formatExperience } from "@/lib/utils/TotalExpMonths";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import type { AppDispatch } from "@/lib/store/Index";
+import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 
 interface Props {
   teacher: GetTeachers;
@@ -24,6 +27,7 @@ interface Props {
 }
 
 export default function TeacherCard({ teacher, onSuccess }: Props) {
+  const dispatch = useDispatch<AppDispatch>();
   const fullName = `${teacher.user.firstName} ${teacher.user.lastName}`;
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -43,6 +47,8 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     setDeleting(false);
     if (res.success) {
       showToast.success("Teacher deleted successfully");
+      // Force immediate API call to refresh teacher data
+      dispatch(fetchAssignTeachers());
       setOpenDelete(false);
       onSuccess();
     } else {
@@ -58,7 +64,11 @@ export default function TeacherCard({ teacher, onSuccess }: Props) {
     const res = await updateTeacherStatus(teacher.id, newStatus);
     setStatusLoading(false);
     if (res.success) {
-      showToast.success("Status updated");
+      showToast.success(
+        `Teacher status updated to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+      );
+      // Force immediate API call to refresh teacher data
+      dispatch(fetchAssignTeachers());
       onSuccess();
     } else {
       setCurrentStatus(previousStatus);
