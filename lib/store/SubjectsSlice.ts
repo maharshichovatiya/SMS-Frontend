@@ -130,9 +130,8 @@ export const assignClassToSubject = createAsyncThunk(
       await subjectApis.assignClassToSubject(payload);
       return payload;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to assign class",
-      );
+      // Pass through the actual error instead of generic fallback
+      return rejectWithValue(error);
     }
   },
 );
