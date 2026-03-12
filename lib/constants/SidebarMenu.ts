@@ -6,6 +6,13 @@ export interface MenuItem {
   badgeColor?: string;
 }
 
+export interface ProfessionalIcon {
+  icon: string;
+  label: string;
+  color: string;
+  bg: string;
+}
+
 export interface MenuSection {
   title: string;
   items: MenuItem[];
@@ -74,7 +81,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Home",
           label: "Dashboard",
-          path: "/dashboard",
+          path: "/teacherview/dashboard",
         },
       ],
     },
@@ -83,23 +90,18 @@ export const SIDEBAR_MENUS: RoleMenus = {
       items: [
         {
           icon: "Building",
-          label: "Classes",
-          path: "/classes",
+          label: "Notifications",
+          path: "/teacherview/notifications",
+        },
+        {
+          icon: "Building",
+          label: "Resources",
+          path: "/teacherview/resources",
         },
         {
           icon: "UserCircle",
           label: "Profile",
-          path: "/profile",
-        },
-      ],
-    },
-    {
-      title: "General",
-      items: [
-        {
-          icon: "UserCircle",
-          label: "Profile",
-          path: "/profile",
+          path: "/teacherview/profile",
         },
       ],
     },
