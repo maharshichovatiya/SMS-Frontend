@@ -1,0 +1,63 @@
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": {
+    "id": "fc993f9f-bcac-4477-bea5-f4a9d580ed9e",
+    "status": "active",
+    "userId": "793c0a6f-fde8-4b5d-a776-ed1b02caa62a",
+    "employeeCode": "EMP1773297840945",
+    "staffCategory": "teaching",
+    "department": "academic",
+    "designation": "Senior Mathematics Teacher",
+    "highestQualification": "btech",
+    "specialization": null,
+    "totalExpMonths": 24,
+    "salaryPackage": "99988.00",
+    "dateOfJoining": "2026-02-27",
+    "createdAt": "2026-03-12T06:44:00.938Z",
+    "updatedAt": "2026-03-12T06:44:00.938Z",
+    "user": {
+      "id": "793c0a6f-fde8-4b5d-a776-ed1b02caa62a",
+      "email": "trdfsixet111@gmail.com",
+      "password": "$2b$10$SdCUL6gJXILTPSxUBcldU.vhxXyqkZswKioyZiAleNLNW1plk6sTO",
+      "firstName": "harsh",
+      "middleName": null,
+      "lastName": "patel",
+      "phone": "9328456930",
+      "gender": "male",
+      "dob": "2022-06-17",
+      "bloodGroup": null,
+      "aadhaarNo": null,
+      "panNo": null,
+      "permanentAddress": null,
+      "currentAddress": null,
+      "profilePhoto": null,
+      "bankName": null,
+      "accountNo": null,
+      "ifscCode": null,
+      "branch": null,
+      "tokenVersion": 0,
+      "school": {
+        "id": "6c7e48f0-a1a5-4fa2-8865-f445722b49a3",
+        "name": "My School",
+        "address": "123 Main Street, Ahmedabad",
+        "affiliationBoard": "CBSE",
+        "establishmentYear": null,
+        "schoolCode": null,
+        "contact": null,
+        "emailOfficial": null,
+        "emailAdmin": null,
+        "websiteUrl": null,
+        "logoUrl": null,
+        "schoolTimingStart": null,
+        "schoolTimingEnd": null,
+        "mediumOfInstruction": null,
+        "type": null
+      },
+      "role": {
+        "id": "c2b32816-8953-4397-b251-bc4b81d19ef9",
+        "roleName": "teacher"
+      }
+    }
+  }
+}
