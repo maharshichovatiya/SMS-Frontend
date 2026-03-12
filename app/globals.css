@@ -39,6 +39,46 @@
   --color-text-2: #5c6a8a;
   --color-text-3: #9aa5c4;
 
+  --notification-bg: #ffffff;
+  --notification-bg-hover: #f8faff;
+  --notification-border: #e5e7eb;
+  --notification-accent: #3d6cf4;
+  --notification-accent-light: #eef1ff;
+  --notification-text-primary: #111827;
+  --notification-text-secondary: #5c6a8a;
+  --notification-text-muted: #9aa5c4;
+  --notification-unread-bg: #f8faff;
+  --notification-unread-border: #3d6cf4;
+  --notification-badge-bg: #eef1ff;
+  --notification-badge-text: #3d6cf4;
+
+  --profile-bg: #ffffff;
+  --profile-border: #e5e7eb;
+  --profile-accent: #3d6cf4;
+  --profile-accent-light: #eef1ff;
+  --profile-text-primary: #111827;
+  --profile-text-secondary: #5c6a8a;
+  --profile-text-muted: #9aa5c4;
+  --profile-input-bg: #ffffff;
+  --profile-input-border: #e5e7eb;
+  --profile-input-border-focus: #3d6cf4;
+  --profile-button-bg: #3d6cf4;
+  --profile-button-text: #ffffff;
+  --profile-button-hover: #2752d8;
+  --profile-section-bg: #f8faff;
+  --profile-card-bg: #ffffff;
+  --profile-card-border: #e5e7eb;
+  --profile-field-bg: #f8faff;
+  --profile-field-border: #e5e7eb;
+  --profile-avatar-bg: #eef1ff;
+  --profile-avatar-text: #3d6cf4;
+  --profile-badge-bg: #eef1ff;
+  --profile-badge-text: #3d6cf4;
+  --profile-success-bg: #e6faf5;
+  --profile-success-text: #12a47e;
+  --profile-error-bg: #fff0f4;
+  --profile-error-text: #e83b6a;
+
   --font-sans: var(--font-josefin-sans), sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
