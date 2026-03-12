@@ -129,6 +129,11 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/subjects",
         },
         {
+          icon: "BookOpen",
+          label: "Resources",
+          path: "/resources",
+        },
+        {
           icon: "UserCircle",
           label: "Profile",
           path: "/profile",
