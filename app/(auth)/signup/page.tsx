@@ -231,6 +231,7 @@ export default function SignUpPage() {
           }
           if (responseData.user.role) {
             localStorage.setItem("userRole", responseData.user.role);
+            localStorage.setItem("role", responseData.user.role);
           }
           if (responseData.user.roleId) {
             localStorage.setItem("userRoleId", responseData.user.roleId);

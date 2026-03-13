@@ -32,6 +32,7 @@ export type VerifyOtpResponse = {
     refreshToken: string;
     userId: string;
     schoolId: string;
+    role: string;
   };
 };
 
