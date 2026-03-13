@@ -11,8 +11,11 @@ import {
 import { resendOtp, verifyOtp } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/lib/store/Index";
 
 export default function VerifyOTPPage() {
+  const dispatch = useDispatch<AppDispatch>();
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(90);
@@ -99,10 +102,13 @@ export default function VerifyOTPPage() {
     }
 
     try {
-      const result = await verifyOtp({
-        email,
-        otp: code,
-      });
+      const result = await verifyOtp(
+        {
+          email,
+          otp: code,
+        },
+        dispatch,
+      ); // Pass dispatch here
 
       if (result.success) {
         localStorage.removeItem("email");

@@ -20,8 +20,11 @@ import { PW_COLORS, PW_LABELS } from "@/lib/utils/SignupConstants";
 import { authApi, Role, RegisterSchoolPayload } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/lib/store/Index";
 export default function SignUpPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -204,7 +207,7 @@ export default function SignUpPage() {
         registerPayload.type = schoolData.schoolType;
       }
 
-      const response = await authApi.registerSchool(registerPayload);
+      const response = await authApi.registerSchool(registerPayload, dispatch);
 
       if (response.data) {
         const responseData = response.data;
