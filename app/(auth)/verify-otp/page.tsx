@@ -11,10 +11,6 @@ import {
 import { resendOtp, verifyOtp } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
-import type { AppDispatch } from "@/lib/store/Index";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/lib/store/Index";
 
 export default function VerifyOTPPage() {
   const dispatch = useDispatch<AppDispatch>();
