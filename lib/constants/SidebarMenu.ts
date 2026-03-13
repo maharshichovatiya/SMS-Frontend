@@ -90,6 +90,11 @@ export const SIDEBAR_MENUS: RoleMenus = {
       items: [
         {
           icon: "Building",
+          label: "Homework",
+          path: "/teacherview/homework",
+        },
+        {
+          icon: "Building",
           label: "Notifications",
           path: "/teacherview/notifications",
         },
