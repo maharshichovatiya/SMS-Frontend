@@ -1,5 +1,3 @@
-// Utility functions for localStorage access with SSR safety
-
 export const getFromLocalStorage = (key: string): string | null => {
   if (typeof window !== "undefined") {
     return localStorage.getItem(key);
@@ -19,7 +17,6 @@ export const removeFromLocalStorage = (key: string): void => {
   }
 };
 
-// Get user authentication data from localStorage
 export const getAuthData = () => {
   return {
     userId: getFromLocalStorage("userId"),
@@ -28,7 +25,6 @@ export const getAuthData = () => {
   };
 };
 
-// Check if user is authenticated
 export const isUserAuthenticated = (): boolean => {
   const { userId, schoolId } = getAuthData();
   return !!(userId && schoolId);
