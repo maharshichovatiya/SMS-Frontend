@@ -1,5 +1,7 @@
 import { AxiosError } from "axios";
 import api from "@/lib/Axios";
+import { getFromLocalStorage } from "@/lib/utils/localStorage";
+import { ApiResponse } from "../types/Teacher";
 
 export interface TeacherProfileData {
   id: string;
@@ -86,7 +88,17 @@ export interface UpdateTeacherProfilePayload {
 
 export const getTeacherProfile = async (): Promise<TeacherProfileData> => {
   try {
-    const response = await api.get<TeacherProfileResponse>("/teachers/profile");
+    // Get userId from localStorage using utility function
+    const userId = getFromLocalStorage("userId");
+
+    if (!userId) {
+      throw new Error("User ID not found in localStorage");
+    }
+
+    const apiUrl = `/teachers/user/${userId}`;
+
+    const response = await api.get<TeacherProfileResponse>(apiUrl);
+
     return response.data.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -99,78 +111,24 @@ export const getTeacherProfile = async (): Promise<TeacherProfileData> => {
 export const updateTeacherProfile = async (
   id: string,
   payload: UpdateTeacherProfilePayload,
-): Promise<TeacherProfileData> => {
+): Promise<ApiResponse<TeacherProfileData>> => {
   try {
-    const body: Partial<UpdateTeacherProfilePayload> = {
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-    };
-
-    if (payload.middleName !== undefined) {
-      body.middleName = payload.middleName;
-    }
-
-    if (payload.phone !== undefined) {
-      body.phone = payload.phone;
-    }
-
-    if (payload.gender !== undefined) {
-      body.gender = payload.gender;
-    }
-
-    if (payload.dob !== undefined) {
-      body.dob = payload.dob;
-    }
-
-    if (payload.bloodGroup !== undefined) {
-      body.bloodGroup = payload.bloodGroup;
-    }
-
-    if (payload.aadhaarNo !== undefined) {
-      body.aadhaarNo = payload.aadhaarNo;
-    }
-
-    if (payload.panNo !== undefined) {
-      body.panNo = payload.panNo;
-    }
-
-    if (payload.permanentAddress !== undefined) {
-      body.permanentAddress = payload.permanentAddress;
-    }
-
-    if (payload.currentAddress !== undefined) {
-      body.currentAddress = payload.currentAddress;
-    }
-
-    if (payload.bankName !== undefined) {
-      body.bankName = payload.bankName;
-    }
-
-    if (payload.accountNo !== undefined) {
-      body.accountNo = payload.accountNo;
-    }
-
-    if (payload.ifscCode !== undefined) {
-      body.ifscCode = payload.ifscCode;
-    }
-
-    if (payload.branch !== undefined) {
-      body.branch = payload.branch;
-    }
-
-    if (payload.password) {
-      body.password = payload.password;
-    }
-
     const response = await api.patch<TeacherProfileResponse>(
       `/teachers/profile/${id}`,
-      body,
+      payload,
     );
-    return response.data.data;
+
+    return {
+      success: true,
+      data: response.data.data,
+    };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    throw new Error(
-      err.response?.data?.message || "Failed to update teacher profile",
-    );
+
+    return {
+      success: false,
+      message:
+        err.response?.data?.message || "Failed to update teacher profile",
+    };
   }
 };

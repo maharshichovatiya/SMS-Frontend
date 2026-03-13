@@ -1,10 +1,11 @@
 "use client";
-import React, { useState } from "react";
-import teacherApiResponse from "@/lib/data/teacher.json";
+import React, { useState, useEffect } from "react";
+import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import type {
   ProfileTab,
   ProfileFieldProps,
 } from "@/lib/types/teacher-profile";
+import TeacherForm from "@/components/forms/TeacherForm";
 
 interface ApiTeacherData {
   id: string;
@@ -189,7 +190,7 @@ const ProfileHeader: React.FC<{
   onEditToggle: () => void;
   onSave: () => void;
   onCancel: () => void;
-}> = ({ teacher, isEditing, onEditToggle, onSave, onCancel }) => {
+}> = ({ teacher, onEditToggle }) => {
   const { user } = teacher;
 
   const initials =
@@ -250,83 +251,107 @@ const ProfileHeader: React.FC<{
           </div>
         </div>
         <div className="flex gap-2.5 items-center">
-          {isEditing ? (
-            <>
-              <button
-                onClick={onCancel}
-                className="px-5 py-2.5 rounded-[11px] border-[1.5px] border-[#dde3f5] bg-white text-[13.5px] font-semibold text-[#5c6a8a] cursor-pointer font-[var(--font-sans)] transition-all duration-150"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onSave}
-                className="px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center gap-1.5"
-              >
-                Save Changes
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={onEditToggle}
-                className="px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center gap-1.5"
-              >
-                Edit Profile
-              </button>
-            </>
-          )}
+          <button
+            onClick={onEditToggle}
+            className="px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center gap-1.5"
+          >
+            Edit Profile
+          </button>
         </div>
       </div>
-
-      {isEditing && (
-        <div className="bg-[#eef1ff] border-t border-[#c8d1ed] px-7 py-2.5 text-[13px] font-medium text-[#3d6cf4] font-[var(--font-sans)] flex items-center gap-2">
-          You are in edit mode. Make your changes and click{" "}
-          <strong>Save Changes</strong> to update.
-        </div>
-      )}
     </div>
   );
 };
 
 const TeacherProfilePage: React.FC = () => {
-  const [teacherData, setTeacherData] = useState<ApiTeacherData>(
-    teacherApiResponse.data,
-  );
+  const { teacherData, loading, error, refetch } = useTeacherProfile();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-  const [draft, setDraft] = useState<ApiTeacherData>(teacherApiResponse.data);
+  const [draft, setDraft] = useState<ApiTeacherData | null>(null);
+
+  useEffect(() => {
+    if (teacherData) {
+      // Use setTimeout to defer state update and avoid cascading renders
+      setTimeout(() => {
+        setDraft(JSON.parse(JSON.stringify(teacherData)) as ApiTeacherData);
+      }, 0);
+    }
+  }, [teacherData]);
+
+  if (loading && !teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading teacher profile...</div>
+      </div>
+    );
+  }
+
+  if (error && !teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">No teacher data available</div>
+      </div>
+    );
+  }
 
   const handleEditToggle = () => {
-    setDraft(JSON.parse(JSON.stringify(teacherData)));
-    setIsEditing(true);
+    setShowForm(true);
+    setIsEditing(false);
+  };
+
+  const handleFormSave = async () => {
+    setShowForm(false);
+    await refetch();
+  };
+
+  const handleFormCancel = () => {
+    setShowForm(false);
   };
 
   const handleSave = () => {
-    setTeacherData(draft);
+    // TODO: Implement API call to save changes
+    // For now, just exit edit mode
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setDraft(JSON.parse(JSON.stringify(teacherData)));
+    if (teacherData) {
+      const teacherDataCopy = JSON.parse(
+        JSON.stringify(teacherData),
+      ) as ApiTeacherData;
+      setDraft(teacherDataCopy);
+    }
     setIsEditing(false);
   };
 
-  const setUserField = (key: string, val: string) => {
-    setDraft(prev => ({
-      ...prev,
-      user: { ...prev.user, [key]: val },
+  const handleFieldChange = (field: string, value: string) => {
+    setDraft((prev: ApiTeacherData | null) => ({
+      ...prev!,
+      [field]: value,
     }));
   };
 
-  const setTeacherField = (key: string, val: string) => {
-    setDraft(prev => ({
-      ...prev,
-      [key]: val,
+  const handleUserFieldChange = (field: string, value: string) => {
+    setDraft((prev: ApiTeacherData | null) => ({
+      ...prev!,
+      user: {
+        ...prev!.user,
+        [field]: value,
+      },
     }));
   };
 
-  const current = isEditing ? draft : teacherData;
+  const current = isEditing ? draft! : (teacherData! as ApiTeacherData);
 
   const renderOverview = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px]">
@@ -444,26 +469,26 @@ const TeacherProfilePage: React.FC = () => {
             label="First Name"
             value={current.user.firstName}
             isEditing={isEditing}
-            onChange={v => setUserField("firstName", v)}
+            onChange={v => handleUserFieldChange("firstName", v)}
           />
           <ProfileField
             label="Middle Name"
             value={current.user.middleName || ""}
             isEditing={isEditing}
-            onChange={v => setUserField("middleName", v)}
+            onChange={v => handleUserFieldChange("middleName", v)}
           />
           <ProfileField
             label="Last Name"
             value={current.user.lastName}
             isEditing={isEditing}
-            onChange={v => setUserField("lastName", v)}
+            onChange={v => handleUserFieldChange("lastName", v)}
           />
           <ProfileField
             label="Email"
             value={current.user.email}
             isEditing={isEditing}
             type="email"
-            onChange={v => setUserField("email", v)}
+            onChange={v => handleUserFieldChange("email", v)}
             readOnly
           />
           <ProfileField
@@ -471,7 +496,7 @@ const TeacherProfilePage: React.FC = () => {
             value={current.user.phone}
             isEditing={isEditing}
             type="tel"
-            onChange={v => setUserField("phone", v)}
+            onChange={v => handleUserFieldChange("phone", v)}
             mono
           />
           <ProfileField
@@ -479,19 +504,19 @@ const TeacherProfilePage: React.FC = () => {
             value={current.user.dob}
             isEditing={isEditing}
             type="date"
-            onChange={v => setUserField("dob", v)}
+            onChange={v => handleUserFieldChange("dob", v)}
           />
           <ProfileField
             label="Gender"
             value={current.user.gender}
             isEditing={isEditing}
-            onChange={v => setUserField("gender", v)}
+            onChange={v => handleUserFieldChange("gender", v)}
           />
           <ProfileField
             label="Blood Group"
             value={current.user.bloodGroup || ""}
             isEditing={isEditing}
-            onChange={v => setUserField("bloodGroup", v)}
+            onChange={v => handleUserFieldChange("bloodGroup", v)}
           />
         </FieldGrid>
       </SectionCard>
@@ -502,7 +527,7 @@ const TeacherProfilePage: React.FC = () => {
             label="Permanent Address"
             value={current.user.permanentAddress || ""}
             isEditing={isEditing}
-            onChange={v => setUserField("permanentAddress", v)}
+            onChange={v => handleUserFieldChange("permanentAddress", v)}
           />
         </div>
         <div className="mb-4">
@@ -510,7 +535,7 @@ const TeacherProfilePage: React.FC = () => {
             label="Current Address"
             value={current.user.currentAddress || ""}
             isEditing={isEditing}
-            onChange={v => setUserField("currentAddress", v)}
+            onChange={v => handleUserFieldChange("currentAddress", v)}
           />
         </div>
       </SectionCard>
@@ -525,7 +550,7 @@ const TeacherProfilePage: React.FC = () => {
             label="Employee Code"
             value={current.employeeCode}
             isEditing={isEditing}
-            onChange={v => setTeacherField("employeeCode", v)}
+            onChange={v => handleFieldChange("employeeCode", v)}
             readOnly
             mono
           />
@@ -533,21 +558,21 @@ const TeacherProfilePage: React.FC = () => {
             label="Designation"
             value={current.designation}
             isEditing={isEditing}
-            onChange={v => setTeacherField("designation", v)}
+            onChange={v => handleFieldChange("designation", v)}
             readOnly
           />
           <ProfileField
             label="Department"
             value={current.department}
             isEditing={isEditing}
-            onChange={v => setTeacherField("department", v)}
+            onChange={v => handleFieldChange("department", v)}
             readOnly
           />
           <ProfileField
             label="Staff Category"
             value={current.staffCategory}
             isEditing={isEditing}
-            onChange={v => setTeacherField("staffCategory", v)}
+            onChange={v => handleFieldChange("staffCategory", v)}
             readOnly
           />
           <ProfileField
@@ -555,7 +580,7 @@ const TeacherProfilePage: React.FC = () => {
             value={current.dateOfJoining}
             isEditing={isEditing}
             type="date"
-            onChange={v => setTeacherField("dateOfJoining", v)}
+            onChange={v => handleFieldChange("dateOfJoining", v)}
             readOnly
           />
           <ProfileField
@@ -563,45 +588,19 @@ const TeacherProfilePage: React.FC = () => {
             value={String(current.totalExpMonths)}
             isEditing={isEditing}
             type="number"
-            onChange={v => setTeacherField("totalExpMonths", v)}
+            onChange={v => handleFieldChange("totalExpMonths", v)}
           />
           <ProfileField
             label="Salary Package"
             value={current.salaryPackage}
             isEditing={isEditing}
-            onChange={v => setTeacherField("salaryPackage", v)}
+            onChange={v => handleFieldChange("salaryPackage", v)}
           />
           <ProfileField
             label="Highest Qualification"
             value={current.highestQualification}
             isEditing={isEditing}
-            onChange={v => setTeacherField("highestQualification", v)}
-          />
-        </FieldGrid>
-      </SectionCard>
-    </>
-  );
-
-  const renderAcademic = () => (
-    <>
-      <SectionCard title="Qualification Details" delay={0.04}>
-        <FieldGrid>
-          <ProfileField
-            label="Highest Qualification"
-            value={current.highestQualification}
-            isEditing={isEditing}
-            onChange={v => setTeacherField("highestQualification", v)}
-          />
-          <ProfileField
-            label="Specialization"
-            value={current.specialization || ""}
-            isEditing={isEditing}
-            onChange={v => setTeacherField("specialization", v)}
-          />
-          <ProfileField
-            label="Total Experience"
-            value={`${current.totalExpMonths} months`}
-            isEditing={false}
+            onChange={v => handleFieldChange("highestQualification", v)}
           />
         </FieldGrid>
       </SectionCard>
@@ -639,6 +638,29 @@ const TeacherProfilePage: React.FC = () => {
     </SectionCard>
   );
 
+  const renderAcademic = () => (
+    <SectionCard
+      title="Academic Information"
+      subtitle="Qualifications & specializations"
+      delay={0.04}
+    >
+      <FieldGrid>
+        <ProfileField
+          label="Highest Qualification"
+          value={current.highestQualification}
+          isEditing={isEditing}
+          onChange={v => handleFieldChange("highestQualification", v)}
+        />
+        <ProfileField
+          label="Specialization"
+          value={current.specialization || ""}
+          isEditing={isEditing}
+          onChange={v => handleFieldChange("specialization", v)}
+        />
+      </FieldGrid>
+    </SectionCard>
+  );
+
   const renderTab = () => {
     switch (activeTab) {
       case "overview":
@@ -657,18 +679,102 @@ const TeacherProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="font-[var(--font-sans)] min-h-screen">
-      <ProfileHeader
-        teacher={current}
-        isEditing={isEditing}
-        onEditToggle={handleEditToggle}
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
+    <div className="font-[var(--font-sans)] min-h-screen relative">
+      {showForm ? (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleFormCancel}
+          />
 
-      <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Edit Profile
+                  </h1>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Update your personal and professional information
+                  </p>
+                </div>
+                <button
+                  onClick={handleFormCancel}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <TeacherForm
+                mode="edit"
+                userId={teacherData?.userId}
+                defaultValues={{
+                  firstName: teacherData?.user.firstName,
+                  middleName: teacherData?.user.middleName || undefined,
+                  lastName: teacherData?.user.lastName,
+                  email: teacherData?.user.email,
+                  phone: teacherData?.user.phone || undefined,
+                  gender: teacherData?.user.gender,
+                  dob: teacherData?.user.dob,
+                  bloodGroup: teacherData?.user.bloodGroup || undefined,
+                  aadhaarNo: teacherData?.user.aadhaarNo || undefined,
+                  panNo: teacherData?.user.panNo || undefined,
+                  permanentAddress:
+                    teacherData?.user.permanentAddress || undefined,
+                  currentAddress: teacherData?.user.currentAddress || undefined,
+                  bankName: teacherData?.user.bankName || undefined,
+                  accountNo: teacherData?.user.accountNo || undefined,
+                  ifscCode: teacherData?.user.ifscCode || undefined,
+                  branch: teacherData?.user.branch || undefined,
+                  department: teacherData?.department,
+                  designation: teacherData?.designation,
+                  highestQualification: teacherData?.highestQualification,
+                  experienceYears: Math.floor(
+                    (teacherData?.totalExpMonths || 0) / 12,
+                  ),
+                  experienceMonths: (teacherData?.totalExpMonths || 0) % 12,
+                  salaryPackage: teacherData?.salaryPackage
+                    ? Number(teacherData.salaryPackage)
+                    : undefined,
+                  dateOfJoining: teacherData?.dateOfJoining,
+                }}
+                onCancel={handleFormCancel}
+                onSuccess={handleFormSave}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <ProfileHeader
+            teacher={current}
+            isEditing={isEditing}
+            onEditToggle={handleEditToggle}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
 
-      {renderTab()}
+          <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+
+          {renderTab()}
+        </>
+      )}
 
       <style>{`
         @keyframes fadeUp {

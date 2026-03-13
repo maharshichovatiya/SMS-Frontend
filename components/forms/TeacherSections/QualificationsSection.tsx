@@ -5,11 +5,13 @@ import { TeacherFormData } from "@/lib/validations/TeacherSchema";
 interface QualificationsSectionProps {
   register: UseFormRegister<TeacherFormData>;
   errors: FieldErrors<TeacherFormData>;
+  disabled?: boolean;
 }
 
 export default function QualificationsSection({
   register,
   errors,
+  disabled = false,
 }: QualificationsSectionProps) {
   return (
     <div>
@@ -31,9 +33,10 @@ export default function QualificationsSection({
             <input
               {...register("highestQualification")}
               placeholder="B.Ed / M.Sc / Ph.D"
+              disabled={disabled}
               className={`input-base pl-9 ${
                 errors.highestQualification ? "error" : ""
-              }`}
+              } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
             />
           </div>
           {errors.highestQualification && (
