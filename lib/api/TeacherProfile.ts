@@ -88,7 +88,6 @@ export interface UpdateTeacherProfilePayload {
 
 export const getTeacherProfile = async (): Promise<TeacherProfileData> => {
   try {
-    // Get userId from localStorage using utility function
     const userId = getFromLocalStorage("userId");
 
     if (!userId) {
