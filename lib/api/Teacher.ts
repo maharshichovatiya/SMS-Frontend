@@ -163,7 +163,6 @@ export const updateTeacher = async (
   }
 };
 
-// Update teacher profile by userId (for profile editing)
 export const updateTeacherProfileByUserId = async (
   userId: string,
   data: Partial<Teacher>,
@@ -224,7 +223,6 @@ export const deleteTeacher = async (id: string): Promise<ApiResponse<null>> => {
   }
 };
 
-// Get teacher profile by ID
 export const getTeacherById = async (
   id: string,
 ): Promise<TeacherProfileData> => {
