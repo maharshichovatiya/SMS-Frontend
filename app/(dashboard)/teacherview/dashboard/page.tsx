@@ -4,23 +4,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Building, BookOpen, Users, Award } from "lucide-react";
 import { RootState, AppDispatch } from "@/lib/store/Index";
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Building, BookOpen, Users, Award } from "lucide-react";
-import { RootState, AppDispatch } from "@/lib/store/Index";
 import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
-import {
-  fetchTeacherDashboardData,
-  clearError,
-} from "@/lib/store/TeacherDashboardSlice";
-import { fetchAssignClassData } from "@/lib/store/AssignClassSlice";
-import {
-  fetchAssignSubjectData,
-  Subject,
-  SubjectClass,
-} from "@/lib/store/AssignSubjectSlice";
-import { showToast } from "@/lib/utils/Toast";
-import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
 import {
   fetchTeacherDashboardData,
   clearError,

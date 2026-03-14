@@ -7,6 +7,9 @@ import authReducer from "./AuthSlice";
 import teacherReducer from "./TeacherSlice";
 import subjectsReducer from "./SubjectsSlice";
 import teacherProfileReducer from "./TeacherProfileSlice";
+import teacherDashboardReducer from "./TeacherDashboardSlice";
+import assignClassReducer from "./AssignClassSlice";
+import assignSubjectReducer from "./AssignSubjectSlice";
 import homeworkReducer from "./HomeworkSlice";
 import teacherDashboardReducer from "./TeacherDashboardSlice";
 import assignClassReducer from "./AssignClassSlice";
@@ -22,6 +25,9 @@ export const store = configureStore({
     teacher: teacherReducer,
     subjects: subjectsReducer,
     teacherProfile: teacherProfileReducer,
+    teacherDashboard: teacherDashboardReducer,
+    assignClass: assignClassReducer,
+    assignSubject: assignSubjectReducer,
     homework: homeworkReducer,
     teacherDashboard: teacherDashboardReducer,
     assignClass: assignClassReducer,
