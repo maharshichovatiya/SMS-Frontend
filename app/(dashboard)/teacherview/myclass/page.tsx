@@ -32,25 +32,7 @@ export default function MyClass() {
   }, [error, dispatch]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[var(--blue-light)] border-t-[var(--blue)] mx-auto mb-4"></div>
-            <div
-              className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-[var(--indigo)] animate-spin mx-auto mb-4 opacity-50"
-              style={{ animationDelay: "0.15s" }}
-            ></div>
-          </div>
-          <p className="text-[var(--text-2)] font-medium">
-            Loading your classes...
-          </p>
-          <p className="text-[var(--text-3)] text-sm mt-1">
-            Preparing your dashboard
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
