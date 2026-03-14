@@ -273,7 +273,6 @@ const TeacherProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (teacherData) {
-      // Use setTimeout to defer state update and avoid cascading renders
       setTimeout(() => {
         setDraft(JSON.parse(JSON.stringify(teacherData)) as ApiTeacherData);
       }, 0);
@@ -319,8 +318,6 @@ const TeacherProfilePage: React.FC = () => {
   };
 
   const handleSave = () => {
-    // TODO: Implement API call to save changes
-    // For now, just exit edit mode
     setIsEditing(false);
   };
 
