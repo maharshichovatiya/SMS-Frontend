@@ -95,45 +95,23 @@ const TeacherDashboard: React.FC = () => {
   };
 
   if (dashboardLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading dashboard data...</div>
-      </div>
-    );
+    return null;
   }
 
   if (!userId) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-500">
-          User not authenticated. Please login again.
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (loading && !teacherData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading teacher profile...</div>
-      </div>
-    );
+    return null;
   }
 
   if (error && !teacherData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-500">Error: {error}</div>
-      </div>
-    );
+    return null;
   }
 
   if (!teacherData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">No teacher data available</div>
-      </div>
-    );
+    return null;
   }
 
   return (
