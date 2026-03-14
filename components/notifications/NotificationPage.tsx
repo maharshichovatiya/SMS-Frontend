@@ -339,7 +339,7 @@ const NotificationPage: React.FC = () => {
           </>
         )}
       </div>
-    </div>
+    </CommonTeacherHeader>
   );
 };
 
