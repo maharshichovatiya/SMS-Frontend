@@ -26,6 +26,19 @@ export type {
   AssignClassResponse,
 };
 
+export interface SubjectAssignment {
+  id: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  classId: string;
+  className: string;
+  section: string;
+  teacherId?: string;
+  teacherName?: string;
+  assignedDate: string;
+}
+
 export const subjectApis = {
   getAll: async (): Promise<Subject[]> => {
     const res = await api.get<SubjectListResponse>("/subjects");
@@ -117,5 +130,28 @@ export const subjectApis = {
       };
     }>(`/subjects/${subjectId}`);
     return res.data.data.chapters;
+  },
+
+  assignTeacherToSubject: async (
+    subjectId: string,
+    teacherId: string,
+    classId: string,
+  ): Promise<void> => {
+    await api.post(`/class-subject/assign-teacher`, {
+      subjectId,
+      teacherId,
+      classId,
+    });
+  },
+
+  removeTeacherFromSubject: async (classSubjectId: string): Promise<void> => {
+    await api.patch(`/class-subject/${classSubjectId}/remove-teacher`);
+  },
+
+  getSubjectAssignments: async (): Promise<SubjectAssignment[]> => {
+    const res = await api.get<{ data: SubjectAssignment[] }>(
+      "/class-subject/assignments",
+    );
+    return res.data.data;
   },
 };

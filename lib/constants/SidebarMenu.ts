@@ -95,14 +95,29 @@ export const SIDEBAR_MENUS: RoleMenus = {
         },
         {
           icon: "Building",
+          label: "My Class",
+          path: "/teacherview/myclass",
+        },
+        {
+          icon: "UserCheck",
+          label: "Assign Classes & Subjects",
+          path: "/teacherview/classes",
+        },
+        {
+          icon: "Bell",
           label: "Notifications",
           path: "/teacherview/notifications",
         },
         {
-          icon: "Building",
+          icon: "Folder",
           label: "Resources",
           path: "/teacherview/resources",
         },
+      ],
+    },
+    {
+      title: "General",
+      items: [
         {
           icon: "UserCircle",
           label: "Profile",

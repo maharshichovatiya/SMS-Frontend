@@ -84,4 +84,17 @@ export const classApis = {
       academicYearId,
     });
   },
+
+  assignClassTeacher: async (
+    classId: string,
+    teacherId: string,
+  ): Promise<void> => {
+    await api.patch(`/classes/${classId}/assign-teacher`, {
+      teacherId,
+    });
+  },
+
+  removeClassTeacher: async (classId: string): Promise<void> => {
+    await api.patch(`/classes/${classId}/remove-teacher`);
+  },
 };
