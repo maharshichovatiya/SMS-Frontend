@@ -10,8 +10,6 @@ import SubjectCard from "@/components/resources/SubjectCard";
 import ChapterHeader from "@/components/resources/ChapterHeader";
 import ResourceCard from "@/components/resources/ResourceCard";
 import ResourceFilter from "@/components/resources/ResourceFilter";
-import ChapterResourceModal from "@/components/resources/ChapterResourceModal";
-
 type ResourceType = "all" | "pdf" | "video" | "notes";
 
 function Page() {
@@ -39,6 +37,10 @@ function Page() {
 
   const handleSubjectClick = (subject: Subject) => {
     setSelectedSubject(subject);
+    // Set's first chapter as selected by default
+    if (subject.chapters.length > 0) {
+      setSelectedChapter(subject.chapters[0]);
+    }
     // Set's first chapter as selected by default
     if (subject.chapters.length > 0) {
       setSelectedChapter(subject.chapters[0]);
