@@ -7,6 +7,7 @@ import authReducer from "./AuthSlice";
 import teacherReducer from "./TeacherSlice";
 import subjectsReducer from "./SubjectsSlice";
 import teacherProfileReducer from "./TeacherProfileSlice";
+import homeworkReducer from "./HomeworkSlice";
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     teacher: teacherReducer,
     subjects: subjectsReducer,
     teacherProfile: teacherProfileReducer,
+    homework: homeworkReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
 });
