@@ -27,6 +27,32 @@ interface HomeworkCardClassicProps {
   onEdit: () => void;
   onDelete: () => void;
   onStudentAssignment: () => void;
+  onClassClick?: (classId: string) => void;
+  assignments?: Array<{
+    id: string;
+    class?: {
+      id: string;
+      className: string;
+      section: string;
+      studentCapacity?: number;
+      classTeacher?: {
+        user: {
+          firstName: string;
+          lastName: string;
+        };
+      };
+      students?: Array<{
+        id: string;
+        user: {
+          firstName: string;
+          lastName: string;
+          email: string;
+        };
+        status?: string;
+        submittedDate?: string;
+      }>;
+    };
+  }>;
 }
 
 export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
@@ -45,6 +71,8 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   onEdit,
   onDelete,
   onStudentAssignment,
+  onClassClick,
+  assignments = [],
 }) => {
   const getStatusBadge = () => {
     switch (status) {
@@ -126,6 +154,98 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
             </p>
           </div>
         )}
+
+        {assignments &&
+          Array.isArray(assignments) &&
+          assignments.length > 0 && (
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-600 mb-2">
+                Assigned To:
+              </p>
+              <div className="space-y-2">
+                {assignments.map(assignment => {
+                  if (assignment.class && !assignment.student) {
+                    const classInfo = assignment.class;
+                    return (
+                      <div
+                        key={assignment.id}
+                        className="bg-gray-50 p-3 rounded-lg border border border-gray-200"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-800">
+                              Class: {classInfo.className} - {classInfo.section}
+                            </h4>
+                            <p className="text-xs text-gray-600">
+                              {classInfo.studentCapacity} students • Teacher:{" "}
+                              {classInfo.classTeacher?.user?.firstName}{" "}
+                              {classInfo.classTeacher?.user?.lastName}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => onClassClick?.(classInfo.id!)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            View All Students
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (assignment.student && assignment.student.user) {
+                    const student = assignment.student;
+                    return (
+                      <div
+                        key={assignment.id}
+                        className="bg-blue-50 p-3 rounded-lg border border border-blue-200"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-800">
+                              Student: {student.user.firstName}{" "}
+                              {student.user.lastName}
+                            </h4>
+                            <p className="text-xs text-gray-600">
+                              {student.user.email} • Status:{" "}
+                              {assignment.status || "Active"}
+                              {assignment.submittedDate && (
+                                <span>
+                                  Submitted:{" "}
+                                  {new Date(
+                                    assignment.submittedDate,
+                                  ).toLocaleDateString()}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                assignment.status === "submitted"
+                                  ? "bg-green-100 text-green-800"
+                                  : assignment.status === "graded"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {assignment.status === "submitted"
+                                ? "Submitted"
+                                : assignment.status === "graded"
+                                  ? "Graded"
+                                  : "Active"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })}
+              </div>
+            </div>
+          )}
 
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between">
