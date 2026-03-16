@@ -92,7 +92,7 @@ export const homeworkApis = {
 
   update: async (homeworkId: string, data: Partial<CreateHomeworkPayload>) => {
     const filteredData = filterEmptyOptionalFields(data);
-    const res = await api.put<HomeworkResponse>(
+    const res = await api.patch<HomeworkResponse>(
       `/homework/${homeworkId}`,
       filteredData,
     );

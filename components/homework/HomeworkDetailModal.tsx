@@ -115,16 +115,8 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                 {homework.title}
               </div>
               <div className="flex items-center space-x-3">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge()}`}
-                >
-                  {getStatusText()}
-                </span>
                 <span className="text-[12px] sm:text-[13.5px] text-[#5c6a8a]">
-                  {homework.subject?.subjectName ||
-                    (homework as unknown as FallbackHomeworkData).subject ||
-                    "Subject"}{" "}
-                  • {getAssignedToDisplay()}
+                  {getAssignedToDisplay()}
                 </span>
               </div>
             </div>
@@ -205,34 +197,6 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
             <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
               <div className="p-5">
                 <h3 className="text-lg font-bold text-[#111827] mb-4">
-                  Settings
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#5c6a8a]">
-                      Late Submission
-                    </span>
-                    <span className="text-sm font-semibold text-green-600">
-                      Allowed
-                    </span>
-                  </div>
-                  {homework.attachments && homework.attachments.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#5c6a8a]">
-                        Attachments
-                      </span>
-                      <span className="text-sm font-semibold text-[#111827]">
-                        {homework.attachments.length} files
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
-              <div className="p-5">
-                <h3 className="text-lg font-bold text-[#111827] mb-4">
                   Assigned by
                 </h3>
                 <div className="flex items-center space-x-3">
@@ -257,108 +221,6 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
-              <div className="p-5">
-                <h3 className="text-lg font-bold text-[#111827] mb-4">
-                  Assigned Students
-                </h3>
-                {homework.assignments && homework.assignments.length > 0 ? (
-                  <div className="space-y-3">
-                    {homework.assignments.map(assignment => {
-                      if (assignment.studentId && assignment.student) {
-                        const student = assignment.student;
-                        return (
-                          <div
-                            key={assignment.id}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                                {student.user.firstName.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-[#111827]">
-                                  {`${student.user.firstName} ${student.user.lastName}`}
-                                </p>
-                                <p className="text-xs text-[#9aa5c4]">
-                                  Admission No: {student.admissionNo} •{" "}
-                                  {student.user.email}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                Assigned
-                              </span>
-                              <svg
-                                className="w-4 h-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5l7 7-7 7"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
-
-                    {homework.assignments
-                      .filter(a => a.classId && !a.studentId)
-                      .map(assignment => {
-                        const classInfo = assignment.class;
-                        if (classInfo) {
-                          return (
-                            <div
-                              key={assignment.id}
-                              className="flex items-center justify-between p-4 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
-                              onClick={() => onClassClick?.(classInfo.id!)}
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold">
-                                  {classInfo.className}
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-[#111827]">
-                                    Class {classInfo.className} -{" "}
-                                    {classInfo.section}
-                                  </p>
-                                  <p className="text-xs text-[#9aa5c4]">
-                                    {classInfo.studentCapacity} students •
-                                    Teacher:{" "}
-                                    {classInfo.classTeacher?.user.firstName}{" "}
-                                    {classInfo.classTeacher?.user.lastName}
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                                All Students
-                              </span>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                  </div>
-                ) : (
-                  <div className="text-sm text-[#5c6a8a]">
-                    <p>Student details not available in limited view mode.</p>
-                    <p className="text-xs mt-2">
-                      This is due to the database configuration issue. Once
-                      resolved, full student lists will be displayed here.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 

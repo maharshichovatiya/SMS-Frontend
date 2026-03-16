@@ -109,9 +109,13 @@ export const subjectApis = {
   },
 
   getChaptersBySubject: async (subjectId: string): Promise<Chapter[]> => {
-    const res = await api.get<{ data: Chapter[] }>(
-      `/subjects/${subjectId}/chapters`,
-    );
-    return res.data.data;
+    const res = await api.get<{
+      data: {
+        id: string;
+        subjectName: string;
+        chapters: Chapter[];
+      };
+    }>(`/subjects/${subjectId}`);
+    return res.data.data.chapters;
   },
 };

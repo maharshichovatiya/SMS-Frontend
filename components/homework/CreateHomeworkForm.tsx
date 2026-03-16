@@ -8,12 +8,10 @@ interface CreateHomeworkFormProps {
   onClose: () => void;
   onSubmit: (homeworkData: HomeworkData) => void;
   subjects?: Array<{ id: string; subjectName: string }>;
-  chapters?: Array<{ id: string; chapterName: string; chapterNo: number }>;
   classes?: Array<{
     id: string;
     name: string;
     className: string;
-    section: string;
   }>;
   students?: Array<{
     id: string;
@@ -37,8 +35,6 @@ interface HomeworkData {
   selectedGroup: string;
   selectedStudents: string[];
   dueDate: string;
-  maxFileSize: number;
-  allowLateSubmission: boolean;
   attachments: (string | File)[];
 }
 
@@ -82,7 +78,6 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   onClose,
   onSubmit,
   subjects = mockSubjects,
-  chapters: propChapters = [],
   classes = mockClasses,
   students = mockStudents,
   loading = false,
@@ -108,12 +103,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     selectedGroup: editingHomework?.selectedGroup || "",
     selectedStudents: editingHomework?.selectedStudents || [],
     dueDate: editingHomework?.dueDate || "",
-    maxFileSize: editingHomework?.maxFileSize || 10,
-    allowLateSubmission:
-      editingHomework?.allowLateSubmission !== undefined
-        ? editingHomework.allowLateSubmission
-        : true,
-    attachments: [],
+    attachments: editingHomework?.attachments || [],
   });
 
   const [errors, setErrors] = useState<Partial<HomeworkData>>({});
@@ -122,7 +112,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
 
   useEffect(() => {
     const fetchChapters = async () => {
-      if (formData.subject) {
+      if (formData.subject && !editingHomework) {
         try {
           setChaptersLoading(true);
           const chaptersData = await subjectApis.getChaptersBySubject(
@@ -141,7 +131,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     };
 
     fetchChapters();
-  }, [formData.subject]);
+  }, [formData.subject, editingHomework]);
 
   const handleInputChange = (
     field: keyof HomeworkData,
@@ -166,7 +156,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(file => {
       const fileSizeMB = file.size / (1024 * 1024);
-      return fileSizeMB <= formData.maxFileSize;
+      return fileSizeMB <= 10;
     });
 
     setFormData(prev => ({
@@ -188,23 +178,26 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
-    if (!formData.subject) newErrors.subject = "Subject is required";
+    if (!formData.subject && !editingHomework)
+      newErrors.subject = "Subject is required";
     if (!formData.dueDate) newErrors.dueDate = "Due date is required";
 
-    if (formData.assignedTo === "singleClass" && !formData.selectedClass) {
-      newErrors.selectedClass = "Please select a class";
-    }
-    if (
-      formData.assignedTo === "multipleStudents" &&
-      formData.selectedStudents.length === 0
-    ) {
-      newErrors.selectedGroup = "Please select a group";
-    }
-    if (
-      formData.assignedTo === "singleStudent" &&
-      formData.selectedStudents.length === 0
-    ) {
-      newErrors.selectedStudents = ["Please select at least one student"];
+    if (!editingHomework) {
+      if (formData.assignedTo === "singleClass" && !formData.selectedClass) {
+        newErrors.selectedClass = "Please select a class";
+      }
+      if (
+        formData.assignedTo === "multipleStudents" &&
+        formData.selectedStudents.length === 0
+      ) {
+        newErrors.selectedGroup = "Please select a group";
+      }
+      if (
+        formData.assignedTo === "singleStudent" &&
+        formData.selectedStudents.length === 0
+      ) {
+        newErrors.selectedStudents = ["Please select at least one student"];
+      }
     }
 
     setErrors(newErrors);
@@ -349,7 +342,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                       </svg>
                       <span className="text-sm">Click to upload files</span>
                       <span className="text-xs text-gray-500">
-                        Max file size: {formData.maxFileSize}MB
+                        Max file size: 10MB
                       </span>
                     </label>
                   </div>
@@ -402,60 +395,63 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject *
-                    </label>
-                    <select
-                      value={formData.subject}
-                      onChange={e =>
-                        handleInputChange("subject", e.target.value)
-                      }
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.subject ? "border-red-500" : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">Select Subject</option>
-                      {subjects.map(subject => (
-                        <option key={subject.id} value={subject.id}>
-                          {subject.subjectName}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.subject && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.subject}
-                      </p>
-                    )}
-                  </div>
+                {!editingHomework && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Subject *
+                      </label>
+                      <select
+                        value={formData.subject}
+                        onChange={e =>
+                          handleInputChange("subject", e.target.value)
+                        }
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          errors.subject ? "border-red-500" : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">Select Subject</option>
+                        {Array.isArray(subjects) &&
+                          subjects.map(subject => (
+                            <option key={subject.id} value={subject.id}>
+                              {subject.subjectName}
+                            </option>
+                          ))}
+                      </select>
+                      {errors.subject && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.subject}
+                        </p>
+                      )}
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Chapter (Optional)
-                    </label>
-                    <select
-                      value={formData.chapterId || ""}
-                      onChange={e =>
-                        handleInputChange("chapterId", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={!formData.subject || chaptersLoading}
-                    >
-                      <option value="">
-                        {chaptersLoading
-                          ? "Loading chapters..."
-                          : "Select Chapter"}
-                      </option>
-                      {Array.isArray(chapters) &&
-                        chapters.map(chapter => (
-                          <option key={chapter.id} value={chapter.id}>
-                            Chapter {chapter.chapterNo}: {chapter.chapterName}
-                          </option>
-                        ))}
-                    </select>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Chapter (Optional)
+                      </label>
+                      <select
+                        value={formData.chapterId || ""}
+                        onChange={e =>
+                          handleInputChange("chapterId", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={!formData.subject || chaptersLoading}
+                      >
+                        <option value="">
+                          {chaptersLoading
+                            ? "Loading chapters..."
+                            : "Select Chapter"}
+                        </option>
+                        {Array.isArray(chapters) &&
+                          chapters.map(chapter => (
+                            <option key={chapter.id} value={chapter.id}>
+                              Chapter {chapter.chapterNo}: {chapter.chapterName}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -482,307 +478,234 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 pb-2 border-b border-gray-200">
-                  Assignment Settings
-                </h3>
+              {!editingHomework && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 pb-2 border-b border-gray-200">
+                    Assignment Settings
+                  </h3>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assign To *
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {(
-                      [
-                        "singleClass",
-                        "singleStudent",
-                        "multipleStudents",
-                      ] as const
-                    ).map(option => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => handleInputChange("assignedTo", option)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          formData.assignedTo === option
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assign To *
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {(
+                        [
+                          "singleClass",
+                          "singleStudent",
+                          "multipleStudents",
+                        ] as const
+                      ).map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() =>
+                            handleInputChange("assignedTo", option)
+                          }
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            formData.assignedTo === option
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {option === "singleClass"
+                            ? "Single Class"
+                            : option === "singleStudent"
+                              ? "Single Student"
+                              : "Multiple Students"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.assignedTo === "singleClass" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Class *
+                      </label>
+                      {classes.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          {loading
+                            ? "Loading classes..."
+                            : "No classes available"}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {classes.map(cls => (
+                            <button
+                              key={cls.id}
+                              type="button"
+                              onClick={() =>
+                                handleInputChange("selectedClass", cls.id)
+                              }
+                              className={`p-3 rounded-lg border text-left transition-colors ${
+                                formData.selectedClass === cls.id
+                                  ? "border-blue-500 bg-blue-50"
+                                  : "border-gray-300 hover:border-gray-400"
+                              }`}
+                            >
+                              <div className="font-medium text-gray-900">
+                                {cls.name}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {errors.selectedClass && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.selectedClass}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {formData.assignedTo === "singleStudent" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Filter by Class (Optional)
+                      </label>
+                      <select
+                        value={formData.selectedClass}
+                        onChange={e =>
+                          handleInputChange("selectedClass", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                       >
-                        {option === "singleClass"
-                          ? "Single Class"
-                          : option === "singleStudent"
-                            ? "Single Student"
-                            : "Multiple Students"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {formData.assignedTo === "singleClass" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Class *
-                    </label>
-                    {classes.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        {loading
-                          ? "Loading classes..."
-                          : "No classes available"}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <option value="">All Classes</option>
                         {classes.map(cls => (
-                          <button
-                            key={cls.id}
-                            type="button"
-                            onClick={() =>
-                              handleInputChange("selectedClass", cls.id)
-                            }
-                            className={`p-3 rounded-lg border text-left transition-colors ${
-                              formData.selectedClass === cls.id
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-300 hover:border-gray-400"
-                            }`}
-                          >
-                            <div className="font-medium text-gray-900">
-                              {cls.name}
-                            </div>
-                          </button>
+                          <option key={cls.id} value={cls.id}>
+                            {cls.name}
+                          </option>
                         ))}
-                      </div>
-                    )}
-                    {errors.selectedClass && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.selectedClass}
-                      </p>
-                    )}
-                  </div>
-                )}
+                      </select>
 
-                {formData.assignedTo === "singleStudent" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Filter by Class (Optional)
-                    </label>
-                    <select
-                      value={formData.selectedClass}
-                      onChange={e =>
-                        handleInputChange("selectedClass", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                    >
-                      <option value="">All Classes</option>
-                      {classes.map(cls => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </option>
-                      ))}
-                    </select>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Students *
+                      </label>
 
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Students *
-                    </label>
-
-                    {students.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        {loading
-                          ? "Loading students..."
-                          : "No students available"}
-                      </div>
-                    ) : filteredStudents.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        No students found for the selected class
-                      </div>
-                    ) : (
-                      <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
-                        {filteredStudents.map(student => (
-                          <label
-                            key={student.id}
-                            className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.selectedStudents.includes(
-                                student.id,
-                              )}
-                              onChange={() => handleStudentToggle(student.id)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <div className="ml-3">
-                              <div className="font-medium text-gray-900">
-                                {student.name}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {(
-                                  student as {
-                                    className?: string;
-                                    section?: string;
-                                    email?: string;
-                                  }
-                                ).className &&
-                                (
-                                  student as {
-                                    className?: string;
-                                    section?: string;
-                                    email?: string;
-                                  }
-                                ).section
-                                  ? `${(student as { className?: string; section?: string; email?: string }).className} - ${(student as { className?: string; section?: string; email?: string }).section}`
-                                  : classes.find(c => c.id === student.classId)
-                                      ?.name || "No class"}
-                              </div>
-                              {(student as { email?: string }).email && (
-                                <div className="text-xs text-gray-400">
-                                  {(student as { email?: string }).email}
+                      {students.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          {loading
+                            ? "Loading students..."
+                            : "No students available"}
+                        </div>
+                      ) : filteredStudents.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          No students found for the selected class
+                        </div>
+                      ) : (
+                        <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
+                          {filteredStudents.map(student => (
+                            <label
+                              key={student.id}
+                              className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.selectedStudents.includes(
+                                  student.id,
+                                )}
+                                onChange={() => handleStudentToggle(student.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <div className="ml-3">
+                                <div className="font-medium text-gray-900">
+                                  {student.name}
                                 </div>
-                              )}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    {errors.selectedStudents &&
-                      Array.isArray(errors.selectedStudents) && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.selectedStudents[0]}
-                        </p>
-                      )}
-                  </div>
-                )}
-
-                {formData.assignedTo === "multipleStudents" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Filter by Class (Optional)
-                    </label>
-                    <select
-                      value={formData.selectedClass}
-                      onChange={e =>
-                        handleInputChange("selectedClass", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                    >
-                      <option value="">All Classes</option>
-                      {classes.map(cls => (
-                        <option key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Students *
-                    </label>
-                    {filteredStudents.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        No students available
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                        {filteredStudents.map(student => (
-                          <label
-                            key={student.id}
-                            className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.selectedStudents.includes(
-                                student.id,
-                              )}
-                              onChange={() => handleStudentToggle(student.id)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <div className="ml-3">
-                              <div className="font-medium text-gray-900">
-                                {student.name}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {(
-                                  student as {
-                                    className?: string;
-                                    section?: string;
-                                    email?: string;
-                                  }
-                                ).className &&
-                                (
-                                  student as {
-                                    className?: string;
-                                    section?: string;
-                                    email?: string;
-                                  }
-                                ).section
-                                  ? `${(student as { className?: string; section?: string; email?: string }).className} - ${(student as { className?: string; section?: string; email?: string }).section}`
-                                  : classes.find(c => c.id === student.classId)
-                                      ?.name || "No class"}
-                              </div>
-                              {(student as { email?: string }).email && (
-                                <div className="text-xs text-gray-400">
-                                  {(student as { email?: string }).email}
+                                <div className="text-sm text-gray-500">
+                                  {classes.find(c => c.id === student.classId)
+                                    ?.name || "No class"}
                                 </div>
-                              )}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    {errors.selectedStudents &&
-                      Array.isArray(errors.selectedStudents) && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.selectedStudents[0]}
-                        </p>
+                                {(student as { email?: string }).email && (
+                                  <div className="text-xs text-gray-400">
+                                    {(student as { email?: string }).email}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
                       )}
-                  </div>
-                )}
-              </div>
+                      {errors.selectedStudents &&
+                        Array.isArray(errors.selectedStudents) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.selectedStudents[0]}
+                          </p>
+                        )}
+                    </div>
+                  )}
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 pb-2 border-b border-gray-200">
-                  Additional Settings
-                </h3>
+                  {formData.assignedTo === "multipleStudents" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Filter by Class (Optional)
+                      </label>
+                      <select
+                        value={formData.selectedClass}
+                        onChange={e =>
+                          handleInputChange("selectedClass", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                      >
+                        <option value="">All Classes</option>
+                        {classes.map(cls => (
+                          <option key={cls.id} value={cls.id}>
+                            {cls.name}
+                          </option>
+                        ))}
+                      </select>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max File Size (MB)
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={formData.maxFileSize}
-                      onChange={e =>
-                        handleInputChange(
-                          "maxFileSize",
-                          parseInt(e.target.value),
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="allowLate"
-                      checked={formData.allowLateSubmission}
-                      onChange={e =>
-                        handleInputChange(
-                          "allowLateSubmission",
-                          e.target.checked,
-                        )
-                      }
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor="allowLate"
-                      className="ml-2 text-sm text-gray-700"
-                    >
-                      Allow Late Submission
-                    </label>
-                  </div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Students *
+                      </label>
+                      {filteredStudents.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          No students available
+                        </div>
+                      ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                          {filteredStudents.map(student => (
+                            <label
+                              key={student.id}
+                              className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.selectedStudents.includes(
+                                  student.id,
+                                )}
+                                onChange={() => handleStudentToggle(student.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <div className="ml-3">
+                                <div className="font-medium text-gray-900">
+                                  {student.name}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {classes.find(c => c.id === student.classId)
+                                    ?.name || "No class"}
+                                </div>
+                                {(student as { email?: string }).email && (
+                                  <div className="text-xs text-gray-400">
+                                    {(student as { email?: string }).email}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {errors.selectedStudents &&
+                        Array.isArray(errors.selectedStudents) && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.selectedStudents[0]}
+                          </p>
+                        )}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
+
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
