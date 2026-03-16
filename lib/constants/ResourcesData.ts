@@ -80,6 +80,45 @@ export const resourcesData: Class[] = [
   },
 
   {
+    id: apiResponse.data[0].classId,
+    code: apiResponse.data[0].className,
+    name: `Grade ${apiResponse.data[0].className.replace(/[^0-9]/g, "")} · Section ${apiResponse.data[0].className.slice(-1)}`,
+    level: "Primary",
+    color: "blue",
+    gradient: "var(--blue),var(--indigo)",
+    subjects: apiResponse.data[0].subjects.map(subject => ({
+      id: subject.subjectId,
+      name: subject.subjectName,
+      code: subject.subjectName.replace(/\s+/g, "-").toUpperCase(),
+      teacher: subject.chapters[0]?.resources[0]?.uploadedBy?.name || "Unknown",
+      color: "blue",
+      icon: "calc",
+      chapters: subject.chapters.map(chapter => ({
+        id:
+          chapter.chapterId || `ch-${Math.random().toString(36).substr(2, 9)}`,
+        name: `Ch ${chapter.chapterNo}: ${chapter.chapterName}`,
+        resources: chapter.resources.map(resource => ({
+          title: resource.title,
+          type: resource.resourceType as "PDF" | "Video" | "Notes" | "Link",
+          size: "Unknown", // API doesn't provide size
+          icon:
+            resource.resourceType === "PDF"
+              ? "📄"
+              : resource.resourceType === "Video"
+                ? "🎬"
+                : "📝",
+          bg:
+            resource.resourceType === "PDF"
+              ? "rose"
+              : resource.resourceType === "Video"
+                ? "blue"
+                : "amber",
+        })),
+      })),
+    })),
+  },
+  // Keep existing mock data for other classes...
+  {
     id: "c1",
     code: "10-A",
     name: "Grade 10 · Section A",

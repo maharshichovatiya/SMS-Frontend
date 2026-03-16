@@ -43,6 +43,10 @@ function Page() {
     if (subject.chapters.length > 0) {
       setSelectedChapter(subject.chapters[0]);
     }
+    // Set's first chapter as selected by default
+    if (subject.chapters.length > 0) {
+      setSelectedChapter(subject.chapters[0]);
+    }
     setCurrentView("chapters");
   };
 
