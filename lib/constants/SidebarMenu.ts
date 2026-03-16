@@ -90,19 +90,39 @@ export const SIDEBAR_MENUS: RoleMenus = {
       items: [
         {
           icon: "Building",
+          label: "My Class",
+          path: "/teacherview/myclass",
+        },
+        {
+          icon: "UserCheck",
+          label: "Assign Classes & Subjects",
+          path: "/teacherview/classes",
+        },
+        {
+          icon: "Users",
+          label: "Assign Students",
+          path: "/teacherview/assign-students",
+        },
+        {
+          icon: "ClipboardList",
           label: "Homework",
           path: "/teacherview/homework",
         },
         {
-          icon: "Building",
+          icon: "Bell",
           label: "Notifications",
           path: "/teacherview/notifications",
         },
         {
-          icon: "Building",
+          icon: "Folder",
           label: "Resources",
           path: "/teacherview/resources",
         },
+      ],
+    },
+    {
+      title: "General",
+      items: [
         {
           icon: "UserCircle",
           label: "Profile",
