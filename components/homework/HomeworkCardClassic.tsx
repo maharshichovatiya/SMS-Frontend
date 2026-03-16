@@ -1,15 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  Users,
-  Calendar,
-  User,
-  BookOpen,
-} from "lucide-react";
+import { Eye, Edit, Trash2, Calendar, User, BookOpen } from "lucide-react";
 
 interface HomeworkCardClassicProps {
   id: string;
@@ -22,6 +14,7 @@ interface HomeworkCardClassicProps {
   total: number;
   status: "active" | "completed" | "overdue" | "draft";
   description?: string;
+  chapterName?: string;
   isModalOpen?: boolean;
   onViewDetails: () => void;
   onEdit: () => void;
@@ -66,6 +59,7 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   total,
   status,
   description,
+  chapterName,
   isModalOpen = false,
   onViewDetails,
   onEdit,
@@ -122,38 +116,36 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
     >
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
-          <div className="flex-1 min-w-0 pr-3">
-            <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight">
-              {title}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold text-blue-600 mb-2 leading-tight">
+              Title: {title}
             </h3>
 
-            <div className="flex items-center space-x-3 text-sm text-gray-600">
+            {description && (
+              <p className="text-sm text-green-600 mb-2 line-clamp-2 leading-relaxed">
+                Description: {description}
+              </p>
+            )}
+
+            <div className="flex flex-col space-y-1 text-sm">
               <div className="flex items-center">
-                <BookOpen className="w-4 h-4 mr-1 text-gray-400" />
-                <span>{subject}</span>
+                <BookOpen className="w-4 h-4 mr-2 text-purple-500" />
+                <span className="text-purple-600 font-medium">
+                  Subject Name: {subject}
+                </span>
               </div>
 
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                <span className="ml-2">Class {className}</span>
-              </div>
+              {chapterName && (
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                  <span className="text-orange-600 font-medium">
+                    Chapter Name: {chapterName}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-
-          <span
-            className={`px-3 py-1 text-xs font-medium border rounded-full ${getStatusBadge()}`}
-          >
-            {getStatusText()}
-          </span>
         </div>
-
-        {description && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-              {description}
-            </p>
-          </div>
-        )}
 
         {assignments &&
           Array.isArray(assignments) &&
@@ -261,13 +253,6 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
               <span>{new Date(dueDate).toLocaleDateString()}</span>
             </div>
           </div>
-
-          <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-600">Submissions</span>
-            <span className="text-sm font-semibold text-gray-900">
-              {submitted}/{total}
-            </span>
-          </div>
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -296,14 +281,6 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
-
-          <button
-            onClick={onStudentAssignment}
-            className="flex items-center space-x-2 px-3 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg"
-          >
-            <Users className="w-4 h-4" />
-            <span>Students</span>
-          </button>
         </div>
       </div>
     </div>

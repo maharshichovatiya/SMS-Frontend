@@ -11,6 +11,7 @@ import { fetchAllHomework, createNewHomework } from "@/lib/store/HomeworkSlice";
 import { homeworkApis } from "@/lib/api/Homework";
 import { RootState } from "@/lib/store/Index";
 import { Subject } from "@/lib/types/SubjectTypes";
+import { subjectApis } from "@/lib/api/Subject";
 import api from "@/lib/Axios";
 import { getClassSummary } from "@/lib/api/Classes";
 
@@ -23,15 +24,6 @@ interface Student {
   status: "submitted" | "pending" | "overdue" | "graded";
   submittedDate?: string;
   grade?: number;
-  feedback?: string;
-}
-
-interface Submission {
-  studentName: string;
-  studentId: string;
-  submittedDate: string;
-  status: "submitted" | "graded" | "late" | "pending";
-  grade?: string;
   feedback?: string;
 }
 
@@ -53,16 +45,6 @@ interface ClassItem {
   className: string;
   section: string;
   studentCapacity: number;
-}
-
-interface SubjectsByClassItem {
-  subjects: Array<{
-    subjectId: string;
-    subjectName: string;
-    subjectCode: string;
-    passingMarks: number;
-    maxMarks: number;
-  }>;
 }
 
 interface ApiClassItem {
@@ -160,6 +142,8 @@ interface TransformedHomework {
   total: number;
   status: "active" | "completed" | "overdue";
   description: string;
+  chapterName?: string;
+  chapterId?: string;
 }
 
 export default function HomeworkPage() {
@@ -195,34 +179,29 @@ export default function HomeworkPage() {
 
     const fetchSubjects = async () => {
       setSubjectsLoading(true);
-      const response = await api.get("/dashboard/subjects");
-      const subjectsData = response.data.data;
+      try {
+        const subjectsData = await subjectApis.getAll();
+        let subjectsArray: Subject[] = [];
+        if (Array.isArray(subjectsData)) {
+          subjectsArray = subjectsData as Subject[];
+        } else if (
+          subjectsData &&
+          typeof subjectsData === "object" &&
+          "data" in subjectsData &&
+          Array.isArray((subjectsData as { data: unknown }).data)
+        ) {
+          subjectsArray = (subjectsData as { data: Subject[] }).data;
+        } else if (
+          subjectsData &&
+          typeof subjectsData === "object" &&
+          "subjects" in subjectsData &&
+          Array.isArray((subjectsData as { subjects: unknown }).subjects)
+        ) {
+          subjectsArray = (subjectsData as { subjects: Subject[] }).subjects;
+        }
 
-      if (subjectsData && subjectsData.subjectsByClass) {
-        const uniqueSubjects = new Map<string, Subject>();
-
-        (subjectsData.subjectsByClass as SubjectsByClassItem[]).forEach(
-          classData => {
-            if (classData.subjects) {
-              classData.subjects.forEach(subject => {
-                if (!uniqueSubjects.has(subject.subjectId)) {
-                  uniqueSubjects.set(subject.subjectId, {
-                    id: subject.subjectId,
-                    subjectName: subject.subjectName,
-                    subjectCode: subject.subjectCode,
-                    passingMarks: subject.passingMarks,
-                    maxMarks: subject.maxMarks,
-                    status: "active",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  });
-                }
-              });
-            }
-          },
-        );
-        setSubjects(Array.from(uniqueSubjects.values()));
-      } else {
+        setSubjects(subjectsArray);
+      } catch {
         setSubjects([]);
       }
       setSubjectsLoading(false);
@@ -258,23 +237,25 @@ export default function HomeworkPage() {
         const extractedStudents: StudentData[] = [];
 
         if (studentsData.classes && Array.isArray(studentsData.classes)) {
-          (studentsData.classes as ApiClassData[]).forEach(classData => {
-            if (classData.students && Array.isArray(classData.students)) {
-              classData.students.forEach(student => {
-                extractedStudents.push({
-                  id: student.id,
-                  name: `${student.firstName} ${student.lastName}`,
-                  classId: classData.classId,
-                  email: student.email,
-                  phone: student.phone,
-                  rollNo: student.rollNo,
-                  admissionNo: student.admissionNo,
-                  className: classData.className,
-                  section: classData.section,
+          (studentsData.classes as ApiClassData[]).forEach(
+            (classData: ApiClassData) => {
+              if (classData.students && Array.isArray(classData.students)) {
+                classData.students.forEach((student: ApiStudentItem) => {
+                  extractedStudents.push({
+                    id: student.id,
+                    name: `${student.firstName} ${student.lastName}`,
+                    classId: classData.classId,
+                    email: student.email,
+                    phone: student.phone,
+                    rollNo: student.rollNo,
+                    admissionNo: student.admissionNo,
+                    className: classData.className,
+                    section: classData.section,
+                  });
                 });
-              });
-            }
-          });
+              }
+            },
+          );
         }
 
         setStudents(extractedStudents);
@@ -297,7 +278,9 @@ export default function HomeworkPage() {
     ) {
       const response = await homeworkApis.delete(homeworkId);
       if (response) {
-        dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+        dispatch(
+          fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
+        );
       }
     }
   };
@@ -315,7 +298,7 @@ export default function HomeworkPage() {
     } else {
       const fallbackData = (
         homeworkList as unknown as HomeworkListResponse
-      )?.data?.homework?.find(hw => hw.id === homeworkId);
+      )?.data?.homework?.find((hw: { id: string }) => hw.id === homeworkId);
 
       if (fallbackData) {
         setSelectedHomeworkDetail(fallbackData as unknown as HomeworkListItem);
@@ -337,53 +320,59 @@ export default function HomeworkPage() {
     const homeworkData = (homeworkList as unknown as HomeworkListResponse)
       ?.homework;
     const currentHomework = homeworkData?.find(
-      (hw: HomeworkListItem) => hw.id === homework.id,
+      (hw: { id: string }) => hw.id === homework.id,
     );
     const studentsFromAssignments: Student[] = [];
 
-    if (currentHomework?.assignments) {
-      currentHomework.assignments.forEach((assignment: HomeworkAssignment) => {
-        if (assignment.class && assignment.class.classStudents) {
-          assignment.class.classStudents.forEach(
-            (classStudent: {
-              student?: {
-                id: string;
-                user: { firstName: string; lastName: string; email: string };
-                status: string;
-              };
-            }) => {
-              if (
-                classStudent.student &&
-                classStudent.student.status === "active"
-              ) {
-                studentsFromAssignments.push({
-                  id: classStudent.student.id,
-                  name: `${classStudent.student.user.firstName} ${classStudent.student.user.lastName}`,
-                  email: classStudent.student.user.email,
-                  className: assignment.class?.className || "",
-                  section: assignment.class?.section || "",
-                  status: "pending",
-                  submittedDate: undefined,
-                  grade: undefined,
-                  feedback: undefined,
-                });
-              }
-            },
-          );
-        }
+    if (
+      currentHomework &&
+      "assignments" in currentHomework &&
+      Array.isArray(currentHomework.assignments)
+    ) {
+      (currentHomework.assignments as HomeworkAssignment[]).forEach(
+        (assignment: HomeworkAssignment) => {
+          if (assignment.class && assignment.class.classStudents) {
+            assignment.class.classStudents.forEach(
+              (classStudent: {
+                student?: {
+                  id: string;
+                  user: { firstName: string; lastName: string; email: string };
+                  status: string;
+                };
+              }) => {
+                if (
+                  classStudent.student &&
+                  classStudent.student.status === "active"
+                ) {
+                  studentsFromAssignments.push({
+                    id: classStudent.student.id,
+                    name: `${classStudent.student.user.firstName} ${classStudent.student.user.lastName}`,
+                    email: classStudent.student.user.email,
+                    className: assignment.class?.className || "",
+                    section: assignment.class?.section || "",
+                    status: "pending",
+                    submittedDate: undefined,
+                    grade: undefined,
+                    feedback: undefined,
+                  });
+                }
+              },
+            );
+          }
 
-        if (assignment.student && assignment.student.user) {
-          const student = assignment.student;
-          studentsFromAssignments.push({
-            id: student.id,
-            name: `${student.user.firstName} ${student.user.lastName}`,
-            email: student.user.email,
-            className: "Individual Assignment",
-            section: "",
-            status: student.status === "submitted" ? "submitted" : "pending",
-          });
-        }
-      });
+          if (assignment.student && assignment.student.user) {
+            const student = assignment.student;
+            studentsFromAssignments.push({
+              id: student.id,
+              name: `${student.user.firstName} ${student.user.lastName}`,
+              email: student.user.email,
+              className: "Individual Assignment",
+              section: "",
+              status: student.status === "submitted" ? "submitted" : "pending",
+            });
+          }
+        },
+      );
     }
 
     setHomeworkStudents(studentsFromAssignments);
@@ -429,9 +418,51 @@ export default function HomeworkPage() {
     }
   };
 
-  const handleEditHomework = async () => {
-    setShowCreateForm(false);
-    setEditingHomework(null);
+  const handleEditHomework = async (data: CreateHomeworkData) => {
+    if (!editingHomework?.id) {
+      throw new Error("Homework ID is required for editing");
+    }
+
+    try {
+      const apiData = {
+        title: data.title,
+        description: data.description,
+        dueDate: new Date(data.dueDate).toISOString(),
+      };
+
+      const newAttachments = (data.attachments || []).filter(
+        (file): file is File => file instanceof File,
+      );
+
+      if (newAttachments.length > 0) {
+        const formData = new FormData();
+        formData.append("title", apiData.title);
+        if (apiData.description) {
+          formData.append("description", apiData.description);
+        }
+        formData.append("dueDate", apiData.dueDate);
+
+        newAttachments.forEach((file: File) => {
+          formData.append("attachments", file);
+        });
+
+        await api.patch(`/homework/${editingHomework.id}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      } else {
+        await homeworkApis.update(editingHomework.id, apiData);
+      }
+
+      setShowCreateForm(false);
+      setEditingHomework(null);
+      dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to update homework",
+      );
+    }
   };
 
   const handleCreateHomework = async (data: CreateHomeworkData) => {
@@ -472,7 +503,7 @@ export default function HomeworkPage() {
     };
 
     const result = await dispatch(
-      createNewHomework(apiData) as Parameters<typeof dispatch>[0],
+      createNewHomework(apiData) as unknown as Parameters<typeof dispatch>[0],
     );
 
     if (createNewHomework.rejected.match(result)) {
@@ -482,32 +513,38 @@ export default function HomeworkPage() {
     }
 
     setShowCreateForm(false);
-    dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+    dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
   };
 
   const transformedHomeworkList: TransformedHomework[] =
-    (homeworkList as unknown as HomeworkListResponse)?.homework?.map(hw => ({
-      id: hw.id,
-      title: hw.title,
-      subject:
-        typeof hw.subject === "string"
-          ? hw.subject
-          : ((hw.subject as { subjectName: string })?.subjectName ?? "Subject"),
-      class: "Class",
-      teacher: "Teacher",
-      dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+    (homeworkList as unknown as HomeworkListResponse)?.homework?.map(
+      (hw: HomeworkListItem) => ({
+        id: hw.id,
+        title: hw.title,
+        subject:
+          typeof hw.subject === "string"
+            ? hw.subject
+            : ((hw.subject as { subjectName: string })?.subjectName ??
+              "Subject"),
+        class: "Class",
+        teacher: "Teacher",
+        dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        submitted: hw.submittedCount ?? 0,
+        total: hw.totalAssignedTo ?? 0,
+        status: "active" as const,
+        description: hw.description ?? "",
+        chapterId:
+          "chapterId" in hw ? (hw.chapterId as string | undefined) : undefined,
+        chapterName:
+          "chapterName" in hw
+            ? (hw.chapterName as string | undefined)
+            : undefined,
       }),
-      submitted: hw.submittedCount ?? 0,
-      total: hw.totalAssignedTo ?? 0,
-      status: "active" as const,
-      description: hw.description ?? "",
-    })) || [];
-
-  const allSubmissions: Submission[] = [];
-  void allSubmissions;
+    ) || [];
 
   if (loading && !homeworkList) {
     return (
@@ -527,7 +564,9 @@ export default function HomeworkPage() {
           <div className="text-red-600 mb-4">Error: {error}</div>
           <button
             onClick={() =>
-              dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0])
+              dispatch(
+                fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
+              )
             }
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -614,6 +653,7 @@ export default function HomeworkPage() {
               total={hw.total}
               status={hw.status}
               description={hw.description}
+              chapterName={hw.chapterName}
               isModalOpen={
                 !!(selectedHomework || showStudentAssignment || showCreateForm)
               }
@@ -694,27 +734,7 @@ export default function HomeworkPage() {
             students={students}
             loading={createLoading}
             error={createError}
-            editingHomework={
-              editingHomework as {
-                title: string;
-                description: string;
-                instructions: string;
-                subject: string;
-                chapterId?: string;
-                assignedTo:
-                  | "singleClass"
-                  | "singleStudent"
-                  | "multipleStudents";
-                selectedClass: string;
-                selectedClasses: string[];
-                selectedGroup: string;
-                selectedStudents: string[];
-                dueDate: string;
-                maxFileSize: number;
-                allowLateSubmission: boolean;
-                attachments: (string | File)[];
-              } | null
-            }
+            editingHomework={null}
           />
         </>
       )}
