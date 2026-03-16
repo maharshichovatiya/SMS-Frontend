@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createChapterResourceSchema,
@@ -133,19 +133,21 @@ export default function ChapterResourceForm({
     mode: "onSubmit",
     defaultValues: {
       chapterId: chapterId || "",
+      title: "",
+      description: "",
       resourceType: "PDF",
-      status: "active" as const,
+      fileUrl: "",
+      uploadedBy: "",
+      status: "active",
     },
   });
 
   const selectedResourceType = watch("resourceType");
 
-  const onSubmit: SubmitHandler<
-    CreateChapterResourceFormValues
-  > = async data => {
+  const onSubmit = async (data: CreateChapterResourceFormValues) => {
     try {
       setIsSubmitting(true);
-
+      ``;
       // TODO: Replace with actual API call
 
       // Simulate API call

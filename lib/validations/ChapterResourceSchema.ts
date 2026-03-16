@@ -5,8 +5,7 @@ export const createChapterResourceSchema = z
     chapterId: z
       .string()
       .uuid("Invalid chapter ID format")
-      .min(1, "Chapter is required")
-      .optional(),
+      .min(1, "Chapter is required"),
     title: z
       .string()
       .min(1, "Resource title is required")
@@ -23,24 +22,17 @@ export const createChapterResourceSchema = z
         /^[^<>"'&]*$/,
         "Description cannot contain special characters like < > \" ' &",
       )
-      .optional()
-      .or(z.literal("")),
+      .optional(),
     resourceType: z
       .enum(["PDF", "Video", "Notes", "Link"])
       .refine(val => val !== undefined, {
         message: "Resource type is required",
       }),
-    fileUrl: z
-      .string()
-      .url("Please enter a valid URL")
-      .optional()
-      .or(z.literal("")),
+    fileUrl: z.string().url("Please enter a valid URL").optional(),
     uploadedBy: z
       .string()
       .uuid("Invalid uploader ID format")
-      .min(1, "Uploader information is required")
-      .optional()
-      .or(z.literal("")),
+      .min(1, "Uploader information is required"),
     status: z.enum(["active", "inactive"]).optional().default("active"),
   })
   .refine(
@@ -57,7 +49,7 @@ export const createChapterResourceSchema = z
     },
   );
 
-export type CreateChapterResourceFormValues = z.infer<
+export type CreateChapterResourceFormValues = z.input<
   typeof createChapterResourceSchema
 >;
 

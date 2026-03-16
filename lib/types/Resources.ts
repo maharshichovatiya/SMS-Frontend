@@ -6,6 +6,7 @@ export interface Resource {
 }
 
 export interface Chapter {
+  id: string;
   name: string;
   resources: Resource[];
 }
