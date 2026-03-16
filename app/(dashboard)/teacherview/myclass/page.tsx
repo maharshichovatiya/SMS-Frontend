@@ -1,35 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Building } from "lucide-react";
 import {
-  fetchTeacherDashboardData,
-  clearError,
-} from "@/lib/store/TeacherDashboardSlice";
-import { RootState, AppDispatch } from "@/lib/store/Index";
+  fetchClassTeacherData,
+  ClassTeacherData,
+} from "@/lib/api/ClassTeacher";
 import { showToast } from "@/lib/utils/Toast";
 import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
 import StudentsTable from "@/components/tables/StudentTable";
 
 export default function MyClass() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { data, loading, error } = useSelector(
-    (state: RootState) => state.teacherDashboard,
-  );
+  const [classTeacherData, setClassTeacherData] =
+    useState<ClassTeacherData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentStatus, setCurrentStatus] = useState("all");
 
   useEffect(() => {
-    dispatch(fetchTeacherDashboardData());
-  }, [dispatch]);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchClassTeacherData();
+        setClassTeacherData(data);
+        setError(null);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch class data";
+        setError(errorMessage);
+        showToast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    if (error) {
-      showToast.error(error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+    loadData();
+  }, []);
 
   if (loading) {
     return null;
@@ -48,7 +55,7 @@ export default function MyClass() {
       currentStatus={currentStatus}
       onStatusChange={setCurrentStatus}
     >
-      {!data?.classes || data.classes.length === 0 ? (
+      {!classTeacherData?.class ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
           <div className="w-20 h-20 bg-[var(--blue-light)] rounded-full flex items-center justify-center mx-auto mb-6">
             <Building className="w-10 h-10 text-[var(--blue)]" />
@@ -63,74 +70,71 @@ export default function MyClass() {
         </div>
       ) : (
         <div className="space-y-[22px]">
-          {data.classes.map(classItem => (
-            <div
-              key={classItem.classId}
-              className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden"
-            >
-              <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[var(--border)] flex-wrap gap-2">
-                <div>
-                  <div className="text-[17px] font-bold text-[var(--text)] flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--blue-light)] flex items-center justify-center">
-                      <Building className="w-5 h-5 text-[var(--blue)]" />
-                    </div>
-                    Class {classItem.className}-{classItem.section}
-                    <div className="text-sm text-[var(--text-2)] mt-[2px]">
-                      (Total Students: {classItem.studentCount})
-                    </div>
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden">
+            <div className="flex items-center justify-between px-[22px] py-[18px] border-b border-[var(--border)] flex-wrap gap-2">
+              <div>
+                <div className="text-[17px] font-bold text-[var(--text)] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--blue-light)] flex items-center justify-center">
+                    <Building className="w-5 h-5 text-[var(--blue)]" />
+                  </div>
+                  Class {classTeacherData.class.className}
+                  <div className="text-sm text-[var(--text-2)] mt-[2px]">
+                    (Total Students:{" "}
+                    {classTeacherData.class.students?.length || 0})
                   </div>
                 </div>
               </div>
-
-              <div className="p-[18px]">
-                <div className="text-[12px] font-bold text-[var(--text-3)] uppercase tracking-[0.5px] mb-4">
-                  Students
-                </div>
-                <StudentsTable
-                  students={
-                    classItem.students?.map(student => ({
-                      id: student.id,
-                      firstName: student.firstName,
-                      lastName: student.lastName,
-                      middleName: null,
-                      email: student.email || "",
-                      phone: student.phone || "",
-                      rollNo: student.rollNo || student.admissionNo,
-                      admissionDate: "",
-                      class: `${classItem.className}-${classItem.section}`,
-                      dob: null,
-                      gender: null,
-                      guardian: "",
-                      status: "Active",
-                      fatherName: "",
-                      motherName: "",
-                      guardianName: "",
-                      familyAnnualIncome: "",
-                      medicalConditions: "",
-                      bloodGroup: "",
-                      aadhaarNo: "",
-                      panNo: "",
-                      permanentAddress: "",
-                      currentAddress: "",
-                      bankName: "",
-                      accountNo: "",
-                      ifscCode: "",
-                      branch: "",
-                    })) || []
-                  }
-                  totalStudents={classItem.studentCount || 0}
-                  loading={false}
-                  currentPage={1}
-                  pageSize={10}
-                  setCurrentPage={() => {}}
-                  setPageSize={() => {}}
-                  roleId=""
-                  onRefresh={() => {}}
-                  simpleActions={true}
-                />
-              </div>
             </div>
-          ))}
+
+            <div className="p-[18px]">
+              <div className="text-[12px] font-bold text-[var(--text-3)] uppercase tracking-[0.5px] mb-4">
+                Students
+              </div>
+              <StudentsTable
+                students={
+                  classTeacherData.class.students?.map(student => ({
+                    id: student.id,
+                    firstName: student.name.split(" ")[0] || student.name,
+                    lastName: student.name.split(" ").slice(1).join(" ") || "",
+                    middleName: null,
+                    email: "",
+                    phone: "",
+                    rollNo: student.id,
+                    admissionDate: "",
+                    class: classTeacherData.class.className,
+                    dob: null,
+                    gender: null,
+                    guardian: "",
+                    status: student.status === "active" ? "Active" : "Inactive",
+                    fatherName: "",
+                    motherName: "",
+                    guardianName: "",
+                    familyAnnualIncome: "",
+                    medicalConditions: "",
+                    bloodGroup: "",
+                    aadhaarNo: "",
+                    panNo: "",
+                    permanentAddress: "",
+                    currentAddress: "",
+                    bankName: "",
+                    accountNo: "",
+                    ifscCode: "",
+                    branch: "",
+                    fatherPhone: "",
+                  })) || []
+                }
+                totalStudents={classTeacherData.class.students?.length || 0}
+                loading={false}
+                currentPage={1}
+                pageSize={10}
+                setCurrentPage={() => {}}
+                setPageSize={() => {}}
+                roleId=""
+                onRefresh={() => {}}
+                simpleActions={true}
+              />
+            </div>
+          </div>
         </div>
       )}
     </CommonTeacherHeader>
