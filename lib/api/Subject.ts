@@ -107,4 +107,11 @@ export const subjectApis = {
   deleteSubject: async (id: string): Promise<void> => {
     await api.delete(`/subjects/${id}`);
   },
+
+  getChaptersBySubject: async (subjectId: string): Promise<Chapter[]> => {
+    const res = await api.get<{ data: Chapter[] }>(
+      `/subjects/${subjectId}/chapters`,
+    );
+    return res.data.data;
+  },
 };

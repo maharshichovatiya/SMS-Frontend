@@ -14,52 +14,62 @@ interface HomeworkDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   homework: Homework | null;
+  onClassClick?: (classId: string) => void;
 }
 
 export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
   isOpen,
   onClose,
   homework,
+  onClassClick,
 }) => {
   if (!isOpen || !homework) return null;
 
   const getAssignedToDisplay = () => {
-    if (!homework.assignments || homework.assignments.length === 0) {
-      const fallbackData = homework as unknown as FallbackHomeworkData;
-      if (fallbackData.class || fallbackData.className) {
-        return `Class: ${fallbackData.class || fallbackData.className}`;
+    if (homework.assignments && homework.assignments.length > 0) {
+      const classAssignments = homework.assignments.filter(
+        a => a.classId && !a.studentId,
+      );
+      const studentAssignments = homework.assignments.filter(
+        a => a.studentId && !a.classId,
+      );
+
+      const assignedItems = [];
+
+      if (classAssignments.length > 0) {
+        const classNames = classAssignments
+          .map(a => a.class?.className || "Unknown Class")
+          .join(", ");
+        assignedItems.push(`Classes: ${classNames}`);
       }
-      return "Not assigned";
+
+      if (studentAssignments.length > 0) {
+        const studentNames = studentAssignments
+          .map(a =>
+            a.student?.user
+              ? `${a.student.user.firstName} ${a.student.user.lastName}`
+              : "Unknown Student",
+          )
+          .join(", ");
+        assignedItems.push(`Students: ${studentNames}`);
+      }
+
+      if (classAssignments.length === 0 && studentAssignments.length > 0) {
+        const student = studentAssignments[0].student;
+        if (student?.user) {
+          const studentName = `${student.user.firstName} ${student.user.lastName}`;
+          const admissionNo = student.admissionNo || "N/A";
+          const email = student.user.email;
+          assignedItems.push(
+            `Student: ${studentName} (Admission No: ${admissionNo})`,
+          );
+        }
+      }
+
+      return assignedItems.length > 0
+        ? assignedItems.join("; ")
+        : "Not assigned";
     }
-
-    const classAssignments = homework.assignments.filter(
-      a => a.classId && !a.studentId,
-    );
-    const studentAssignments = homework.assignments.filter(
-      a => a.studentId && !a.classId,
-    );
-
-    const assignedItems = [];
-
-    if (classAssignments.length > 0) {
-      const classNames = classAssignments
-        .map(a => a.class?.className || "Unknown Class")
-        .join(", ");
-      assignedItems.push(`Classes: ${classNames}`);
-    }
-
-    if (studentAssignments.length > 0) {
-      const studentNames = studentAssignments
-        .map(a =>
-          a.student?.user
-            ? `${a.student.user.firstName} ${a.student.user.lastName}`
-            : "Unknown Student",
-        )
-        .join(", ");
-      assignedItems.push(`Students: ${studentNames}`);
-    }
-
-    return assignedItems.length > 0 ? assignedItems.join("; ") : "Not assigned";
   };
 
   const getStatusBadge = () => {
@@ -165,24 +175,7 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                   </p>
                 </div>
 
-                <div className="mb-6">
-                  <p className="text-[12px] text-[#9aa5c4] uppercase tracking-[0.5px] mb-2">
-                    Instructions
-                  </p>
-                  <p className="text-sm text-[#5c6a8a] leading-relaxed whitespace-pre-wrap">
-                    {homework.instructions || "No instructions provided"}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                  <div>
-                    <p className="text-[12px] text-[#9aa5c4] uppercase tracking-[0.5px] mb-1">
-                      Assigned To
-                    </p>
-                    <p className="text-sm font-medium text-[#111827]">
-                      {getAssignedToDisplay()}
-                    </p>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                   <div>
                     <p className="text-[12px] text-[#9aa5c4] uppercase tracking-[0.5px] mb-1">
                       Assigned Date
@@ -280,7 +273,7 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                         return (
                           <div
                             key={assignment.id}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                           >
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
@@ -296,9 +289,24 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                                 </p>
                               </div>
                             </div>
-                            <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                              Assigned
-                            </span>
+                            <div className="flex items-center space-x-2">
+                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                Assigned
+                              </span>
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </div>
                           </div>
                         );
                       }
@@ -313,7 +321,8 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                           return (
                             <div
                               key={assignment.id}
-                              className="flex items-center justify-between p-4 bg-blue-50 rounded-lg"
+                              className="flex items-center justify-between p-4 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                              onClick={() => onClassClick?.(classInfo.id!)}
                             >
                               <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-semibold">
@@ -350,34 +359,6 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                     </p>
                   </div>
                 )}
-              </div>
-            </div>
-
-            <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
-              <div className="p-5">
-                <h3 className="text-lg font-bold text-[#111827] mb-4">
-                  Submissions Summary
-                </h3>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-[#3d6cf4]">
-                      {homework.submittedCount}
-                    </p>
-                    <p className="text-sm text-[#5c6a8a]">Submitted</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-orange-600">
-                      {homework.pendingCount}
-                    </p>
-                    <p className="text-sm text-[#5c6a8a]">Pending</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-600">
-                      {homework.totalAssignedTo}
-                    </p>
-                    <p className="text-sm text-[#5c6a8a]">Total</p>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -483,17 +464,6 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="px-4 sm:px-7 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180"
-            >
-              Close
-            </button>
           </div>
         </div>
       </div>

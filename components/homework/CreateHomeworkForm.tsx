@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { subjectApis } from "@/lib/api/Subject";
+import { Chapter } from "@/lib/types/SubjectTypes";
 
 interface CreateHomeworkFormProps {
   onClose: () => void;
   onSubmit: (homeworkData: HomeworkData) => void;
-  subjects?: string[];
+  subjects?: Array<{ id: string; subjectName: string }>;
   chapters?: Array<{ id: string; chapterName: string; chapterNo: number }>;
   classes?: Array<{
     id: string;
@@ -27,15 +29,9 @@ interface CreateHomeworkFormProps {
 interface HomeworkData {
   title: string;
   description: string;
-  instructions: string;
   subject: string;
   chapterId?: string;
-  assignedTo:
-    | "singleClass"
-    | "multipleClasses"
-    | "allClasses"
-    | "singleStudent"
-    | "multipleStudents";
+  assignedTo: "singleClass" | "singleStudent" | "multipleStudents";
   selectedClass: string;
   selectedClasses: string[];
   selectedGroup: string;
@@ -71,22 +67,22 @@ const mockStudents = [
 ];
 
 const mockSubjects = [
-  "Mathematics",
-  "Science",
-  "English",
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "Computer Science",
-  "History",
-  "Geography",
+  { id: "1", subjectName: "Mathematics" },
+  { id: "2", subjectName: "Science" },
+  { id: "3", subjectName: "English" },
+  { id: "4", subjectName: "Physics" },
+  { id: "5", subjectName: "Chemistry" },
+  { id: "6", subjectName: "Biology" },
+  { id: "7", subjectName: "Computer Science" },
+  { id: "8", subjectName: "History" },
+  { id: "9", subjectName: "Geography" },
 ];
 
 export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   onClose,
   onSubmit,
   subjects = mockSubjects,
-  chapters = [],
+  chapters: propChapters = [],
   classes = mockClasses,
   students = mockStudents,
   loading = false,
@@ -104,7 +100,6 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   const [formData, setFormData] = useState<HomeworkData>({
     title: editingHomework?.title || "",
     description: editingHomework?.description || "",
-    instructions: editingHomework?.instructions || "",
     subject: editingHomework?.subject || "",
     chapterId: editingHomework?.chapterId || "",
     assignedTo: editingHomework?.assignedTo || "singleClass",
@@ -122,6 +117,31 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Partial<HomeworkData>>({});
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chaptersLoading, setChaptersLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchChapters = async () => {
+      if (formData.subject) {
+        try {
+          setChaptersLoading(true);
+          const chaptersData = await subjectApis.getChaptersBySubject(
+            formData.subject,
+          );
+          const chaptersArray = Array.isArray(chaptersData) ? chaptersData : [];
+          setChapters(chaptersArray);
+        } catch (error) {
+          setChapters([]);
+        } finally {
+          setChaptersLoading(false);
+        }
+      } else {
+        setChapters([]);
+      }
+    };
+
+    fetchChapters();
+  }, [formData.subject]);
 
   const handleInputChange = (
     field: keyof HomeworkData,
@@ -168,21 +188,11 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
-    if (!formData.instructions.trim())
-      newErrors.instructions = "Instructions are required";
     if (!formData.subject) newErrors.subject = "Subject is required";
     if (!formData.dueDate) newErrors.dueDate = "Due date is required";
 
     if (formData.assignedTo === "singleClass" && !formData.selectedClass) {
       newErrors.selectedClass = "Please select a class";
-    }
-    if (
-      formData.assignedTo === "multipleClasses" &&
-      formData.selectedClasses.length === 0
-    ) {
-      (newErrors as Partial<HomeworkData>).selectedClasses = [
-        "Please select at least one class",
-      ];
     }
     if (
       formData.assignedTo === "multipleStudents" &&
@@ -309,28 +319,6 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Instructions *
-                  </label>
-                  <textarea
-                    value={formData.instructions}
-                    onChange={e =>
-                      handleInputChange("instructions", e.target.value)
-                    }
-                    rows={4}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                      errors.instructions ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Enter detailed instructions for the homework"
-                  />
-                  {errors.instructions && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.instructions}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Attachments
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -429,12 +417,9 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                       }`}
                     >
                       <option value="">Select Subject</option>
-                      {subjects.map((subject, index) => (
-                        <option
-                          key={`subject-${index}-${subject}`}
-                          value={subject}
-                        >
-                          {subject}
+                      {subjects.map(subject => (
+                        <option key={subject.id} value={subject.id}>
+                          {subject.subjectName}
                         </option>
                       ))}
                     </select>
@@ -455,13 +440,19 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                         handleInputChange("chapterId", e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={!formData.subject || chaptersLoading}
                     >
-                      <option value="">Select Chapter</option>
-                      {chapters.map(chapter => (
-                        <option key={chapter.id} value={chapter.id}>
-                          Chapter {chapter.chapterNo}: {chapter.chapterName}
-                        </option>
-                      ))}
+                      <option value="">
+                        {chaptersLoading
+                          ? "Loading chapters..."
+                          : "Select Chapter"}
+                      </option>
+                      {Array.isArray(chapters) &&
+                        chapters.map(chapter => (
+                          <option key={chapter.id} value={chapter.id}>
+                            Chapter {chapter.chapterNo}: {chapter.chapterName}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
@@ -500,12 +491,10 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assign To *
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {(
                       [
                         "singleClass",
-                        "multipleClasses",
-                        "allClasses",
                         "singleStudent",
                         "multipleStudents",
                       ] as const
@@ -522,13 +511,9 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                       >
                         {option === "singleClass"
                           ? "Single Class"
-                          : option === "multipleClasses"
-                            ? "Multiple Classes"
-                            : option === "allClasses"
-                              ? "All Classes"
-                              : option === "singleStudent"
-                                ? "Single Student"
-                                : "Multiple Students"}
+                          : option === "singleStudent"
+                            ? "Single Student"
+                            : "Multiple Students"}
                       </button>
                     ))}
                   </div>
@@ -570,63 +555,6 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                     {errors.selectedClass && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.selectedClass}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {formData.assignedTo === "multipleClasses" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Multiple Classes *
-                    </label>
-                    {classes.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        {loading
-                          ? "Loading classes..."
-                          : "No classes available"}
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                        {classes.map(cls => (
-                          <label
-                            key={cls.id}
-                            className="flex items-center p-2 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.selectedClasses.includes(
-                                cls.id,
-                              )}
-                              onChange={e => {
-                                if (e.target.checked) {
-                                  handleInputChange("selectedClasses", [
-                                    ...formData.selectedClasses,
-                                    cls.id,
-                                  ]);
-                                } else {
-                                  handleInputChange(
-                                    "selectedClasses",
-                                    formData.selectedClasses.filter(
-                                      id => id !== cls.id,
-                                    ),
-                                  );
-                                }
-                              }}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <div className="ml-3">
-                              <div className="font-medium text-gray-900">
-                                {cls.name}
-                              </div>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    {formData.selectedClasses.length === 0 && (
-                      <p className="text-red-500 text-sm mt-1">
-                        Please select at least one class
                       </p>
                     )}
                   </div>
