@@ -1,24 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
-import { HomeworkCard } from "@/components/homework/HomeWorkCard";
-import { SubmissionItem } from "@/components/homework/SubmissionItem";
-import { FilterBar } from "@/components/homework/FilterBar";
-import { SubmissionModal } from "@/components/homework/SubmissionModal";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
+import { StudentAssignmentModal } from "@/components/homework/StudentAssignmentModal";
+import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
-import dummyData from "@/lib/data/homework.json";
+import { fetchAllHomework, createNewHomework } from "@/lib/store/HomeworkSlice";
+import { homeworkApis } from "@/lib/api/Homework";
+import { RootState } from "@/lib/store/Index";
+import { Subject } from "@/lib/types/SubjectTypes";
+import api from "@/lib/Axios";
+import { getClassSummary } from "@/lib/api/Classes";
 
-interface Homework {
+interface Student {
   id: string;
-  title: string;
-  subject: string;
-  class: string;
-  teacher: string;
-  dueDate: string;
-  submitted: number;
-  total: number;
-  status: "active" | "completed" | "overdue";
-  color: "blue" | "green" | "amber" | "rose" | "indigo";
+  name: string;
+  email: string;
+  className: string;
+  section: string;
+  status: "submitted" | "pending" | "overdue" | "graded";
+  submittedDate?: string;
+  grade?: number;
+  feedback?: string;
 }
 
 interface Submission {
@@ -30,58 +34,495 @@ interface Submission {
   feedback?: string;
 }
 
-interface FilterOption {
-  label: string;
-  value: string;
-  count?: number;
+interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  rollNo?: string;
+  admissionNo?: string;
+  classId: string;
+  className: string;
+  section: string;
+}
+
+interface ClassItem {
+  id: string;
+  name: string;
+  className: string;
+  section: string;
+}
+
+interface SubjectsByClassItem {
+  subjects: Array<{
+    subjectId: string;
+    subjectName: string;
+    subjectCode: string;
+    passingMarks: number;
+    maxMarks: number;
+  }>;
+}
+
+interface ApiClassItem {
+  id: string;
+  className: string;
+  section: string;
+}
+
+interface ApiStudentItem {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  rollNo?: string;
+  admissionNo?: string;
+}
+
+interface ApiClassData {
+  classId: string;
+  className: string;
+  section: string;
+  students: ApiStudentItem[];
+}
+
+interface HomeworkAssignmentClass {
+  className: string;
+  section: string;
+  classStudents?: Array<{
+    student?: {
+      id: string;
+      user: { firstName: string; lastName: string; email: string };
+      status: string;
+    };
+  }>;
+}
+
+interface HomeworkAssignment {
+  class?: HomeworkAssignmentClass;
+}
+
+interface HomeworkOriginalData {
+  assignments?: HomeworkAssignment[];
+}
+
+interface HomeworkForAssignment {
+  id: string;
+  title: string;
+  originalData?: HomeworkOriginalData;
+}
+
+interface HomeworkListItem {
+  id: string;
+  title: string;
+  subject: string | { subjectName: string };
+  dueDate: string;
+  submittedCount?: number;
+  totalAssignedTo?: number;
+  description?: string;
+}
+
+interface HomeworkListResponse {
+  homework?: HomeworkListItem[];
+  data?: { homework?: Array<{ id: string }> };
+}
+
+interface CreateHomeworkData {
+  title: string;
+  subject: string;
+  dueDate: string;
+  description?: string;
+  instructions?: string;
+  assignedTo: string;
+  selectedClass?: string;
+  selectedClasses?: string[];
+  selectedStudents?: string[];
+  allowLateSubmission?: boolean;
+  maxFileSize?: number;
+  attachments?: File[];
+}
+
+interface TransformedHomework {
+  id: string;
+  title: string;
+  subject: string;
+  class: string;
+  teacher: string;
+  dueDate: string;
+  submitted: number;
+  total: number;
+  status: "active" | "completed" | "overdue";
+  description: string;
 }
 
 export default function HomeworkPage() {
+  const dispatch = useDispatch();
+  const { homeworkList, loading, error, createLoading, createError } =
+    useSelector((state: RootState) => state.homework);
+
   const [selectedHomework, setSelectedHomework] = useState<string | null>(null);
-  const [submissionFilter, setSubmissionFilter] = useState("all");
+  const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
+    useState<HomeworkListItem | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
+  const [, setHomeworkStudentsLoading] = useState(false);
   const [isTeacher] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingHomework, setEditingHomework] =
+    useState<TransformedHomework | null>(null);
+  const [showStudentAssignment, setShowStudentAssignment] = useState(false);
+  const [selectedHomeworkForStudents, setSelectedHomeworkForStudents] =
+    useState<HomeworkForAssignment | null>(null);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [, setSubjectsLoading] = useState(false);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [, setClassesLoading] = useState(false);
+  const [students, setStudents] = useState<StudentData[]>([]);
+  const [, setStudentsLoading] = useState(false);
 
-  const homeworkList: Homework[] = dummyData.homeworks.map(hw => ({
-    ...hw,
-    status: hw.status as "active" | "completed" | "overdue",
-    color: hw.color as "blue" | "green" | "amber" | "rose" | "indigo",
-  }));
-  const allSubmissions: Submission[] = dummyData.submissions.map(s => ({
-    ...s,
-    status: s.status as "submitted" | "graded" | "late" | "pending",
-  }));
-  const filterOpts: FilterOption[] = dummyData.filterOptions;
+  useEffect(() => {
+    dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
 
-  const filterCounts = {
-    all: allSubmissions.length,
-    submitted: allSubmissions.filter(s => s.status === "submitted").length,
-    graded: allSubmissions.filter(s => s.status === "graded").length,
-    late: allSubmissions.filter(s => s.status === "late").length,
-    pending: allSubmissions.filter(s => s.status === "pending").length,
+    const fetchSubjects = async () => {
+      setSubjectsLoading(true);
+      try {
+        const response = await api.get("/dashboard/subjects");
+        const subjectsData = response.data.data;
+        const extractedSubjects: Subject[] = [];
+
+        if (subjectsData && subjectsData.subjectsByClass) {
+          (subjectsData.subjectsByClass as SubjectsByClassItem[]).forEach(
+            classData => {
+              if (classData.subjects) {
+                classData.subjects.forEach(subject => {
+                  extractedSubjects.push({
+                    id: subject.subjectId,
+                    subjectName: subject.subjectName,
+                    subjectCode: subject.subjectCode,
+                    passingMarks: subject.passingMarks,
+                    maxMarks: subject.maxMarks,
+                    status: "active",
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  });
+                });
+              }
+            },
+          );
+        }
+
+        setSubjects(extractedSubjects);
+      } catch (_error) {
+        setSubjects([]);
+      } finally {
+        setSubjectsLoading(false);
+      }
+    };
+
+    const fetchClasses = async () => {
+      setClassesLoading(true);
+      try {
+        const response = await getClassSummary();
+
+        if (response.success && response.data) {
+          const extractedClasses = (response.data as ApiClassItem[]).map(
+            classItem => ({
+              id: classItem.id,
+              name: `${classItem.className} - ${classItem.section}`,
+              className: classItem.className,
+              section: classItem.section,
+            }),
+          );
+          setClasses(extractedClasses);
+        } else {
+          setClasses([]);
+        }
+      } catch (_error) {
+        setClasses([]);
+      } finally {
+        setClassesLoading(false);
+      }
+    };
+
+    const fetchStudents = async () => {
+      setStudentsLoading(true);
+      try {
+        const response = await api.get("/dashboard/students/classteacher");
+
+        if (response.data && response.data.data) {
+          const studentsData = response.data.data;
+          const extractedStudents: StudentData[] = [];
+
+          if (studentsData.classes && Array.isArray(studentsData.classes)) {
+            (studentsData.classes as ApiClassData[]).forEach(classData => {
+              if (classData.students && Array.isArray(classData.students)) {
+                classData.students.forEach(student => {
+                  extractedStudents.push({
+                    id: student.id,
+                    name: `${student.firstName} ${student.lastName}`,
+                    classId: classData.classId,
+                    email: student.email,
+                    phone: student.phone,
+                    rollNo: student.rollNo,
+                    admissionNo: student.admissionNo,
+                    className: classData.className,
+                    section: classData.section,
+                  });
+                });
+              }
+            });
+          }
+
+          setStudents(extractedStudents);
+        } else {
+          setStudents([]);
+        }
+      } catch (_error) {
+        setStudents([]);
+      } finally {
+        setStudentsLoading(false);
+      }
+    };
+
+    fetchSubjects();
+    fetchClasses();
+    fetchStudents();
+  }, [dispatch]);
+
+  const handleDeleteHomework = async (homeworkId: string) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this homework? This action cannot be undone.",
+      )
+    ) {
+      try {
+        const response = await homeworkApis.delete(homeworkId);
+        if (response) {
+          dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+        }
+      } catch (_error) {
+        // handled silently
+      }
+    }
   };
 
-  const filtersWithCounts = filterOpts.map(f => ({
-    label: f.label,
-    value: f.value,
-    count: filterCounts[f.value as keyof typeof filterCounts],
-  }));
+  const handleViewDetails = async (homeworkId: string) => {
+    setSelectedHomework(homeworkId);
+    setDetailLoading(true);
 
-  const filteredSubmissions =
-    submissionFilter === "all"
-      ? allSubmissions
-      : allSubmissions.filter(s => s.status === submissionFilter);
+    try {
+      const response = await homeworkApis.getById(homeworkId);
 
-  const selectedHwData = homeworkList.find(h => h.id === selectedHomework);
+      if (response.success && response.data) {
+        setSelectedHomeworkDetail(response.data as HomeworkListItem);
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const fallbackData = (
+          homeworkList as unknown as HomeworkListResponse
+        )?.homework?.find(hw => hw.id === homeworkId);
+
+        if (fallbackData) {
+          setSelectedHomeworkDetail(fallbackData);
+        } else {
+          setSelectedHomework(null);
+        }
+      }
+    } catch (_error) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const fallbackData = (
+        homeworkList as unknown as HomeworkListResponse
+      )?.data?.homework?.find(hw => hw.id === homeworkId);
+
+      if (fallbackData) {
+        setSelectedHomeworkDetail(fallbackData as unknown as HomeworkListItem);
+      } else {
+        setSelectedHomework(null);
+      }
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleStudentAssignment = (homework: HomeworkForAssignment) => {
+    setSelectedHomeworkForStudents(homework);
+    setShowStudentAssignment(true);
+    setHomeworkStudentsLoading(true);
+    setHomeworkStudents([]);
+
+    try {
+      const homeworkData = homework.originalData;
+
+      if (
+        homeworkData &&
+        homeworkData.assignments &&
+        homeworkData.assignments.length > 0
+      ) {
+        const studentsFromAssignments: Student[] = [];
+
+        homeworkData.assignments.forEach(assignment => {
+          if (assignment.class && assignment.class.classStudents) {
+            assignment.class.classStudents.forEach(classStudent => {
+              if (
+                classStudent.student &&
+                classStudent.student.status === "active"
+              ) {
+                studentsFromAssignments.push({
+                  id: classStudent.student.id,
+                  name: `${classStudent.student.user.firstName} ${classStudent.student.user.lastName}`,
+                  email: classStudent.student.user.email,
+                  className: assignment.class!.className,
+                  section: assignment.class!.section,
+                  status: "pending",
+                  submittedDate: undefined,
+                  grade: undefined,
+                  feedback: undefined,
+                });
+              }
+            });
+          }
+        });
+
+        setHomeworkStudents(studentsFromAssignments);
+      } else {
+        setHomeworkStudents([]);
+      }
+    } catch (_error) {
+      setHomeworkStudents([]);
+    } finally {
+      setHomeworkStudentsLoading(false);
+    }
+  };
+
+  const handleEditHomework = async (_data: CreateHomeworkData) => {
+    try {
+      setShowCreateForm(false);
+      setEditingHomework(null);
+    } catch (_error) {}
+  };
+
+  const handleCreateHomework = async (data: CreateHomeworkData) => {
+    try {
+      const subject = subjects.find(s => s.subjectName === data.subject);
+      if (!subject) return;
+
+      let assignToClasses: Array<{ classId: string }> = [];
+      let assignToStudents: Array<{ studentId: string }> = [];
+
+      if (data.assignedTo === "singleClass" && data.selectedClass) {
+        assignToClasses = [{ classId: data.selectedClass }];
+      }
+      if (data.selectedClasses && data.selectedClasses.length > 0) {
+        assignToClasses = data.selectedClasses.map(classId => ({ classId }));
+      }
+      if (data.assignedTo === "allClasses") {
+        assignToClasses = classes.map(cls => ({ classId: cls.id }));
+      }
+      if (data.selectedStudents && data.selectedStudents.length > 0) {
+        assignToStudents = data.selectedStudents.map(studentId => ({
+          studentId,
+        }));
+      }
+
+      const apiData = {
+        title: data.title,
+        subject: subject.id,
+        assignedDate: new Date().toISOString(),
+        dueDate: new Date(data.dueDate).toISOString(),
+        description: data.description,
+        instructions: data.instructions,
+        assignToClasses,
+        assignToStudents,
+        allowLateSubmission: data.allowLateSubmission,
+        maxFileSize: data.maxFileSize,
+        attachments: data.attachments || [],
+      };
+
+      try {
+        const result = await dispatch(
+          createNewHomework(apiData) as Parameters<typeof dispatch>[0],
+        );
+
+        if (createNewHomework.rejected.match(result)) {
+          throw new Error(
+            (result.payload as string) || "Failed to create homework",
+          );
+        }
+
+        setShowCreateForm(false);
+        dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+      } catch (reduxError) {
+        throw reduxError;
+      }
+    } catch (_error) {}
+  };
+
+  const transformedHomeworkList: TransformedHomework[] =
+    (homeworkList as unknown as HomeworkListResponse)?.homework?.map(hw => ({
+      id: hw.id,
+      title: hw.title,
+      subject:
+        typeof hw.subject === "string"
+          ? hw.subject
+          : ((hw.subject as { subjectName: string })?.subjectName ?? "Subject"),
+      class: "Class",
+      teacher: "Teacher",
+      dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      submitted: hw.submittedCount ?? 0,
+      total: hw.totalAssignedTo ?? 0,
+      status: "active" as const,
+      description: hw.description ?? "",
+    })) || [];
+
+  const allSubmissions: Submission[] = [];
+  void allSubmissions;
+
+  if (loading && !homeworkList) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading homework...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">Error: {error}</div>
+          <button
+            onClick={() =>
+              dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0])
+            }
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const showHomeworkDetail = selectedHomework !== null;
 
   return (
     <div className="font-[var(--font-sans)] min-h-screen relative">
+      {(selectedHomework || showStudentAssignment || showCreateForm) && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 pointer-events-none" />
+      )}
+
       <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp">
         <div
           className="h-1.5"
-          style={{
-            background: `linear-gradient(90deg, #3d6cf4, #6c47f5)`,
-          }}
+          style={{ background: `linear-gradient(90deg, #3d6cf4, #6c47f5)` }}
         />
         <div className="px-4 sm:px-7 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -97,16 +538,19 @@ export default function HomeworkPage() {
               </div>
             </div>
             {isTeacher && (
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="w-full sm:w-auto px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center justify-center gap-1.5"
-              >
-                Create Homework
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="w-full sm:w-auto px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center justify-center gap-1.5"
+                >
+                  Create Homework
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
+
       <div
         className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp"
         style={{ animationDelay: "0.05s" }}
@@ -122,128 +566,126 @@ export default function HomeworkPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px] mb-[18px]">
-        {homeworkList.map((hw, idx) => (
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
+        style={{ animationDelay: "0.3s" }}
+      >
+        {transformedHomeworkList.map(hw => (
           <div
             key={hw.id}
             className="animate-fadeUp"
-            style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
+            style={{ animationDelay: "0.1s" }}
           >
-            <HomeworkCard
-              {...hw}
-              onView={() => {
-                setSelectedHomework(hw.id);
-                setSubmissionFilter("all");
+            <HomeworkCardClassic
+              id={hw.id}
+              title={hw.title}
+              subject={hw.subject}
+              className={hw.class || ""}
+              teacher={hw.teacher}
+              dueDate={hw.dueDate}
+              submitted={hw.submitted}
+              total={hw.total}
+              status={hw.status}
+              description={hw.description}
+              isModalOpen={
+                !!(selectedHomework || showStudentAssignment || showCreateForm)
+              }
+              onViewDetails={() => handleViewDetails(hw.id)}
+              onEdit={() => {
+                setEditingHomework(hw);
+                setShowCreateForm(true);
               }}
+              onDelete={() => handleDeleteHomework(hw.id)}
+              onStudentAssignment={() => handleStudentAssignment(hw)}
             />
           </div>
         ))}
       </div>
 
-      {selectedHomework && selectedHwData && (
-        <SubmissionModal
-          title={selectedHwData.title}
-          subject={selectedHwData.subject}
-          class={selectedHwData.class}
-          teacher={selectedHwData.teacher}
-          dueDate={selectedHwData.dueDate}
-          submitted={selectedHwData.submitted}
-          total={selectedHwData.total}
-          isOpen={true}
-          onClose={() => {
-            setSelectedHomework(null);
-            setSubmissionFilter("all");
-          }}
-        >
-          <div className="sticky top-0 bg-[var(--bg)] z-10 py-4 border-b border-[var(--border)]">
-            <FilterBar
-              activeFilter={submissionFilter}
-              filters={filtersWithCounts}
-              onFilterChange={setSubmissionFilter}
-            />
-          </div>
-
-          <div className="p-6">
-            {filteredSubmissions.length > 0 ? (
-              filteredSubmissions.map((submission, idx) => (
-                <SubmissionItem
-                  key={idx}
-                  {...submission}
-                  isTeacher={isTeacher}
-                />
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600 font-medium">
-                  No submissions to display
-                </p>
+      {showHomeworkDetail && (
+        <>
+          {detailLoading ? (
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-[var(--z-modal)]">
+              <div
+                className="absolute inset-0 bg-[rgba(17,24,39,0.45)] backdrop-blur-sm"
+                onClick={() => {
+                  setSelectedHomework(null);
+                  setSelectedHomeworkDetail(null);
+                }}
+              />
+              <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-xl w-full max-w-md p-8 relative">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="text-gray-600">Loading homework details...</p>
+                </div>
               </div>
-            )}
-          </div>
-        </SubmissionModal>
+            </div>
+          ) : (
+            <HomeworkDetailModal
+              isOpen={!!selectedHomework}
+              onClose={() => {
+                setSelectedHomework(null);
+                setSelectedHomeworkDetail(null);
+              }}
+              homework={selectedHomeworkDetail}
+            />
+          )}
+        </>
+      )}
+
+      {showStudentAssignment && selectedHomeworkForStudents && (
+        <StudentAssignmentModal
+          isOpen={showStudentAssignment}
+          onClose={() => setShowStudentAssignment(false)}
+          homeworkTitle={selectedHomeworkForStudents?.title || "Homework"}
+          homeworkId={selectedHomeworkForStudents?.id || ""}
+          students={homeworkStudents}
+          onAssignStudents={(_studentIds: string[]) => {}}
+          onGradeStudent={(
+            _studentId: string,
+            _grade: string,
+            _feedback: string,
+          ) => {}}
+        />
       )}
 
       {showCreateForm && (
         <CreateHomeworkForm
-          onClose={() => setShowCreateForm(false)}
-          onSubmit={() => {
+          onClose={() => {
             setShowCreateForm(false);
+            setEditingHomework(null);
           }}
+          onSubmit={editingHomework ? handleEditHomework : handleCreateHomework}
+          subjects={subjects ? subjects.map(s => s.subjectName) : []}
+          classes={classes}
+          students={students}
+          loading={createLoading}
+          error={createError}
+          editingHomework={
+            editingHomework as {
+              title: string;
+              description: string;
+              instructions: string;
+              subject: string;
+              chapterId?: string;
+              assignedTo:
+                | "singleClass"
+                | "multipleClasses"
+                | "allClasses"
+                | "singleStudent"
+                | "multipleStudents";
+              selectedClass: string;
+              selectedClasses: string[];
+              selectedGroup: string;
+              selectedStudents: string[];
+              dueDate: string;
+              maxFileSize: number;
+              allowLateSubmission: boolean;
+              attachments: (string | File)[];
+            } | null
+          }
         />
       )}
-
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px] animate-fadeUp"
-        style={{ animationDelay: "0.3s" }}
-      >
-        <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
-          <div className="px-[22px] py-4 border-b border-[#dde3f5] bg-[#fafbff]">
-            <div className="text-[15px] font-bold text-[#111827] font-[var(--font-sans)]">
-              Average Submission Rate
-            </div>
-          </div>
-          <div className="px-[22px] py-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#3d6cf4] font-[var(--font-sans)]">
-              84%
-            </div>
-            <div className="text-[11px] sm:text-[12px] text-[#9aa5c4] mt-1 font-[var(--font-sans)]">
-              Of all assignments
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden">
-          <div className="px-[22px] py-4 border-b border-[#dde3f5] bg-[#fafbff]">
-            <div className="text-[15px] font-bold text-[#111827] font-[var(--font-sans)]">
-              Completed Assignments
-            </div>
-          </div>
-          <div className="px-[22px] py-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#12a47e] font-[var(--font-sans)]">
-              1 / 4
-            </div>
-            <div className="text-[11px] sm:text-[12px] text-[#9aa5c4] mt-1 font-[var(--font-sans)]">
-              This week
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl  overflow-hidden sm:col-span-2 lg:col-span-1">
-          <div className="px-[22px] py-4 border-b border-[#dde3f5] bg-[#fafbff]">
-            <div className="text-[15px] font-bold text-[#111827] font-[var(--font-sans)]">
-              Pending Review
-            </div>
-          </div>
-          <div className="px-[22px] py-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#e08c17] font-[var(--font-sans)]">
-              23
-            </div>
-            <div className="text-[11px] sm:text-[12px] text-[#9aa5c4] mt-1 font-[var(--font-sans)]">
-              Submissions to grade
-            </div>
-          </div>
-        </div>
-      </div>
 
       <style>{`
         @keyframes fadeUp {

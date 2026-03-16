@@ -20,7 +20,7 @@ export default function VerifyOTPPage() {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(90);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState<string>(() => {
+  const [email, _setEmail] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("email") ?? "";
     }
@@ -29,7 +29,7 @@ export default function VerifyOTPPage() {
 
   const inputs = useRef<HTMLInputElement[]>([]);
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
+  // const dispatch = useDispatch<AppDispatch>();
 
   const code = otp.join("");
   const filled = code.length === 4 && otp.every(d => d !== "");
