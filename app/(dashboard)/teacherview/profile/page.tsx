@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Award } from "lucide-react";
 import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import type {
   ProfileTab,
   ProfileFieldProps,
 } from "@/lib/types/teacher-profile";
-import TeacherForm from "@/components/forms/TeacherForm";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface ApiTeacherData {
   id: string;
@@ -664,102 +665,16 @@ const TeacherProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="font-[var(--font-sans)] min-h-screen relative">
-      {showForm ? (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={handleFormCancel}
-          />
-
-          {/* Modal Content */}
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl z-10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    Edit Profile
-                  </h1>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Update your personal and professional information
-                  </p>
-                </div>
-                <button
-                  onClick={handleFormCancel}
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <TeacherForm
-                mode="edit"
-                userId={teacherData?.userId}
-                defaultValues={{
-                  firstName: teacherData?.user.firstName,
-                  middleName: teacherData?.user.middleName || undefined,
-                  lastName: teacherData?.user.lastName,
-                  email: teacherData?.user.email,
-                  phone: teacherData?.user.phone || undefined,
-                  gender: teacherData?.user.gender,
-                  dob: teacherData?.user.dob,
-                  bloodGroup: teacherData?.user.bloodGroup || undefined,
-                  aadhaarNo: teacherData?.user.aadhaarNo || undefined,
-                  panNo: teacherData?.user.panNo || undefined,
-                  permanentAddress:
-                    teacherData?.user.permanentAddress || undefined,
-                  currentAddress: teacherData?.user.currentAddress || undefined,
-                  bankName: teacherData?.user.bankName || undefined,
-                  accountNo: teacherData?.user.accountNo || undefined,
-                  ifscCode: teacherData?.user.ifscCode || undefined,
-                  branch: teacherData?.user.branch || undefined,
-                  department: teacherData?.department,
-                  designation: teacherData?.designation,
-                  highestQualification: teacherData?.highestQualification,
-                  experienceYears: Math.floor(
-                    (teacherData?.totalExpMonths || 0) / 12,
-                  ),
-                  experienceMonths: (teacherData?.totalExpMonths || 0) % 12,
-                  salaryPackage: teacherData?.salaryPackage
-                    ? Number(teacherData.salaryPackage)
-                    : undefined,
-                  dateOfJoining: teacherData?.dateOfJoining,
-                }}
-                onCancel={handleFormCancel}
-                onSuccess={handleFormSave}
-              />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <ProfileHeader
-            teacher={current}
-            isEditing={isEditing}
-            onEditToggle={handleEditToggle}
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-
-          <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
-
-          {renderTab()}
-        </>
-      )}
+    <div>
+      <PageHeader
+        title="Teacher Profile"
+        description="Manage your personal and professional information"
+        icon={Award}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+        buttonText="Edit Profile"
+        onButtonClick={handleEditToggle}
+      />
 
       <style>{`
         @keyframes fadeUp {

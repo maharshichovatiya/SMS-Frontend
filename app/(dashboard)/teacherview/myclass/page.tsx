@@ -9,7 +9,7 @@ import {
 } from "@/lib/store/TeacherDashboardSlice";
 import { RootState, AppDispatch } from "@/lib/store/Index";
 import { showToast } from "@/lib/utils/Toast";
-import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
+import PageHeader from "@/components/layout/PageHeader";
 import StudentsTable from "@/components/tables/StudentTable";
 
 export default function MyClass() {
@@ -54,19 +54,15 @@ export default function MyClass() {
   }
 
   return (
-    <CommonTeacherHeader
-      title="My Classes"
-      subtitle="Manage your classes and students efficiently"
-      searchPlaceholder="Search students by name, email, or roll number..."
-      searchValue={searchTerm}
-      onSearchChange={setSearchTerm}
-      useApiData={false}
-      userRole="teacher"
-      showStatusFilters={true}
-      currentStatus={currentStatus}
-      onStatusChange={setCurrentStatus}
-    >
-      {!data?.classes || data.classes.length === 0 ? (
+    <div>
+      <PageHeader
+        title="My Classes"
+        description="Manage your classes and students efficiently"
+        icon={Building}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+      />
+      {!classTeacherData?.class ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
           <div className="w-20 h-20 bg-[var(--blue-light)] rounded-full flex items-center justify-center mx-auto mb-6">
             <Building className="w-10 h-10 text-[var(--blue)]" />
@@ -100,57 +96,69 @@ export default function MyClass() {
                 </div>
               </div>
 
-              <div className="p-[18px]">
-                <div className="text-[12px] font-bold text-[var(--text-3)] uppercase tracking-[0.5px] mb-4">
-                  Students
-                </div>
-                <StudentsTable
-                  students={
-                    classItem.students?.map(student => ({
-                      id: student.id,
-                      firstName: student.firstName,
-                      lastName: student.lastName,
-                      middleName: null,
-                      email: student.email || "",
-                      phone: student.phone || "",
-                      rollNo: student.rollNo || student.admissionNo,
-                      admissionDate: "",
-                      class: `${classItem.className}-${classItem.section}`,
-                      dob: null,
-                      gender: null,
-                      guardian: "",
-                      status: "Active",
-                      fatherName: "",
-                      motherName: "",
-                      guardianName: "",
-                      familyAnnualIncome: "",
-                      medicalConditions: "",
-                      bloodGroup: "",
-                      aadhaarNo: "",
-                      panNo: "",
-                      permanentAddress: "",
-                      currentAddress: "",
-                      bankName: "",
-                      accountNo: "",
-                      ifscCode: "",
-                      branch: "",
-                    })) || []
-                  }
-                  totalStudents={classItem.studentCount || 0}
-                  loading={false}
-                  currentPage={1}
-                  pageSize={10}
-                  setCurrentPage={() => {}}
-                  setPageSize={() => {}}
-                  roleId=""
-                  onRefresh={() => {}}
-                  simpleActions={true}
-                />
+            <div className="p-[18px]">
+              <div className="text-[12px] font-bold text-[var(--text-3)] uppercase tracking-[0.5px] mb-4">
+                Students
               </div>
+              <StudentsTable
+                students={
+                  classTeacherData.class.students?.map(student => ({
+                    id: student.id,
+                    firstName: student.firstName || "",
+                    lastName: student.lastName || "",
+                    middleName: student.middleName || "",
+                    email: student.email || "",
+                    phone: student.phone || "",
+                    rollNo: student.rollNo || student.admissionNo,
+                    admissionDate: student.admissionDate || "",
+                    class: classTeacherData.class.className,
+                    dob: student.dob || null,
+                    gender: student.gender || null,
+                    guardian: student.guardianName || "",
+                    status: student.status === "active" ? "Active" : "Inactive",
+                    fatherName: student.fatherName || "",
+                    motherName: student.motherName || "",
+                    guardianName: student.guardianName || "",
+                    familyAnnualIncome: student.familyAnnualIncome || "",
+                    medicalConditions: student.medicalConditions || "",
+                    bloodGroup: student.bloodGroup || "",
+                    aadhaarNo: student.aadhaarNo || "",
+                    panNo: student.panNo || "",
+                    permanentAddress: student.permanentAddress || "",
+                    currentAddress: student.currentAddress || "",
+                    bankName: student.bankName || "",
+                    accountNo: student.accountNo || "",
+                    ifscCode: student.ifscCode || "",
+                    branch: student.branch || "",
+                    fatherPhone: student.fatherPhone || "",
+                    academicYear:
+                      student.academics?.[0]?.academicYear?.yearName || "",
+                    academicStartDate:
+                      student.academics?.[0]?.academicYear?.startDate || "",
+                    academicEndDate:
+                      student.academics?.[0]?.academicYear?.endDate || "",
+                    academicStatus: student.academics?.[0]?.status || "",
+                    promotionStatus:
+                      student.academics?.[0]?.promotionStatus || "",
+                    percentage: student.academics?.[0]?.percentage || "",
+                    remarks: student.academics?.[0]?.remarks || "",
+                    section: student.academics?.[0]?.class?.section || "",
+                  })) || []
+                }
+                totalStudents={classTeacherData.class.students?.length || 0}
+                loading={false}
+                currentPage={1}
+                pageSize={10}
+                setCurrentPage={() => {}}
+                setPageSize={() => {}}
+                roleId=""
+                onRefresh={() => {}}
+                simpleActions={true}
+              />
             </div>
-          ))}
+          </div>
         </div>
       )}
-    </CommonTeacherHeader>
+    </div>
   );
 }

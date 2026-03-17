@@ -99,6 +99,16 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/teacherview/classes",
         },
         {
+          icon: "Users",
+          label: "Assign Students",
+          path: "/teacherview/assignstudents",
+        },
+        {
+          icon: "ClipboardList",
+          label: "Homework",
+          path: "/teacherview/homework",
+        },
+        {
           icon: "Bell",
           label: "Notifications",
           path: "/teacherview/notifications",
