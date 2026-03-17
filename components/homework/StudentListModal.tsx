@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store/Index";
 import {
+  fetchSubmissionsByHomework,
   submitFeedback,
   downloadSubmission,
 } from "../../lib/store/SubmissionSlice";
@@ -21,63 +22,23 @@ interface Student {
   file?: string;
 }
 
-interface HomeworkUser {
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-interface HomeworkStudent {
-  id: string;
-  user: HomeworkUser;
-  status: string;
-  submittedDate?: string;
-  grade?: string;
-  feedback?: string;
-  file?: string;
-}
-
-interface HomeworkClassStudent {
-  student?: HomeworkStudent;
-}
-
-interface HomeworkClass {
-  id: string;
-  className: string;
-  section: string;
-  classStudents?: HomeworkClassStudent[];
-}
-
-interface HomeworkAssignment {
-  class?: HomeworkClass;
-  student?: HomeworkStudent;
-}
-
-interface HomeworkData {
-  id: string;
-  title: string;
-  assignments?: HomeworkAssignment[];
-}
-
-export type { HomeworkData };
-
 interface StudentListModalProps {
   isOpen: boolean;
   onClose: () => void;
   homeworkTitle: string;
+  students: Student[];
   homeworkId?: string;
-  homeworkData?: HomeworkData;
 }
 
 export const StudentListModal: React.FC<StudentListModalProps> = ({
   isOpen,
   onClose,
   homeworkTitle,
+  students,
   homeworkId,
-  homeworkData,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { feedbackLoading } = useSelector(
+  const { currentHomeworkSubmissions, loading, feedbackLoading } = useSelector(
     (state: RootState) => state.submissions,
   );
 
@@ -89,70 +50,27 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
     marksObtained: 0,
     feedback: "",
   });
+  const [filterStatus, setFilterStatus] = useState("all");
   const [expandedFeedback, setExpandedFeedback] = useState<{
     [key: string]: boolean;
   }>({});
-  const localStudents = React.useMemo(() => {
-    if (!isOpen || !homeworkData) return [];
 
-    const extractedStudents: Student[] = [];
-
-    if (homeworkData.assignments && Array.isArray(homeworkData.assignments)) {
-      homeworkData.assignments.forEach((assignment: HomeworkAssignment) => {
-        if (
-          assignment.class &&
-          assignment.class.classStudents &&
-          Array.isArray(assignment.class.classStudents)
-        ) {
-          assignment.class.classStudents.forEach(
-            (classStudent: HomeworkClassStudent) => {
-              if (classStudent.student && classStudent.student.user) {
-                const student = classStudent.student;
-                extractedStudents.push({
-                  id: student.id,
-                  name: `${student.user.firstName} ${student.user.lastName}`,
-                  email: student.user.email,
-                  className: assignment.class!.className,
-                  section: assignment.class!.section,
-                  status: "pending",
-                  submittedDate: undefined,
-                  grade: undefined,
-                  feedback: undefined,
-                  file: undefined,
-                });
-              }
-            },
-          );
-        }
-
-        if (assignment.student && assignment.student.user) {
-          const student = assignment.student;
-          extractedStudents.push({
-            id: student.id,
-            name: `${student.user.firstName} ${student.user.lastName}`,
-            email: student.user.email,
-            className: "Individual Assignment",
-            section: "",
-            status: student.status === "submitted" ? "submitted" : "pending",
-            submittedDate: student.submittedDate,
-            grade: student.grade,
-            feedback: student.feedback,
-            file: student.file,
-          });
-        }
-      });
+  useEffect(() => {
+    if (isOpen && homeworkId) {
+      dispatch(fetchSubmissionsByHomework(homeworkId));
     }
+  }, [isOpen, homeworkId, dispatch]);
 
-    return extractedStudents;
-  }, [isOpen, homeworkData]);
-
-  const filteredStudents = localStudents.filter(student => {
+  const filteredStudents = currentHomeworkSubmissions.filter(student => {
     const matchesSearch =
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.className.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch;
+    const matchesFilter =
+      filterStatus === "all" || student.status === filterStatus;
+
+    return matchesSearch && matchesFilter;
   });
 
   const getStatusColor = (status: Student["status"]) => {
@@ -185,7 +103,7 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
     }
   };
 
-  const _getBorderColor = (status: Student["status"]) => {
+  const getBorderColor = (status: Student["status"]) => {
     switch (status) {
       case "submitted":
         return "var(--color-blue)";
@@ -215,13 +133,19 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
     }
   };
 
-  const totalStudents = localStudents.length;
-  const submittedCount = localStudents.filter(
+  const totalStudents = currentHomeworkSubmissions.length;
+  const submittedCount = currentHomeworkSubmissions.filter(
     s => s.status === "submitted",
   ).length;
-  const gradedCount = localStudents.filter(s => s.status === "graded").length;
-  const lateCount = localStudents.filter(s => s.status === "overdue").length;
-  const pendingCount = localStudents.filter(s => s.status === "pending").length;
+  const gradedCount = currentHomeworkSubmissions.filter(
+    s => s.status === "graded",
+  ).length;
+  const lateCount = currentHomeworkSubmissions.filter(
+    s => s.status === "overdue",
+  ).length;
+  const pendingCount = currentHomeworkSubmissions.filter(
+    s => s.status === "pending",
+  ).length;
   const totalSubmitted = submittedCount + gradedCount + lateCount;
   const progressPercentage =
     totalStudents > 0 ? Math.round((totalSubmitted / totalStudents) * 100) : 0;
@@ -261,7 +185,7 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
 
       setShowFeedbackModal(false);
       setSelectedStudent(null);
-    } catch (_error) {}
+    } catch (error) {}
   };
 
   const handleDownload = async (student: Student) => {
@@ -275,7 +199,7 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
           fileName: student.file,
         }),
       ).unwrap();
-    } catch (_error) {}
+    } catch (error) {}
   };
 
   if (!isOpen) return null;
@@ -320,192 +244,229 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-[22px_28px_28px]">
-          <>
-            <div className="grid grid-cols-4 gap-3 mb-5">
-              <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
-                <div className="text-[24px] font-extrabold text-[var(--color-blue)] leading-none mb-[3px]">
-                  {totalSubmitted}
-                </div>
-                <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
-                  Submitted
-                </div>
-              </div>
-              <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
-                <div className="text-[24px] font-extrabold text-[var(--color-green)] leading-none mb-[3px]">
-                  {gradedCount}
-                </div>
-                <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
-                  Graded
-                </div>
-              </div>
-              <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
-                <div className="text-[24px] font-extrabold text-[var(--color-amber)] leading-none mb-[3px]">
-                  {pendingCount}
-                </div>
-                <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
-                  Pending
-                </div>
-              </div>
-              <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
-                <div className="text-[24px] font-extrabold text-[var(--color-rose)] leading-none mb-[3px]">
-                  {lateCount}
-                </div>
-                <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
-                  Late
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-blue)]"></div>
             </div>
-
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <div className="text-[12px] font-bold text-[var(--color-text-2)]">
-                Submission Progress
-              </div>
-              <div className="text-[12px] font-extrabold text-[var(--color-blue)] ml-auto">
-                {progressPercentage}% ({totalSubmitted}/{totalStudents})
-              </div>
-            </div>
-            <div className="bg-[var(--color-bg-2)] rounded-[6px] h-2 overflow-hidden mb-4">
-              <div
-                className="h-full rounded-[6px] bg-gradient-to-r from-[var(--color-blue)] to-[var(--color-indigo)] transition-all duration-[0.6s] ease-[cubic-bezier(0.4,0,0.2,1)]"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search students by name, email, or class..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 border-[1.5px] border-[var(--color-border)] rounded-[11px] bg-[var(--color-surface)] focus:outline-none focus:border-[var(--color-border-focus)] transition-all"
-              />
-            </div>
-
-            <div className="space-y-2.5">
-              {filteredStudents.length === 0 ? (
-                <div className="text-center py-12 text-[var(--color-text-3)]">
-                  <div className="text-[15px] font-semibold text-[var(--color-text-2)] mb-1">
-                    No Students Found
+          ) : (
+            <>
+              <div className="grid grid-cols-4 gap-3 mb-5">
+                <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
+                  <div className="text-[24px] font-extrabold text-[var(--color-blue)] leading-none mb-[3px]">
+                    {totalSubmitted}
                   </div>
-                  <div className="text-[13px] text-[var(--color-text-3)]">
-                    {searchTerm
-                      ? "No students match your search criteria."
-                      : "No students assigned to this homework."}
+                  <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
+                    Submitted
                   </div>
                 </div>
-              ) : (
-                filteredStudents.map(student => {
-                  let cardClasses =
-                    "bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[16px_18px] transition-all";
+                <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
+                  <div className="text-[24px] font-extrabold text-[var(--color-green)] leading-none mb-[3px]">
+                    {gradedCount}
+                  </div>
+                  <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
+                    Graded
+                  </div>
+                </div>
+                <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
+                  <div className="text-[24px] font-extrabold text-[var(--color-amber)] leading-none mb-[3px]">
+                    {pendingCount}
+                  </div>
+                  <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
+                    Pending
+                  </div>
+                </div>
+                <div className="bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[14px_16px] text-center">
+                  <div className="text-[24px] font-extrabold text-[var(--color-rose)] leading-none mb-[3px]">
+                    {lateCount}
+                  </div>
+                  <div className="text-[10px] font-bold text-[var(--color-text-3)] uppercase tracking-[0.5px]">
+                    Late
+                  </div>
+                </div>
+              </div>
 
-                  if (student.status === "pending") {
-                    cardClasses +=
-                      " border-l-3 border-l-[var(--color-amber)] bg-[var(--color-amber-light)]";
-                  }
-                  if (student.status === "overdue") {
-                    cardClasses += " border-l-3 border-l-[var(--color-rose)]";
-                  }
-                  if (student.status === "graded") {
-                    cardClasses += " border-l-3 border-l-[var(--color-green)]";
-                  }
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="text-[12px] font-bold text-[var(--color-text-2)]">
+                  Submission Progress
+                </div>
+                <div className="text-[12px] font-extrabold text-[var(--color-blue)] ml-auto">
+                  {progressPercentage}% ({totalSubmitted}/{totalStudents})
+                </div>
+              </div>
+              <div className="bg-[var(--color-bg-2)] rounded-[6px] h-2 overflow-hidden mb-4">
+                <div
+                  className="h-full rounded-[6px] bg-gradient-to-r from-[var(--color-blue)] to-[var(--color-indigo)] transition-all duration-[0.6s] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
 
-                  return (
-                    <div key={student.id} className={cardClasses}>
-                      <div className="flex items-center gap-3 mb-2.5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-blue)] to-[var(--color-indigo)] flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
-                          {student.name
-                            .split(" ")
-                            .map(n => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[14px] font-bold text-[var(--color-text)]">
-                            {student.name}
+              <div className="flex gap-1.5 mb-4">
+                {[
+                  {
+                    key: "all",
+                    label: `All (${currentHomeworkSubmissions.length})`,
+                  },
+                  { key: "submitted", label: `Submitted (${submittedCount})` },
+                  { key: "graded", label: `Graded (${gradedCount})` },
+                  { key: "late", label: `Late (${lateCount})` },
+                  { key: "pending", label: `Not Submitted (${pendingCount})` },
+                ].map(filter => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setFilterStatus(filter.key)}
+                    className={`px-[14px] py-[6px] rounded-[100px] text-[12px] font-semibold cursor-pointer border-[1.5px] transition-all ${
+                      filterStatus === filter.key
+                        ? "bg-[var(--color-blue)] text-white border-[var(--color-blue)]"
+                        : "bg-[var(--color-surface)] text-[var(--color-text-2)] border-[var(--color-border)]"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search students by name, email, or class..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-3 border-[1.5px] border-[var(--color-border)] rounded-[11px] bg-[var(--color-surface)] focus:outline-none focus:border-[var(--color-border-focus)] transition-all"
+                />
+              </div>
+
+              <div className="space-y-2.5">
+                {filteredStudents.length === 0 ? (
+                  <div className="text-center py-12 text-[var(--color-text-3)]">
+                    <div className="text-4xl mb-3 opacity-50">📭</div>
+                    <div className="text-[15px] font-semibold text-[var(--color-text-2)] mb-1">
+                      No Students Found
+                    </div>
+                    <div className="text-[13px] text-[var(--color-text-3)]">
+                      {searchTerm
+                        ? "No students match your search criteria."
+                        : "No students assigned to this homework."}
+                    </div>
+                  </div>
+                ) : (
+                  filteredStudents.map((student, index) => {
+                    let cardClasses =
+                      "bg-[var(--color-surface)] border-[1.5px] border-[var(--color-border)] rounded-[10px] p-[16px_18px] transition-all";
+
+                    if (student.status === "pending") {
+                      cardClasses +=
+                        " border-l-3 border-l-[var(--color-amber)] bg-[var(--color-amber-light)]";
+                    }
+                    if (student.status === "overdue") {
+                      cardClasses += " border-l-3 border-l-[var(--color-rose)]";
+                    }
+                    if (student.status === "graded") {
+                      cardClasses +=
+                        " border-l-3 border-l-[var(--color-green)]";
+                    }
+
+                    return (
+                      <div key={student.id} className={cardClasses}>
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-blue)] to-[var(--color-indigo)] flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
+                            {student.studentName
+                              .split(" ")
+                              .map(n => n[0])
+                              .join("")
+                              .toUpperCase()}
                           </div>
-                          <div className="text-[11px] text-[var(--color-text-2)]">
-                            {student.email}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[14px] font-bold text-[var(--color-text)]">
+                              {student.studentName}
+                            </div>
+                            <div className="text-[11px] text-[var(--color-text-2)]">
+                              {student.studentEmail}
+                            </div>
                           </div>
+                          <span
+                            className="px-[11px] py-[3px] rounded-[100px] text-[11.5px] font-semibold"
+                            style={{
+                              background: getStatusColor(student.status),
+                              color: getStatusTextColor(student.status),
+                            }}
+                          >
+                            {getStatusText(student.status)}
+                          </span>
                         </div>
-                        <span
-                          className="px-[11px] py-[3px] rounded-[100px] text-[11.5px] font-semibold"
-                          style={{
-                            background: getStatusColor(student.status),
-                            color: getStatusTextColor(student.status),
-                          }}
-                        >
-                          {getStatusText(student.status)}
-                        </span>
-                      </div>
 
-                      {student.status !== "pending" && (
-                        <div className="flex items-center gap-4 flex-wrap text-[12.5px] text-[var(--color-text-2)] mb-2">
-                          {student.submittedDate && (
-                            <span>
-                              {new Date(student.submittedDate).toLocaleString()}
-                            </span>
-                          )}
-                          {student.file && <span>{student.file}</span>}
-                          {student.grade && <span>Grade: {student.grade}</span>}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        {student.status === "pending" ? (
-                          <div className="flex items-center gap-1 text-[var(--color-amber)] text-[12.5px]">
-                            <span>Has not submitted yet</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            {student.file && (
-                              <button
-                                onClick={() => handleDownload(student)}
-                                className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
-                              >
-                                Download
-                              </button>
+                        {student.status !== "pending" && (
+                          <div className="flex items-center gap-4 flex-wrap text-[12.5px] text-[var(--color-text-2)] mb-2">
+                            {student.submittedDate && (
+                              <span>
+                                {new Date(
+                                  student.submittedDate,
+                                ).toLocaleString()}
+                              </span>
                             )}
-                            <button
-                              onClick={() => handleFeedbackClick(student)}
-                              className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
-                            >
-                              Feedback
-                            </button>
-                            {student.status !== "graded" && (
-                              <button className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer bg-[var(--color-green)] text-white border-[1.5px] border-[var(--color-green)] transition-all">
-                                Save Grade
-                              </button>
+                            {student.file && <span>{student.file}</span>}
+                            {student.grade && (
+                              <span>Grade: {student.grade}</span>
                             )}
                           </div>
                         )}
-                      </div>
 
-                      {expandedFeedback[student.id] && (
-                        <div className="mt-2.5 pt-2.5 border-t border-[var(--color-border)]">
-                          <textarea
-                            className="w-full min-h-[68px] p-[10px_14px] border-[1.5px] border-[var(--color-border)] rounded-[10px] bg-[var(--color-surface)] text-[13px] text-[var(--color-text)] resize-none focus:outline-none focus:border-[var(--color-border-focus)] transition-all leading-[1.5]"
-                            placeholder={`Write feedback for ${student.name}...`}
-                            defaultValue={student.feedback || ""}
-                          />
-                          <div className="flex items-center gap-2 mt-2 justify-end">
-                            <button
-                              onClick={() => toggleFeedbackPanel(student.id)}
-                              className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
-                            >
-                              Cancel
-                            </button>
-                            <button className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer bg-[var(--color-green)] text-white border-[1.5px] border-[var(--color-green)] transition-all">
-                              Save Feedback
-                            </button>
-                          </div>
+                        <div className="flex items-center justify-between">
+                          {student.status === "pending" ? (
+                            <div className="flex items-center gap-1 text-[var(--color-amber)] text-[12.5px]">
+                              <span>Has not submitted yet</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              {student.file && (
+                                <button
+                                  onClick={() => handleDownload(student)}
+                                  className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
+                                >
+                                  Download
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleFeedbackClick(student)}
+                                className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
+                              >
+                                Feedback
+                              </button>
+                              {student.status !== "graded" && (
+                                <button className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer bg-[var(--color-green)] text-white border-[1.5px] border-[var(--color-green)] transition-all">
+                                  Save Grade
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </>
+
+                        {expandedFeedback[student.id] && (
+                          <div className="mt-2.5 pt-2.5 border-t border-[var(--color-border)]">
+                            <textarea
+                              className="w-full min-h-[68px] p-[10px_14px] border-[1.5px] border-[var(--color-border)] rounded-[10px] bg-[var(--color-surface)] text-[13px] text-[var(--color-text)] resize-none focus:outline-none focus:border-[var(--color-border-focus)] transition-all leading-[1.5]"
+                              placeholder={`Write feedback for ${student.studentName}...`}
+                              defaultValue={student.feedback || ""}
+                            />
+                            <div className="flex items-center gap-2 mt-2 justify-end">
+                              <button
+                                onClick={() => toggleFeedbackPanel(student.id)}
+                                className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer border-[1.5px] border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-2)] transition-all"
+                              >
+                                Cancel
+                              </button>
+                              <button className="px-[12px] py-[5px] rounded-[8px] text-[11.5px] font-semibold cursor-pointer bg-[var(--color-green)] text-white border-[1.5px] border-[var(--color-green)] transition-all">
+                                Save Feedback
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -523,7 +484,7 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
                     Provide Feedback
                   </h3>
                   <p className="text-[var(--color-text-2)] mt-1">
-                    {selectedStudent.name} - {homeworkTitle}
+                    {selectedStudent.studentName} - {homeworkTitle}
                   </p>
                 </div>
                 <button
@@ -594,18 +555,13 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={
-                    feedbackForm.marksObtained === 0
-                      ? ""
-                      : feedbackForm.marksObtained.toString()
-                  }
-                  onChange={e => {
-                    const value = e.target.value;
+                  value={feedbackForm.marksObtained}
+                  onChange={e =>
                     setFeedbackForm({
                       ...feedbackForm,
-                      marksObtained: value === "" ? 0 : parseInt(value) || 0,
-                    });
-                  }}
+                      marksObtained: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full px-3 py-2 border-[1.5px] border-[var(--color-border)] rounded-[8px] bg-[var(--color-surface)] text-[13px] font-bold text-center text-[var(--color-text)] focus:outline-none"
                   placeholder="—"
                   maxLength="3"

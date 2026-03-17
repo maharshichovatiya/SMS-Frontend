@@ -13,9 +13,9 @@ import teacherDashboardReducer from "./TeacherDashboardSlice";
 import assignClassReducer from "./AssignClassSlice";
 import assignSubjectReducer from "./AssignSubjectSlice";
 import homeworkReducer from "./HomeworkSlice";
-import submissionReducer from "./SubmissionSlice";
 import noticeReducer from "./NoticeSlice";
 import studentDashboardReducer from "./StudentDashboardSlice";
+import submissionReducer from "./SubmissionSlice";
 
 export const store = configureStore({
   reducer: {
