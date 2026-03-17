@@ -1,12 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Award } from "lucide-react";
 import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
-import type {
-  ProfileTab,
-  ProfileFieldProps,
-} from "@/lib/types/teacher-profile";
+import { ApiTeacherData } from "@/lib/types/Teacher";
+import { Award } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
+import TeacherForm from "@/components/forms/TeacherForm";
+import Modal from "@/components/ui/Modal";
 
 interface ApiTeacherData {
   id: string;
@@ -164,7 +163,7 @@ const ProfileTabBar: React.FC<{
   ];
 
   return (
-    <div className="flex gap-1 bg-white border-[1.5px] border-[#dde3f5] rounded-xl p-1.5 mb-5 flex-wrap shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)]">
+    <div className="mt-5 flex gap-1 bg-white border-[1.5px] border-[#dde3f5] rounded-xl p-1.5 mb-5 flex-wrap shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)]">
       {tabs.map(tab => {
         const isActive = activeTab === tab.id;
         return (
@@ -675,8 +674,54 @@ const TeacherProfilePage: React.FC = () => {
         buttonText="Edit Profile"
         onButtonClick={handleEditToggle}
       />
+
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
+
+      <Modal
+        isOpen={showForm}
+        onClose={handleFormCancel}
+        title="Edit Profile"
+        description="Update your personal and professional information. Some fields are disabled for security reasons."
+        className="max-w-4xl w-full"
+      >
+        <TeacherForm
+          mode="edit"
+          teacherId={teacherData.id}
+          userId={teacherData.userId}
+          onCancel={handleFormCancel}
+          onSuccess={handleFormSave}
+          defaultValues={{
+            firstName: teacherData.user?.firstName,
+            lastName: teacherData.user?.lastName,
+            email: teacherData.user?.email,
+            phone: teacherData.user?.phone,
+            gender: teacherData.user?.gender || "male",
+            dob: teacherData.user?.dob || "",
+
+            designation: teacherData.designation,
+            experienceYears: Math.floor((teacherData.totalExpMonths || 0) / 12),
+            experienceMonths: (teacherData.totalExpMonths || 0) % 12,
+
+            highestQualification: teacherData.highestQualification,
+
+            currentAddress: teacherData.currentAddress || "",
+            permanentAddress: teacherData.permanentAddress || "",
+
+            department: teacherData.department,
+            dateOfJoining: teacherData.createdAt
+              ? new Date(teacherData.createdAt).toISOString().split("T")[0]
+              : "",
+            bloodGroup: "",
+            aadhaarNo: "",
+            panNo: "",
+            bankName: "",
+            accountNo: "",
+            ifscCode: "",
+            branch: "",
+          }}
+        />
+      </Modal>
 
       <style jsx>{`
         @keyframes fadeUp {
