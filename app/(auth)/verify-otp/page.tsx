@@ -29,7 +29,6 @@ export default function VerifyOTPPage() {
 
   const inputs = useRef<HTMLInputElement[]>([]);
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
 
   const code = otp.join("");
   const filled = code.length === 4 && otp.every(d => d !== "");

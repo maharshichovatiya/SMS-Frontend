@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { SchoolFormData, schoolSchema } from "@/lib/validations/SchoolSchema";
 import Modal from "@/components/ui/Modal";
+import SchoolSkeleton from "@/components/skeletons/SchoolSkeleton";
 
 export default function SchoolForm() {
   const [schoolId, setSchoolId] = useState("");
@@ -151,8 +152,7 @@ export default function SchoolForm() {
     setIsEditOpen(true);
   };
 
-  if (loading)
-    return <div className="p-4 text-[var(--text-2)]">Loading...</div>;
+  if (loading) return <SchoolSkeleton />;
 
   return (
     <>

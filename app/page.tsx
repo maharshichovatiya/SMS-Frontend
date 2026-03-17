@@ -16,6 +16,7 @@ export default function Home() {
     } else if (role === "student") {
       redirect("/dashboard");
     }
+    redirect("/dashboard");
   }, [role]);
 
   return (
