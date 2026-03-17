@@ -7,6 +7,10 @@ import {
   StudentListModal,
   HomeworkData,
 } from "@/components/homework/StudentListModal";
+import {
+  StudentListModal,
+  HomeworkData,
+} from "@/components/homework/StudentListModal";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
@@ -165,7 +169,7 @@ export default function HomeworkPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
-  const __isTeacher = true;
+  const [_isTeacher] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHomework, setEditingHomework] =
     useState<TransformedHomework | null>(null);
