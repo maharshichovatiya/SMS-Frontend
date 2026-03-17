@@ -493,8 +493,9 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                 }
               },
             })}
-            className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
+            className={`${baseInput} px-4 ${errors.schoolCode ? "border-red-500 focus:border-red-500" : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"}`}
           />
+          {errorMsg(errors.schoolCode?.message)}
         </div>
 
         <div>
@@ -503,7 +504,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           </label>
           <select
             {...register("establishmentYear", {
-              onChange: () => {
+              onChange: e => {
                 // Only trigger validation if there's already an error
                 if (errors.establishmentYear) {
                   form.trigger("establishmentYear");
@@ -522,6 +523,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               );
             })}
           </select>
+          {errorMsg(errors.establishmentYear?.message)}
         </div>
       </div>
 
@@ -533,7 +535,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-3)] pointer-events-none" />
             <input
-              type="email"
+              type="text"
               placeholder="Defaults to your email"
               maxLength={100}
               {...register("adminEmail", {
@@ -548,9 +550,7 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
               className={`${baseInput} pl-10 ${errors.adminEmail ? "border-red-500 focus:border-red-500" : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"}`}
             />
           </div>
-          {errors.adminEmail &&
-            adminEmail &&
-            errorMsg(errors.adminEmail?.message)}
+          {errorMsg(errors.adminEmail?.message)}
         </div>
 
         <div>
@@ -558,23 +558,16 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
             Website URL
           </label>
           <input
-            type="url"
+            type="text"
             placeholder="https://edu.com"
-            maxLength={200}
+            maxLength={2083}
             {...register("websiteUrl", {
               onChange: e => {
-                let value = e.target.value;
-                if (
-                  value &&
-                  !value.startsWith("http://") &&
-                  !value.startsWith("https://")
-                ) {
-                  value = "https://" + value;
-                }
-                if (value.length <= 200) {
+                const value = e.target.value;
+                if (value.length <= 2083) {
                   e.target.value = value;
                 } else {
-                  e.target.value = value.slice(0, 200);
+                  e.target.value = value.slice(0, 2083);
                 }
                 // Only trigger validation if there's already an error
                 if (errors.websiteUrl) {
@@ -582,8 +575,9 @@ export function SchoolDetailsForm({ form }: SchoolFormProps) {
                 }
               },
             })}
-            className={`${baseInput} px-4 border-[var(--color-border)] focus:border-[var(--color-border-focus)]`}
+            className={`${baseInput} px-4 ${errors.websiteUrl ? "border-red-500 focus:border-red-500" : "border-[var(--color-border)] focus:border-[var(--color-border-focus)]"}`}
           />
+          {errorMsg(errors.websiteUrl?.message)}
         </div>
       </div>
     </>

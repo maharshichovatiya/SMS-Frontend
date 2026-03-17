@@ -131,8 +131,8 @@ export default function SignUpPage() {
   const prevStep = () => setCurrentStep(1);
 
   const handleSubmit = async () => {
-    // Only validate required fields, not optional ones
-    const requiredFields = [
+    // Validate all fields
+    const fieldsToValidate = [
       "schoolName",
       "schoolType",
       "address",
@@ -140,9 +140,13 @@ export default function SignUpPage() {
       "contactNumber",
       "mediumOfInstruction",
       "affiliationBoard",
+      "schoolCode",
+      "establishmentYear",
+      "adminEmail",
+      "websiteUrl",
     ] as const;
 
-    const isValid = await schoolForm.trigger(requiredFields);
+    const isValid = await schoolForm.trigger(fieldsToValidate);
     if (!isValid) return;
     setLoading(true);
 
