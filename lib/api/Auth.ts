@@ -68,6 +68,7 @@ export const verifyOtp = async (
         payload: {
           userId: res.data.data.userId,
           schoolId: res.data.data.schoolId,
+          role: res.data.data.role,
         },
       });
     }
@@ -293,14 +294,15 @@ export const authApi = {
       // Dispatch auth data to Redux if dispatch function is provided
       if (
         dispatch &&
-        response.data.data.user?.id &&
-        response.data.data.user?.schoolId
+        response.data.data?.user?.id &&
+        response.data.data?.user?.schoolId
       ) {
         dispatch({
           type: "auth/setAuth",
           payload: {
             userId: response.data.data.user.id,
             schoolId: response.data.data.user.schoolId,
+            role: response.data.data.user.role,
           },
         });
       }

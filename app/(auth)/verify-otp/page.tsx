@@ -12,7 +12,7 @@ import { resendOtp, verifyOtp } from "@/lib/api/Auth";
 import { showToast } from "@/lib/utils/Toast";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import type { AppDispatch } from "@/lib/store/Index";
+import { AppDispatch } from "@/lib/store/Index";
 
 export default function VerifyOTPPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,6 +28,8 @@ export default function VerifyOTPPage() {
   });
 
   const inputs = useRef<HTMLInputElement[]>([]);
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
   const code = otp.join("");
   const filled = code.length === 4 && otp.every(d => d !== "");
@@ -45,8 +47,6 @@ export default function VerifyOTPPage() {
   function focus(i: number) {
     inputs.current[i]?.focus();
   }
-
-  const router = useRouter();
 
   function handleChange(i: number, val: string) {
     if (!/^\d?$/.test(val)) return;
@@ -114,6 +114,7 @@ export default function VerifyOTPPage() {
         localStorage.removeItem("email");
         localStorage.setItem("userId", result.data.data.userId);
         localStorage.setItem("schoolId", result.data.data.schoolId);
+        localStorage.setItem("role", result.data.data.role);
         showToast.success("Email verified successfully");
         router.replace("/dashboard");
       } else {
