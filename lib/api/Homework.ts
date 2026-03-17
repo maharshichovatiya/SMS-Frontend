@@ -8,6 +8,8 @@ import {
   AssignToClassesPayload,
   AssignToStudentsPayload,
   AssignResponse,
+  StudentHomeworkListResponse,
+  StudentHomework,
 } from "../types/Homework";
 
 export type {
@@ -18,6 +20,8 @@ export type {
   AssignToClassesPayload,
   AssignToStudentsPayload,
   AssignResponse,
+  StudentHomeworkListResponse,
+  StudentHomework,
 };
 
 const filterEmptyOptionalFields = (data: Partial<CreateHomeworkPayload>) => {
@@ -37,6 +41,11 @@ const filterEmptyOptionalFields = (data: Partial<CreateHomeworkPayload>) => {
 export const homeworkApis = {
   getAll: async () => {
     const res = await api.get<HomeworkListResponse>("/homework");
+    return res.data;
+  },
+
+  getStudentHomework: async () => {
+    const res = await api.get<StudentHomeworkListResponse>("/homework/student");
     return res.data;
   },
 
