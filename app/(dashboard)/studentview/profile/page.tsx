@@ -7,6 +7,8 @@ import type {
   ProfileFieldProps,
 } from "@/lib/types/student-profile";
 import PageHeader from "@/components/layout/PageHeader";
+import Modal from "@/components/ui/Modal";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
 
 interface ApiStudentData {
   id: string;
@@ -155,7 +157,7 @@ const ProfileTabBar: React.FC<{
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "personal", label: "Personal" },
-    { id: "academic", label: "Qualification" },
+    { id: "academic", label: "Academics" },
     { id: "school", label: "School" },
   ];
 
@@ -267,7 +269,6 @@ const StudentProfilePage: React.FC = () => {
   const [studentData, setStudentData] = useState<ApiStudentData | null>(null);
 
   useEffect(() => {
-    // Mock data for demonstration - in real app, this would be an API call
     const mockStudentData: ApiStudentData = {
       id: "1",
       status: "active",
@@ -306,7 +307,6 @@ const StudentProfilePage: React.FC = () => {
       },
     };
 
-    // Use setTimeout to avoid synchronous setState warning
     setTimeout(() => {
       setStudentData(mockStudentData);
     }, 0);
@@ -318,7 +318,6 @@ const StudentProfilePage: React.FC = () => {
 
   const handleEditToggle = () => {
     setShowForm(true);
-    setIsEditing(false);
   };
 
   const handleFormSave = async () => {
@@ -625,6 +624,33 @@ const StudentProfilePage: React.FC = () => {
       />
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
+
+      {/* Edit Profile Modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={handleFormCancel}
+        title="Edit Profile"
+        description="Update your personal information"
+      >
+        <StudentForm
+          initialData={{
+            firstName: studentData?.user.firstName,
+            lastName: studentData?.user.lastName,
+            middleName: studentData?.user.middleName,
+            email: studentData?.user.email,
+            phone: studentData?.user.phone,
+            gender: studentData?.user.gender,
+            dob: studentData?.user.dob,
+            bloodGroup: studentData?.user.bloodGroup,
+            permanentAddress: studentData?.user.permanentAddress,
+            currentAddress: studentData?.user.currentAddress,
+            guardianName: studentData?.guardianName,
+            guardianPhone: studentData?.guardianPhone,
+          }}
+          onSubmitSuccess={handleFormSave}
+        />
+      </Modal>
+
       <style jsx>{`
         @keyframes fadeUp {
           from {
