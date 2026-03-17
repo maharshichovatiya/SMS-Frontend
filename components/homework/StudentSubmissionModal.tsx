@@ -185,23 +185,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
     });
   };
 
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return (
-      date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }) +
-      " · " +
-      date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    );
-  };
-
   if (!isOpen || !submission) return null;
 
   const warning = getDueDateWarning();

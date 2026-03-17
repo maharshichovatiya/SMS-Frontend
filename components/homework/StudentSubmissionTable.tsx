@@ -103,7 +103,7 @@ export const StudentSubmissionTable: React.FC<StudentSubmissionTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {submissions.map((submission, index) => (
+            {submissions.map((submission, _index) => (
               <tr
                 key={submission.id}
                 className="border-b border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors"
