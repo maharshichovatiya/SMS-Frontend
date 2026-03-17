@@ -8,11 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "@/lib/store/Index";
 import { fetchAssignTeachers } from "@/lib/store/TeacherSlice";
 import { showToast } from "@/lib/utils/Toast";
-import {
-  createTeacher,
-  updateTeacher,
-  updateTeacherByUserId,
-} from "@/lib/api/Teacher";
+import { createTeacher, updateTeacher } from "@/lib/api/Teacher";
 import { Teacher } from "@/lib/types/Teacher";
 import { useEffect, useState } from "react";
 import { getRoles } from "@/lib/api/Role";
@@ -34,7 +30,6 @@ interface TeacherFormProps {
   mode?: "add" | "edit";
   isLoading?: boolean;
   teacherId?: string;
-  userId?: string;
 }
 
 export default function TeacherForm({
@@ -44,7 +39,6 @@ export default function TeacherForm({
   mode = "add",
   isLoading = false,
   teacherId,
-  userId,
 }: TeacherFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -190,14 +184,8 @@ export default function TeacherForm({
 
       let res;
 
-      if (mode === "edit" && (teacherId || userId)) {
-        if (userId) {
-          // Use the userId endpoint as requested
-          res = await updateTeacherByUserId(userId, payload);
-        } else {
-          // Fallback to teacherId endpoint
-          res = await updateTeacher(teacherId, payload);
-        }
+      if (mode === "edit" && teacherId) {
+        res = await updateTeacher(teacherId, payload);
       } else {
         res = await createTeacher(payload);
       }
@@ -223,7 +211,7 @@ export default function TeacherForm({
         }
         showToast.error(message || "Something went wrong");
       }
-    } catch {
+    } catch (_error) {
       showToast.error("Something went wrong ");
     }
   };
@@ -240,22 +228,13 @@ export default function TeacherForm({
         showPassword={showPassword}
         setShowPassword={setShowPassword}
         onGeneratePassword={handleGeneratePassword}
-        disabled={mode === "edit"}
       />
 
       <PersonalInfoSection register={register} errors={errors} />
 
-      <EmploymentInfoSection
-        register={register}
-        errors={errors}
-        disabled={mode === "edit"}
-      />
+      <EmploymentInfoSection register={register} errors={errors} />
 
-      <QualificationsSection
-        register={register}
-        errors={errors}
-        disabled={mode === "edit"}
-      />
+      <QualificationsSection register={register} errors={errors} />
 
       <AdditionalInfoSection register={register} errors={errors} />
 
