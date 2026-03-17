@@ -338,7 +338,6 @@ export const StudentListModal: React.FC<StudentListModalProps> = ({
               <div className="space-y-2.5">
                 {filteredStudents.length === 0 ? (
                   <div className="text-center py-12 text-[var(--color-text-3)]">
-                    <div className="text-4xl mb-3 opacity-50">📭</div>
                     <div className="text-[15px] font-semibold text-[var(--color-text-2)] mb-1">
                       No Students Found
                     </div>
