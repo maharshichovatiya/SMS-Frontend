@@ -7,7 +7,7 @@ import {
   ClassTeacherData,
 } from "@/lib/api/ClassTeacher";
 import { showToast } from "@/lib/utils/Toast";
-import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
+import PageHeader from "@/components/layout/PageHeader";
 import StudentsTable from "@/components/tables/StudentTable";
 
 export default function MyClass() {
@@ -43,12 +43,14 @@ export default function MyClass() {
   }
 
   return (
-    <CommonTeacherHeader
-      title="My Classes"
-      subtitle="Manage your classes and students efficiently"
-      useApiData={false}
-      userRole="teacher"
-    >
+    <div>
+      <PageHeader
+        title="My Classes"
+        description="Manage your classes and students efficiently"
+        icon={Building}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+      />
       {!classTeacherData?.class ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
           <div className="w-20 h-20 bg-[var(--blue-light)] rounded-full flex items-center justify-center mx-auto mb-6">
@@ -115,7 +117,6 @@ export default function MyClass() {
                     ifscCode: student.ifscCode || "",
                     branch: student.branch || "",
                     fatherPhone: student.fatherPhone || "",
-                    // Add academics data
                     academicYear:
                       student.academics?.[0]?.academicYear?.yearName || "",
                     academicStartDate:
@@ -144,6 +145,6 @@ export default function MyClass() {
           </div>
         </div>
       )}
-    </CommonTeacherHeader>
+    </div>
   );
 }

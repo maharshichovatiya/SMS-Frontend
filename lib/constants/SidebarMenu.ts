@@ -101,7 +101,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Users",
           label: "Assign Students",
-          path: "/teacherview/assign-students",
+          path: "/teacherview/assignstudents",
         },
         {
           icon: "ClipboardList",

@@ -9,7 +9,7 @@ import {
 } from "@/lib/store/AssignSubjectSlice";
 import { RootState, AppDispatch } from "@/lib/store/Index";
 import { showToast } from "@/lib/utils/Toast";
-import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function AssignSubject() {
   const dispatch = useDispatch<AppDispatch>();
@@ -34,12 +34,14 @@ export default function AssignSubject() {
   }
 
   return (
-    <CommonTeacherHeader
-      title="Assign Classes & Subjects"
-      subtitle="Manage and view subject assignments efficiently"
-      useApiData={false}
-      userRole="teacher"
-    >
+    <div>
+      <PageHeader
+        title="Assign Classes & Subjects"
+        description="Manage and view subject assignments efficiently"
+        icon={BookOpen}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+      />
       {!data?.subjectsByClass || data.subjectsByClass.length === 0 ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
           <div className="w-20 h-20 bg-[var(--blue-light)] rounded-full flex items-center justify-center mx-auto mb-6">
@@ -257,6 +259,6 @@ export default function AssignSubject() {
           </div>
         </div>
       )}
-    </CommonTeacherHeader>
+    </div>
   );
 }

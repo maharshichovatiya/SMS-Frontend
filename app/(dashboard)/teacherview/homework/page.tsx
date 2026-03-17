@@ -13,7 +13,9 @@ import { RootState } from "@/lib/store/Index";
 import { Subject } from "@/lib/types/SubjectTypes";
 import { subjectApis } from "@/lib/api/Subject";
 import api from "@/lib/Axios";
+import { BookOpen } from "lucide-react";
 import { getClassSummary } from "@/lib/api/Classes";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface Student {
   id: string;
@@ -580,42 +582,16 @@ export default function HomeworkPage() {
   const showHomeworkDetail = selectedHomework !== null;
 
   return (
-    <div className="font-[var(--font-sans)] min-h-screen relative">
-      {(selectedHomework || showStudentAssignment || showCreateForm) && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 pointer-events-none" />
-      )}
-
-      <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp">
-        <div
-          className="h-1.5"
-          style={{ background: `linear-gradient(90deg, #3d6cf4, #6c47f5)` }}
-        />
-        <div className="px-4 sm:px-7 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-bold text-[#9aa5c4] uppercase tracking-[0.5px] mb-1.5 font-[var(--font-sans)]">
-                Academic Management
-              </div>
-              <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.5px] text-[#111827] font-[var(--font-sans)] leading-[1.2]">
-                Homework Management
-              </div>
-              <div className="text-[12px] sm:text-[13.5px] text-[#5c6a8a] mt-1 font-[var(--font-sans)]">
-                Track assignments and manage student submissions
-              </div>
-            </div>
-            {isTeacher && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="w-full sm:w-auto px-[22px] py-2.5 rounded-[11px] border-none bg-[#3d6cf4] text-[13.5px] font-semibold text-white cursor-pointer font-[var(--font-sans)] shadow-[0_4px_14px_rgba(61,108,244,0.3)] transition-all duration-180 flex items-center justify-center gap-1.5"
-                >
-                  Create Homework
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title="Homework Management"
+        description="Track assignments and manage student submissions"
+        icon={BookOpen}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+        buttonText="Create Homework"
+        onButtonClick={() => setShowCreateForm(true)}
+      />
 
       <div
         className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp"

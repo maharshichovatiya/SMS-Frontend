@@ -2,9 +2,10 @@
 
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { BookOpen } from "lucide-react";
 import { RootState } from "@/lib/store/Index";
 import NotificationFilters from "./NotificationFilters";
-import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface Notification {
   id: string;
@@ -258,14 +259,14 @@ const NotificationPage: React.FC = () => {
   const read = filteredNotifications.filter(n => n.isRead);
 
   return (
-    <CommonTeacherHeader
-      title="Notifications"
-      subtitle="Stay updated with latest activities"
-      showSearch={false}
-      showFilter={true}
-      useApiData={false}
-      userRole={userRole}
-    >
+    <div>
+      <PageHeader
+        title="Notifications"
+        description="Stay updated with latest activities"
+        icon={BookOpen}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+      />
       <NotificationFilters
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
@@ -338,7 +339,7 @@ const NotificationPage: React.FC = () => {
           </>
         )}
       </div>
-    </CommonTeacherHeader>
+    </div>
   );
 };
 
