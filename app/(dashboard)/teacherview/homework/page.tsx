@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
-import { StudentListModal } from "@/components/homework/StudentListModal";
+import {
+  StudentListModal,
+  HomeworkData,
+} from "@/components/homework/StudentListModal";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
@@ -160,15 +163,15 @@ export default function HomeworkPage() {
   const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
     useState<HomeworkListItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
+  const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
-  const _isTeacher = true;
+  const __isTeacher = true;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHomework, setEditingHomework] =
     useState<TransformedHomework | null>(null);
   const [showStudentAssignment, setShowStudentAssignment] = useState(false);
   const [selectedHomeworkForStudents, setSelectedHomeworkForStudents] =
-    useState<HomeworkForAssignment | null>(null);
+    useState<HomeworkData | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [, setSubjectsLoading] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -315,17 +318,23 @@ export default function HomeworkPage() {
     setDetailLoading(false);
   };
 
-  const handleStudentAssignment = (homework: HomeworkForAssignment) => {
-    setSelectedHomeworkForStudents(homework);
+  const handleStudentAssignment = (homework: HomeworkListItem) => {
     setShowStudentAssignment(true);
     setHomeworkStudentsLoading(true);
-    setHomeworkStudents([]);
+    _setHomeworkStudents([]);
 
     const homeworkData = (homeworkList as unknown as HomeworkListResponse)
       ?.homework;
     const currentHomework = homeworkData?.find(
       (hw: { id: string }) => hw.id === homework.id,
     );
+
+    if (currentHomework) {
+      setSelectedHomeworkForStudents(
+        currentHomework as unknown as HomeworkData,
+      );
+    }
+
     const studentsFromAssignments: Student[] = [];
 
     if (
@@ -379,7 +388,7 @@ export default function HomeworkPage() {
       );
     }
 
-    setHomeworkStudents(studentsFromAssignments);
+    _setHomeworkStudents(studentsFromAssignments);
     setHomeworkStudentsLoading(false);
   };
 
@@ -462,9 +471,9 @@ export default function HomeworkPage() {
       setShowCreateForm(false);
       setEditingHomework(null);
       dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to update homework",
+        _error instanceof Error ? _error.message : "Failed to update homework",
       );
     }
   };
@@ -613,7 +622,7 @@ export default function HomeworkPage() {
       />
 
       <div
-        className="grid mt-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
+        className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
         {transformedHomeworkList.map(hw => (
@@ -688,8 +697,8 @@ export default function HomeworkPage() {
           isOpen={showStudentAssignment}
           onClose={() => setShowStudentAssignment(false)}
           homeworkTitle={selectedHomeworkForStudents?.title || "Homework"}
-          students={homeworkStudents}
           homeworkId={selectedHomeworkForStudents?.id}
+          homeworkData={selectedHomeworkForStudents}
         />
       )}
 
