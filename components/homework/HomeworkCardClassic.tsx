@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { Eye, Edit, Trash2, Calendar, User, BookOpen } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Calendar,
+  User,
+  BookOpen,
+  Users,
+} from "lucide-react";
 
 interface HomeworkCardClassicProps {
   id: string;
@@ -266,6 +274,13 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
               title="View Details"
             >
               <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onStudentAssignment}
+              className="p-3 text-purple-500 rounded-lg cursor-pointer"
+              title="View Students"
+            >
+              <Users className="w-4 h-4" />
             </button>
           </div>
 

@@ -689,6 +689,7 @@ export default function HomeworkPage() {
           onClose={() => setShowStudentAssignment(false)}
           homeworkTitle={selectedHomeworkForStudents?.title || "Homework"}
           students={homeworkStudents}
+          homeworkId={selectedHomeworkForStudents?.id}
         />
       )}
 
