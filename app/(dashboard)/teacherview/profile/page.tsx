@@ -2,8 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { Award } from "lucide-react";
 import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
+import type {
+  ProfileTab,
+  ProfileFieldProps,
+} from "@/lib/types/teacher-profile";
 import PageHeader from "@/components/layout/PageHeader";
-import { ProfileFieldProps, ProfileTab } from "@/lib/types/teacher-profile";
+import TeacherForm from "@/components/forms/TeacherForm";
+import Modal from "@/components/ui/Modal";
 
 interface ApiTeacherData {
   id: string;
@@ -672,9 +677,6 @@ const TeacherProfilePage: React.FC = () => {
         buttonText="Edit Profile"
         onButtonClick={handleEditToggle}
       />
-      <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      {renderTab()}
-
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
 
