@@ -583,6 +583,7 @@ export const STUDENT_FIELDS: {
     label: "Phone",
     type: "tel",
     placeholder: "e.g. 9099330195",
+    optional: true,
     section: "Personal Details",
   },
 

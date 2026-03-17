@@ -33,6 +33,7 @@ interface StudentFiltersState {
   data: FilterData;
   loading: boolean;
   error: string | null;
+  hasLoaded: boolean;
 }
 
 const initialState: StudentFiltersState = {
@@ -44,6 +45,7 @@ const initialState: StudentFiltersState = {
   },
   loading: false,
   error: null,
+  hasLoaded: false,
 };
 
 // Async thunk for fetching filter data
@@ -151,10 +153,12 @@ const studentFiltersSlice = createSlice({
         state.loading = false;
         state.data = action.payload;
         state.error = null;
+        state.hasLoaded = true;
       })
       .addCase(fetchStudentFilterData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        state.hasLoaded = true; // Mark as loaded even on error to stop retrying
       });
   },
 });
@@ -180,6 +184,10 @@ export const selectStudentFiltersData = (state: {
 export const selectStudentFiltersLoading = (state: {
   studentFilters: StudentFiltersState;
 }) => state.studentFilters.loading;
+
+export const selectStudentFiltersHasLoaded = (state: {
+  studentFilters: StudentFiltersState;
+}) => state.studentFilters.hasLoaded;
 
 export const selectStudentFiltersError = (state: {
   studentFilters: StudentFiltersState;

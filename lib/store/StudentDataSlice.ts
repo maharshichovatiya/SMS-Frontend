@@ -40,6 +40,7 @@ interface StudentDataState {
   studentRoleId: string | null;
   rolesLoading: boolean;
   rolesError: string | null;
+  rolesLoaded: boolean;
 }
 
 const initialState: StudentDataState = {
@@ -61,6 +62,7 @@ const initialState: StudentDataState = {
   studentRoleId: null,
   rolesLoading: false,
   rolesError: null,
+  rolesLoaded: false,
 };
 
 // Transform API student to UI student
@@ -270,6 +272,7 @@ const studentDataSlice = createSlice({
       .addCase(fetchRoles.fulfilled, (state, action) => {
         state.rolesLoading = false;
         state.rolesError = null;
+        state.rolesLoaded = true;
 
         if (!action.payload.fromCache) {
           state.roles = action.payload.roles;
@@ -279,6 +282,7 @@ const studentDataSlice = createSlice({
       .addCase(fetchRoles.rejected, (state, action) => {
         state.rolesLoading = false;
         state.rolesError = action.payload as string;
+        state.rolesLoaded = true; // Mark as loaded even on error to stop retrying
       });
   },
 });
@@ -327,6 +331,9 @@ export const selectStudentRoleId = (state: { studentData: StudentDataState }) =>
 
 export const selectRolesLoading = (state: { studentData: StudentDataState }) =>
   state.studentData.rolesLoading;
+
+export const selectRolesLoaded = (state: { studentData: StudentDataState }) =>
+  state.studentData.rolesLoaded;
 
 export const selectRolesError = (state: { studentData: StudentDataState }) =>
   state.studentData.rolesError;

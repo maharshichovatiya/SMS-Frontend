@@ -11,12 +11,14 @@ import {
   selectStudentFilters,
   selectStudentFiltersData,
   selectStudentFiltersLoading,
+  selectStudentFiltersHasLoaded,
   fetchStudentFilterData,
 } from "@/lib/store/StudentFiltersSlice";
 import {
   fetchRoles,
   selectStudentRoleId,
   selectRolesLoading,
+  selectRolesLoaded,
   selectStudentData,
   selectStudentTotal,
   selectStudentLoading,
@@ -43,8 +45,10 @@ function Page() {
   const filters = useSelector(selectStudentFilters);
   const { classes, academicYears } = useSelector(selectStudentFiltersData);
   const filtersLoading = useSelector(selectStudentFiltersLoading);
+  const filtersHasLoaded = useSelector(selectStudentFiltersHasLoaded);
   const studentRoleId = useSelector(selectStudentRoleId);
   const rolesLoading = useSelector(selectRolesLoading);
+  const rolesLoaded = useSelector(selectRolesLoaded);
 
   // Student data selectors
   const students = useSelector(selectStudentData);
@@ -69,19 +73,19 @@ function Page() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch classes and academic years if not available in Redux
+  // Fetch classes and academic years — only if never loaded before
   useEffect(() => {
-    if (classes.length === 0 && academicYears.length === 0 && !filtersLoading) {
+    if (!filtersHasLoaded && !filtersLoading) {
       dispatch(fetchStudentFilterData());
     }
-  }, [classes.length, academicYears.length, filtersLoading, dispatch]);
+  }, [filtersHasLoaded, filtersLoading, dispatch]);
 
-  // Fetch roles if not available
+  // Fetch roles — only if never loaded before
   useEffect(() => {
-    if (!studentRoleId && !rolesLoading) {
+    if (!rolesLoaded && !rolesLoading) {
       dispatch(fetchRoles());
     }
-  }, [studentRoleId, rolesLoading, dispatch]);
+  }, [rolesLoaded, rolesLoading, dispatch]);
 
   // Refresh handler
   const handleRefresh = useCallback(() => {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import StudentTableSkeleton from "@/components/skeletons/StudentTableSkeleton";
 import StudentTableRow from "./StudentTableRow";
 import Pagination from "@/components/ui/Pagination";
+import { Users } from "lucide-react";
 import { showToast } from "@/lib/utils/Toast";
 import { studentApis } from "@/lib/api/Student";
 import StudentEditModal from "@/components/students/Modals/StudentEditModal";
@@ -58,6 +59,8 @@ export default function StudentsTable({
   setPageSize,
   roleId,
   onRefresh,
+  hasActiveFilters,
+  searchQuery,
 }: {
   students: Student[];
   totalStudents: number;
@@ -68,6 +71,8 @@ export default function StudentsTable({
   setPageSize: (size: number) => void;
   roleId: string;
   onRefresh?: () => void;
+  hasActiveFilters?: boolean;
+  searchQuery?: string;
 }) {
   const totalPages = Math.ceil(totalStudents / pageSize);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -182,15 +187,17 @@ export default function StudentsTable({
       {loading ? (
         <StudentTableSkeleton />
       ) : students.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4 cursor-pointer">
-            <div className="text-2xl text-[var(--text-3)]">📚</div>
-          </div>
-          <p className="text-sm text-[var(--text-3)] text-center">
-            No students found
+        <div className="flex flex-col items-center justify-center mt-16 sm:mt-24 text-[var(--text-2)] px-4 text-center">
+          <Users className="w-10 h-10 sm:w-12 sm:h-12 mb-3 opacity-30" />
+          <p className="text-base sm:text-lg font-medium">
+            {hasActiveFilters || searchQuery
+              ? "No results match your search"
+              : "No students found"}
           </p>
-          <p className="text-xs text-[var(--text-4)] mt-1">
-            Try adjusting your filters or add new students to get started
+          <p className="text-xs sm:text-sm">
+            {hasActiveFilters || searchQuery
+              ? "Try adjusting your search or filters."
+              : "Click Admit Student to get started."}
           </p>
         </div>
       ) : (
