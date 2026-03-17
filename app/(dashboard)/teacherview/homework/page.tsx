@@ -124,6 +124,7 @@ interface CreateHomeworkData {
   dueDate: string;
   description?: string;
   instructions?: string;
+  chapterId?: string;
   assignedTo: string;
   selectedClass?: string;
   selectedClasses?: string[];
@@ -144,8 +145,9 @@ interface TransformedHomework {
   total: number;
   status: "active" | "completed" | "overdue";
   description: string;
-  chapterName?: string;
   chapterId?: string;
+  chapterName?: string;
+  chapterNo?: number;
 }
 
 export default function HomeworkPage() {
@@ -495,6 +497,7 @@ export default function HomeworkPage() {
       assignedDate: new Date().toISOString(),
       dueDate: new Date(data.dueDate).toISOString(),
       description: data.description,
+      chapterId: data.chapterId || null,
       assignToClasses,
       assignToStudents,
       allowLateSubmission: data.allowLateSubmission,
@@ -518,16 +521,35 @@ export default function HomeworkPage() {
     dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
   };
 
+  interface HomeworkItem {
+    id: string;
+    title: string;
+    subject?: string | { subjectName: string };
+    dueDate: string;
+    submittedCount?: number;
+    totalAssignedTo?: number;
+    description?: string;
+    chapterId?: string;
+    chapterName?: string;
+    chapterNo?: number;
+    chapter?: {
+      id: string;
+      chapterName: string;
+      chapterNo: number;
+    };
+  }
+
   const transformedHomeworkList: TransformedHomework[] =
     (homeworkList as unknown as HomeworkListResponse)?.homework?.map(
-      (hw: HomeworkListItem) => ({
+      (hw: HomeworkItem) => ({
         id: hw.id,
         title: hw.title,
         subject:
-          typeof hw.subject === "string"
-            ? hw.subject
-            : ((hw.subject as { subjectName: string })?.subjectName ??
-              "Subject"),
+          typeof hw.subject === "object" &&
+          hw.subject !== null &&
+          "subjectName" in hw.subject
+            ? hw.subject.subjectName
+            : (hw.subject as string) || "Subject",
         class: "Class",
         teacher: "Teacher",
         dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
@@ -539,12 +561,9 @@ export default function HomeworkPage() {
         total: hw.totalAssignedTo ?? 0,
         status: "active" as const,
         description: hw.description ?? "",
-        chapterId:
-          "chapterId" in hw ? (hw.chapterId as string | undefined) : undefined,
-        chapterName:
-          "chapterName" in hw
-            ? (hw.chapterName as string | undefined)
-            : undefined,
+        chapterId: hw.chapterId || hw.chapter?.id,
+        chapterName: hw.chapterName || hw.chapter?.chapterName,
+        chapterNo: hw.chapterNo || hw.chapter?.chapterNo,
       }),
     ) || [];
 
@@ -594,22 +613,7 @@ export default function HomeworkPage() {
       />
 
       <div
-        className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp"
-        style={{ animationDelay: "0.05s" }}
-      >
-        <div className="px-[22px] py-5">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search homework..."
-              className="w-full px-4 py-3 border-[1.5px] border-[#dde3f5] rounded-lg font-[var(--font-sans)] text-[13.5px] text-[#111827] outline-none transition-all duration-200 bg-[#fafbff] cursor-text focus:border-[#3d6cf4] focus:shadow-[0_0_0_3px_rgba(61,108,244,0.1)]"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
+        className="grid mt-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
         {transformedHomeworkList.map(hw => (
@@ -630,6 +634,7 @@ export default function HomeworkPage() {
               status={hw.status}
               description={hw.description}
               chapterName={hw.chapterName}
+              chapterNo={hw.chapterNo}
               isModalOpen={
                 !!(selectedHomework || showStudentAssignment || showCreateForm)
               }

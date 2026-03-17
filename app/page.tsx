@@ -12,7 +12,7 @@ export default function Home() {
     if (role === "admin") {
       redirect("/dashboard");
     } else if (role === "teacher") {
-      redirect("/teacherview");
+      redirect("/dashboard");
     } else if (role === "student") {
       redirect("/dashboard");
     }
