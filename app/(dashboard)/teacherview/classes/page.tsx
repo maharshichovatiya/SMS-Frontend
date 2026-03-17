@@ -43,7 +43,7 @@ export default function AssignSubject() {
         iconColor="--blue"
       />
       {!data?.subjectsByClass || data.subjectsByClass.length === 0 ? (
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
+        <div className="bg-[var(--surface)] mt-5 border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-16 text-center">
           <div className="w-20 h-20 bg-[var(--blue-light)] rounded-full flex items-center justify-center mx-auto mb-6">
             <BookOpen className="w-10 h-10 text-[var(--blue)]" />
           </div>
@@ -56,7 +56,7 @@ export default function AssignSubject() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 mt-5 gap-8">
           <div className="lg:col-span-1">
             <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] p-6">
               <h3 className="text-lg font-semibold text-[var(--text)] mb-4 flex items-center gap-2">
