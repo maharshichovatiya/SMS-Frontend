@@ -120,7 +120,7 @@ function Page() {
         onButtonClick={handleMarkAllRead}
       />
 
-      <div className="mt-5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]">
+      <div className="mt-5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] divide-y divide-[var(--border)]">
         {notifications.map(notification => (
           <NotificationItem
             key={notification.id}

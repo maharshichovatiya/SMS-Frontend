@@ -45,7 +45,8 @@ export default function NotificationItem({
     <div
       key={notification.id}
       onClick={() => onClick(notification.id)}
-      className={`flex items-start gap-3 px-[18px] py-[14px] border-b border-[var(--border)] transition-colors duration-100 cursor-pointer hover:bg-[#fafbff] ${notification.isUnread ? "bg-[var(--bg)]" : ""}`}
+      className={`flex items-start gap-3 px-[18px] py-[14px]  transition-colors duration-100 cursor-pointer hover:bg-[#fafbff] first:rounded-t-[var(--radius-md)] 
+      last:rounded-b-[var(--radius-md)] ${notification.isUnread ? "bg-[var(--bg)]" : ""}`}
     >
       <div
         className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center flex-shrink-0 text-[16px] text-[var(--text)]"
