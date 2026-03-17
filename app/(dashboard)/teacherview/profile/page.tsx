@@ -672,6 +672,8 @@ const TeacherProfilePage: React.FC = () => {
         buttonText="Edit Profile"
         onButtonClick={handleEditToggle}
       />
+      <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      {renderTab()}
 
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
