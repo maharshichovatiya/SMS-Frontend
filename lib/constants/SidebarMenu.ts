@@ -131,17 +131,17 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/subjects",
         },
         {
-          icon: "BookOpen",
+          icon: "FileText",
           label: "Resources",
           path: "/resources",
         },
         {
-          icon: "BookOpen",
+          icon: "Bell",
           label: "Notifications",
           path: "/notifications",
         },
         {
-          icon: "BookOpen",
+          icon: "Calendar",
           label: "Notice-board",
           path: "/notice-board",
         },
