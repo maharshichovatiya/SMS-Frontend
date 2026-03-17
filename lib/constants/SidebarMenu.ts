@@ -163,7 +163,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "ClipboardList",
           label: "Homework",
-          path: "/teacherview/homework",
+          path: "/studentview/homework",
         },
         {
           icon: "Bell",
