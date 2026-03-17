@@ -274,7 +274,6 @@ const TeacherProfilePage: React.FC = () => {
 
   useEffect(() => {
     if (teacherData) {
-      // Use setTimeout to defer state update and avoid cascading renders
       setTimeout(() => {
         setDraft(JSON.parse(JSON.stringify(teacherData)) as ApiTeacherData);
       }, 0);
@@ -678,11 +677,19 @@ const TeacherProfilePage: React.FC = () => {
         buttonText="Edit Profile"
         onButtonClick={handleEditToggle}
       />
+      <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      {renderTab()}
 
-      <style>{`
+      <style jsx>{`
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>

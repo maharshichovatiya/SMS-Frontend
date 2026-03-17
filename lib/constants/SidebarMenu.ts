@@ -81,7 +81,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Home",
           label: "Dashboard",
-          path: "/teacherview/dashboard",
+          path: "/dashboard",
         },
       ],
     },

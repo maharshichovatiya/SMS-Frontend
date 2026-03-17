@@ -3,6 +3,7 @@
 import Cookies from "js-cookie";
 import ProfileForm from "@/components/forms/ProfileForm";
 import SchoolForm from "@/components/forms/SchoolForm";
+import TeacherProfilePage from "@/app/(dashboard)/teacherview/profile/page";
 import Modal from "@/components/ui/Modal";
 import { deleteSchool } from "@/lib/api/School";
 import { deleteUser } from "@/lib/api/Profile";
@@ -18,6 +19,8 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   const { userId, schoolId } = useSelector((state: RootState) => state.auth);
+  const userRole =
+    useSelector((state: RootState) => state.auth.role) || "admin";
 
   const handleDelete = async () => {
     try {
@@ -46,6 +49,10 @@ export default function SettingsPage() {
       setDeleting(false);
     }
   };
+
+  if (userRole === "teacher") {
+    return <TeacherProfilePage />;
+  }
 
   return (
     <div className="w-full">
