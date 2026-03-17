@@ -9,6 +9,9 @@ import {
   GraduationCap,
   UserCircle,
   LogOut,
+  FileText,
+  Bell,
+  Calendar,
 } from "lucide-react";
 import { showToast } from "@/lib/utils/Toast";
 import { logout } from "@/lib/api/Auth";
@@ -92,6 +95,9 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       Users: <Users className="w-[18px] h-[18px]" />,
       BookOpen: <BookOpen className="w-[18px] h-[18px]" />,
       Building: <Building className="w-[18px] h-[18px]" />,
+      FileText: <FileText className="w-[18px] h-[18px]" />,
+      Bell: <Bell className="w-[18px] h-[18px]" />,
+      Calendar: <Calendar className="w-[18px] h-[18px]" />,
       GraduationCap: <GraduationCap className="w-6 h-6" />,
       UserCircle: <UserCircle className="w-6 h-6" />,
     };
