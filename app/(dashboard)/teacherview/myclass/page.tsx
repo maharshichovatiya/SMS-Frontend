@@ -1,7 +1,9 @@
 "use client";
 
 import PageHeader from "@/components/layout/PageHeader";
-import StudentsTable from "@/components/tables/StudentTable";
+import { Building } from "lucide-react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store/Index";
 import {
   clearError,
@@ -9,9 +11,7 @@ import {
   Student,
 } from "@/lib/store/TeacherDashboardSlice";
 import { showToast } from "@/lib/utils/Toast";
-import { Building } from "lucide-react";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import StudentsTable from "@/components/tables/StudentTable";
 
 export default function MyClass() {
   const dispatch = useDispatch<AppDispatch>();
@@ -149,10 +149,10 @@ export default function MyClass() {
                   loading={false}
                   currentPage={1}
                   pageSize={10}
-                  setCurrentPage={() => {}}
-                  setPageSize={() => {}}
+                  setCurrentPage={() => { }}
+                  setPageSize={() => { }}
                   roleId=""
-                  onRefresh={() => {}}
+                  onRefresh={() => { }}
                   simpleActions={true}
                 />
               </div>
