@@ -116,7 +116,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Folder",
           label: "Resources",
-          path: "/teacherview/resources",
+          path: "/resources",
         },
       ],
     },
@@ -126,7 +126,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "UserCircle",
           label: "Profile",
-          path: "/teacherview/profile",
+          path: "/profile",
         },
       ],
     },
