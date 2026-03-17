@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
-import { ApiTeacherData } from "@/lib/types/Teacher";
 import { Award } from "lucide-react";
+import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import PageHeader from "@/components/layout/PageHeader";
 import TeacherForm from "@/components/forms/TeacherForm";
 import Modal from "@/components/ui/Modal";
+import { ProfileFieldProps, ProfileTab } from "@/lib/types/teacher-profile";
 
 interface ApiTeacherData {
   id: string;
