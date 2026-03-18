@@ -6,8 +6,6 @@ import {
   AssignToStudentsPayload,
   StudentHomework,
   StudentHomeworkListResponse,
-  StudentSubmissionResponse,
-  StudentSubmissionItem,
 } from "../types/Homework";
 import { homeworkApis } from "../api/Homework";
 
@@ -20,9 +18,6 @@ interface HomeworkState {
     count: number;
     homework: StudentHomework[];
   } | null;
-  studentSubmissions: {
-    data: StudentSubmissionItem[];
-  } | null;
   currentHomework: Homework | null;
   loading: boolean;
   error: string | null;
@@ -30,14 +25,11 @@ interface HomeworkState {
   createError: string | null;
   assignLoading: boolean;
   assignError: string | null;
-  submitLoading: boolean;
-  submitError: string | null;
 }
 
 const initialState: HomeworkState = {
   homeworkList: null,
   studentHomeworkList: null,
-  studentSubmissions: null,
   currentHomework: null,
   loading: false,
   error: null,
@@ -45,8 +37,6 @@ const initialState: HomeworkState = {
   createError: null,
   assignLoading: false,
   assignError: null,
-  submitLoading: false,
-  submitError: null,
 };
 
 export const fetchAllHomework = createAsyncThunk(
@@ -76,43 +66,6 @@ export const fetchStudentHomework = createAsyncThunk<
       error instanceof Error
         ? error.message
         : "Failed to fetch student homework",
-    );
-  }
-});
-
-export const fetchStudentSubmissions = createAsyncThunk<
-  StudentSubmissionResponse,
-  void,
-  { rejectValue: string }
->("homework/fetchStudentSubmissions", async (_, { rejectWithValue }) => {
-  try {
-    const response = await homeworkApis.getStudentSubmissions();
-    return response;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error
-        ? error.message
-        : "Failed to fetch student submissions",
-    );
-  }
-});
-
-export const submitStudentHomework = createAsyncThunk<
-  StudentSubmissionResponse,
-  {
-    homeworkId: string;
-    studentId: string;
-    attachments: File[];
-    attachmentDate: string;
-  },
-  { rejectValue: string }
->("homework/submitStudentHomework", async (data, { rejectWithValue }) => {
-  try {
-    const response = await homeworkApis.submitHomework(data);
-    return response;
-  } catch (error) {
-    return rejectWithValue(
-      error instanceof Error ? error.message : "Failed to submit homework",
     );
   }
 });
@@ -232,9 +185,6 @@ const homeworkSlice = createSlice({
     clearAssignError: state => {
       state.assignError = null;
     },
-    clearSubmitError: state => {
-      state.submitError = null;
-    },
     clearCurrentHomework: state => {
       state.currentHomework = null;
     },
@@ -321,23 +271,6 @@ const homeworkSlice = createSlice({
       });
 
     builder
-      .addCase(fetchStudentSubmissions.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchStudentSubmissions.fulfilled, (state, action) => {
-        state.loading = false;
-        state.studentSubmissions = {
-          data: action.payload.data?.data || [],
-        };
-        state.error = null;
-      })
-      .addCase(fetchStudentSubmissions.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-
-    builder
       .addCase(assignHomeworkToStudentsAsync.pending, state => {
         state.assignLoading = true;
         state.assignError = null;
@@ -387,20 +320,6 @@ const homeworkSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
-
-    builder
-      .addCase(submitStudentHomework.pending, state => {
-        state.submitLoading = true;
-        state.submitError = null;
-      })
-      .addCase(submitStudentHomework.fulfilled, state => {
-        state.submitLoading = false;
-        state.submitError = null;
-      })
-      .addCase(submitStudentHomework.rejected, (state, action) => {
-        state.submitLoading = false;
-        state.submitError = action.payload as string;
-      });
   },
 });
 
@@ -408,7 +327,6 @@ export const {
   clearError,
   clearCreateError,
   clearAssignError,
-  clearSubmitError,
   clearCurrentHomework,
   resetHomeworkState,
 } = homeworkSlice.actions;

@@ -40,7 +40,7 @@ interface StudentSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
   submission: StudentSubmission | null;
-  onSubmit: (data: { file: File; notes: string }) => void;
+  onSubmit: (data: { file: File }) => void;
 }
 
 export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
@@ -68,10 +68,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
     resolver: zodResolver(homeworkSubmissionSchema),
     defaultValues: {
       homeworkId: submission?.id || "",
-      studentId: mockStudentId,
       attachments: [],
-      attachmentDate: new Date().toISOString(),
-      notes: "",
     },
   });
 
@@ -185,7 +182,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
 
     try {
       // Call the onSubmit prop with the file data
-      await onSubmit({ file: data.attachments[0], notes: data.notes || "" });
+      await onSubmit({ file: data.attachments[0] });
       setUploadProgress(100);
 
       setTimeout(() => {
@@ -315,7 +312,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
           </div>
         </div>
 
-        {/* Description with left accent */}
         {isPending && (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
             <div className="flex">
@@ -331,7 +327,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
 
         {isPending && (
           <>
-            {/* File upload area */}
             <div>
               <div
                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
@@ -424,25 +419,9 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 )}
               </div>
             )}
-
-            <div>
-              <div className="text-sm font-semibold text-[var(--text-3)] uppercase tracking-[0.5px] mb-2">
-                📝 Additional Notes{" "}
-                <span className="font-normal">
-                  (Optional — add any comments for your teacher)
-                </span>
-              </div>
-              <textarea
-                {...register("notes")}
-                placeholder="E.g. I used an alternative method for question 3, referred to NCERT solutions for graphs..."
-                className="w-full px-4 py-3 border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--blue)] resize-none bg-[var(--surface)]"
-                rows={4}
-              />
-            </div>
           </>
         )}
 
-        {/* ── SUBMITTED: Submission Details ── */}
         {submission.status === "submitted" && (
           <div>
             {/* Success banner */}
@@ -459,7 +438,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
               </div>
             </div>
 
-            {/* Details table card */}
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
               <div className="flex justify-between items-center px-5 py-3.5 border-b border-[var(--border)]">
                 <span className="text-sm text-[var(--text-3)]">Homework</span>
@@ -523,10 +501,8 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
           </div>
         )}
 
-        {/* ── GRADED: Graded Submission ── */}
         {submission.status === "graded" && (
           <div>
-            {/* Grade display card */}
             <div
               className="rounded-xl border-2 border-[#16a34a] bg-[#f0fdf4] py-8 px-4 text-center mb-5"
               style={{ borderColor: "rgba(22, 163, 74, 0.35)" }}
@@ -544,7 +520,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
               </div>
             </div>
 
-            {/* Teacher Feedback */}
             {submission.feedback && (
               <div className="mb-5">
                 <div className="text-sm font-semibold text-[var(--text-3)] uppercase tracking-[0.5px] mb-2 flex items-center gap-1.5">

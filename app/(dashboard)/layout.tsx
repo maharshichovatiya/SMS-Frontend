@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, ReactNode, useEffect } from "react";
-import Sidebar from "@/components/layout/Sidebar";
+import dynamic from "next/dynamic";
+
+const Sidebar = dynamic(() => import("@/components/layout/Sidebar"), {
+  ssr: false,
+});
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);

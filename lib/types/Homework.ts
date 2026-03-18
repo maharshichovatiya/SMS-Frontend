@@ -121,49 +121,45 @@ export interface StudentHomeworkListResponse {
 
 export interface StudentSubmissionAttachment {
   id: string;
-  homeworkId: string;
-  submissionId: string | null;
   fileName: string;
   fileUrl: string;
-  fileSize: number;
+  fileSize: string;
   fileType: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface StudentHomeworkSubmission {
   id: string;
-  homeworkId: string;
-  studentId: string;
-  submittedAt: string;
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: number;
-  grade?: string;
-  feedback?: string;
+  submissionDate: string;
   status: "submitted" | "graded" | "pending";
-  createdAt: string;
-  updatedAt: string;
+  marksObtained: number | null;
+  feedback: string | null;
+  submissionAttachments: StudentSubmissionAttachment[];
+}
+
+export interface HomeworkAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: string;
+  fileType: string;
+}
+
+export interface StudentSubmissionTeacher {
+  firstName: string;
+  lastName: string;
 }
 
 export interface StudentSubmissionItem {
-  id: string;
+  homeworkId: string;
   title: string;
   description: string;
-  subjectId: string;
-  chapterId: string | null;
-  classno: string | null;
-  assignedDate: string;
-  dueDate: string;
-  status: string;
-  schoolId: string;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
   subject: Subject;
   chapter: Chapter | null;
-  attachments: StudentSubmissionAttachment[];
-  submission: StudentHomeworkSubmission | null; // Will be null if not submitted
+  assignedDate: string;
+  dueDate: string;
+  homeworkAttachments: HomeworkAttachment[];
+  submission: StudentHomeworkSubmission | null;
+  teacher: StudentSubmissionTeacher;
 }
 
 export interface StudentSubmissionResponse {
@@ -171,7 +167,10 @@ export interface StudentSubmissionResponse {
   message: string;
   data: {
     success: boolean;
-    data: StudentSubmissionItem[];
+    data: {
+      count: number;
+      homework: StudentSubmissionItem[];
+    };
     message: string;
   };
 }

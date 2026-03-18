@@ -1,4 +1,5 @@
 import api from "../Axios";
+import { StudentSubmissionResponse } from "../types/Homework";
 
 export interface StudentSubmission {
   id: string;
@@ -39,6 +40,8 @@ export interface FeedbackResponse {
   message: string;
   data?: StudentSubmission;
 }
+
+export { type StudentSubmissionResponse };
 
 export const submissionApis = {
   getSubmissionsByHomework: async (
@@ -86,5 +89,52 @@ export const submissionApis = {
   }> => {
     const response = await api.get(`/homework/${homeworkId}/submissions/stats`);
     return response.data;
+  },
+
+  getStudentSubmissions: async (): Promise<StudentSubmissionResponse> => {
+    const res = await api.get("/homework-submissions/student");
+    return res.data;
+  },
+
+  submitHomework: async (data: { homeworkId: string; attachments: File[] }) => {
+    const formData = new FormData();
+    formData.append("homeworkId", data.homeworkId);
+
+    data.attachments.forEach(file => {
+      formData.append(`attachments`, file);
+    });
+
+    const res = await api.post("/homework-submissions", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  },
+
+  updateSubmission: async (
+    submissionId: string,
+    data: {
+      attachments: File[];
+      attachmentDate: string;
+    },
+  ) => {
+    const formData = new FormData();
+    formData.append("attachmentDate", data.attachmentDate);
+
+    data.attachments.forEach(file => {
+      formData.append(`attachments`, file);
+    });
+
+    const res = await api.patch(
+      `/homework-submissions/${submissionId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return res.data;
   },
 };

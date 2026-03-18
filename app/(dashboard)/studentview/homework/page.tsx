@@ -6,9 +6,10 @@ import { StudentSubmissionModal } from "@/components/homework/StudentSubmissionM
 import { StudentSubmissionTable } from "@/components/homework/StudentSubmissionTable";
 import PageHeader from "@/components/layout/PageHeader";
 import {
-  fetchStudentHomework,
   fetchStudentSubmissions,
-} from "@/lib/store/HomeworkSlice";
+  submitStudentHomework,
+} from "@/lib/store/SubmissionSlice";
+import { fetchStudentHomework } from "@/lib/store/HomeworkSlice";
 import { AppDispatch, RootState } from "@/lib/store/Index";
 import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
 import { BookOpen } from "lucide-react";
@@ -52,8 +53,8 @@ export default function HomeworkPage() {
   const homeworkList = useSelector(
     (state: RootState) => state.homework.studentHomeworkList,
   );
-  const submissionsList = useSelector(
-    (state: RootState) => state.homework.studentSubmissions,
+  const studentSubmissions = useSelector(
+    (state: RootState) => state.submissions.studentSubmissions,
   );
   const loading = useSelector((state: RootState) => state.homework.loading);
   const error = useSelector((state: RootState) => state.homework.error);
@@ -77,28 +78,32 @@ export default function HomeworkPage() {
     item: StudentSubmissionItem,
   ): StudentSubmission => {
     const isSubmitted = item.submission !== null;
-    const isGraded = isSubmitted && item.submission?.grade !== null;
+    const isGraded = isSubmitted && item.submission?.marksObtained !== null;
 
     return {
-      id: item.id,
+      id: item.homeworkId,
       title: item.title,
       subject: item.subject.subjectName,
       dueDate: item.dueDate,
       status: isGraded ? "graded" : isSubmitted ? "submitted" : "pending",
-      submittedAt: isSubmitted ? item.submission?.submittedAt : undefined,
-      file: isSubmitted ? item.submission?.fileUrl : undefined,
-      fileSize: isSubmitted ? item.submission?.fileSize : undefined,
-      grade: isGraded ? item.submission?.grade : undefined,
-      feedback: isGraded ? item.submission?.feedback : undefined,
-      teacher: "Teacher", // Will be updated when teacher info is available
+      submittedAt: isSubmitted ? item.submission?.submissionDate : undefined,
+      file: isSubmitted
+        ? item.submission?.submissionAttachments?.[0]?.fileName
+        : undefined,
+      fileSize: isSubmitted
+        ? item.submission?.submissionAttachments?.[0]?.fileSize
+        : undefined,
+      grade: isGraded ? item.submission?.marksObtained?.toString() : undefined,
+      feedback: isGraded ? (item.submission?.feedback ?? undefined) : undefined,
+      teacher: `${item.teacher.firstName} ${item.teacher.lastName}`,
       description: item.description,
-      className: item.classno || "Not Assigned",
+      className: item.subject.subjectName,
     };
   };
 
   // Use real submissions data when available
-  const transformedSubmissions: StudentSubmission[] = submissionsList?.data
-    ? submissionsList.data.map(transformSubmissionData)
+  const transformedSubmissions: StudentSubmission[] = studentSubmissions
+    ? studentSubmissions.map(transformSubmissionData)
     : [];
 
   const handleViewDetails = async (homeworkId: string) => {
@@ -129,20 +134,21 @@ export default function HomeworkPage() {
     setShowSubmissionModal(true);
   };
 
-  const handleSubmissionSubmit = async (_data: {
-    file: File;
-    notes: string;
-  }) => {
-    // if (!selectedSubmission) return;
-    // console.log(selectedSubmission?.id, data);
-    // TODO: Implement actual API call for submission
-    // This would be a POST request to submit homework
-    // await homeworkApis.submitHomework(selectedSubmission.id, data);
-    // For now, just refresh the data to show updated status
-    // dispatch(fetchStudentSubmissions());
-    // Close modal
-    // setShowSubmissionModal(false);
-    // setSelectedSubmission(null);
+  const handleSubmissionSubmit = async (data: { file: File }) => {
+    if (!selectedSubmission) return;
+
+    // Call submit POST API for new submission
+    const result = await dispatch(
+      submitStudentHomework({
+        homeworkId: selectedSubmission.id,
+        attachments: [data.file],
+      }),
+    );
+
+    // Re-fetch submissions after successful submit so the table updates
+    if (submitStudentHomework.fulfilled.match(result)) {
+      dispatch(fetchStudentSubmissions());
+    }
   };
 
   const transformedHomeworkList: TransformedHomework[] =

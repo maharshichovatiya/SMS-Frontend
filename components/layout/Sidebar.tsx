@@ -19,7 +19,7 @@ import {
 import { showToast } from "@/lib/utils/Toast";
 import { logout } from "@/lib/api/Auth";
 import Modal from "../ui/Modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store/Index";
 import { SIDEBAR_MENUS, DEFAULT_MENU } from "@/lib/constants/SidebarMenu";
@@ -89,14 +89,14 @@ export default function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [mounted, setMounted] = useState(() => {
-    if (typeof window !== "undefined") {
-      return true;
-    }
-    return false;
-  });
+  const [mounted, setMounted] = useState(false);
   const userRole =
     useSelector((state: RootState) => state.auth.role) || "admin";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {

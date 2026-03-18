@@ -3,11 +3,14 @@ import {
   submissionApis,
   StudentSubmission,
   FeedbackPayload,
+  StudentSubmissionResponse,
 } from "../api/Submission";
+import { StudentSubmissionItem } from "../types/Homework";
 
 interface SubmissionState {
   submissions: StudentSubmission[];
   currentHomeworkSubmissions: StudentSubmission[];
+  studentSubmissions: StudentSubmissionItem[] | null;
   stats: {
     total: number;
     submitted: number;
@@ -21,11 +24,14 @@ interface SubmissionState {
   feedbackError: string | null;
   downloadLoading: boolean;
   downloadError: string | null;
+  submitLoading: boolean;
+  submitError: string | null;
 }
 
 const initialState: SubmissionState = {
   submissions: [],
   currentHomeworkSubmissions: [],
+  studentSubmissions: null,
   stats: null,
   loading: false,
   error: null,
@@ -33,6 +39,8 @@ const initialState: SubmissionState = {
   feedbackError: null,
   downloadLoading: false,
   downloadError: null,
+  submitLoading: false,
+  submitError: null,
 };
 
 export const fetchSubmissionsByHomework = createAsyncThunk(
@@ -49,6 +57,63 @@ export const fetchSubmissionsByHomework = createAsyncThunk(
     }
   },
 );
+
+export const fetchStudentSubmissions = createAsyncThunk<
+  StudentSubmissionResponse,
+  void,
+  { rejectValue: string }
+>("submissions/fetchStudentSubmissions", async (_, { rejectWithValue }) => {
+  try {
+    const response = await submissionApis.getStudentSubmissions();
+    return response;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch student submissions",
+    );
+  }
+});
+
+export const submitStudentHomework = createAsyncThunk<
+  StudentSubmissionResponse,
+  {
+    homeworkId: string;
+    attachments: File[];
+  },
+  { rejectValue: string }
+>("submissions/submitStudentHomework", async (data, { rejectWithValue }) => {
+  try {
+    const response = await submissionApis.submitHomework(data);
+    return response;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "Failed to submit homework",
+    );
+  }
+});
+
+export const updateStudentSubmission = createAsyncThunk<
+  unknown,
+  {
+    submissionId: string;
+    attachments: File[];
+    attachmentDate: string;
+  },
+  { rejectValue: string }
+>("submissions/updateStudentSubmission", async (data, { rejectWithValue }) => {
+  try {
+    const response = await submissionApis.updateSubmission(data.submissionId, {
+      attachments: data.attachments,
+      attachmentDate: data.attachmentDate,
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "Failed to update submission",
+    );
+  }
+});
 
 export const submitFeedback = createAsyncThunk(
   "submissions/submitFeedback",
@@ -139,6 +204,9 @@ const submissionSlice = createSlice({
     clearDownloadError: state => {
       state.downloadError = null;
     },
+    clearSubmitError: state => {
+      state.submitError = null;
+    },
     setCurrentHomeworkSubmissions: (state, action) => {
       state.currentHomeworkSubmissions = action.payload;
     },
@@ -183,6 +251,49 @@ const submissionSlice = createSlice({
       });
 
     builder
+      .addCase(fetchStudentSubmissions.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudentSubmissions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.studentSubmissions = action.payload.data?.data?.homework || [];
+        state.error = null;
+      })
+      .addCase(fetchStudentSubmissions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(submitStudentHomework.pending, state => {
+        state.submitLoading = true;
+        state.submitError = null;
+      })
+      .addCase(submitStudentHomework.fulfilled, state => {
+        state.submitLoading = false;
+        state.submitError = null;
+      })
+      .addCase(submitStudentHomework.rejected, (state, action) => {
+        state.submitLoading = false;
+        state.submitError = action.payload as string;
+      });
+
+    builder
+      .addCase(updateStudentSubmission.pending, state => {
+        state.submitLoading = true;
+        state.submitError = null;
+      })
+      .addCase(updateStudentSubmission.fulfilled, state => {
+        state.submitLoading = false;
+        state.submitError = null;
+      })
+      .addCase(updateStudentSubmission.rejected, (state, action) => {
+        state.submitLoading = false;
+        state.submitError = action.payload as string;
+      });
+
+    builder
       .addCase(submitFeedback.pending, state => {
         state.feedbackLoading = true;
         state.feedbackError = null;
@@ -190,12 +301,12 @@ const submissionSlice = createSlice({
       .addCase(submitFeedback.fulfilled, (state, action) => {
         state.feedbackLoading = false;
         const { studentId, data } = action.payload;
-        if (data.data) {
+        if (data) {
           const index = state.currentHomeworkSubmissions.findIndex(
             sub => sub.studentId === studentId,
           );
           if (index !== -1) {
-            state.currentHomeworkSubmissions[index] = data.data;
+            state.currentHomeworkSubmissions[index] = data;
           }
         }
         state.feedbackError = null;
@@ -240,6 +351,7 @@ export const {
   clearError,
   clearFeedbackError,
   clearDownloadError,
+  clearSubmitError,
   setCurrentHomeworkSubmissions,
   updateSubmissionInList,
   resetSubmissionState,
