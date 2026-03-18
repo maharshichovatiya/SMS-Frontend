@@ -78,16 +78,18 @@ export default function SubjectCard({ subject, onClick }: SubjectCardProps) {
       }}
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex-shrink-0">{getIconComponent(subject.icon)}</div>
+        <div className="flex-shrink-0">{getIconComponent("calc")}</div>
         <div className="px-2 py-1 bg-[var(--bg)] rounded text-xs font-semibold text-[var(--text)]">
-          {subject.code}
+          {subject.subjectName}
         </div>
       </div>
-      <h3 className="font-bold text-[var(--text)] mb-3">{subject.name}</h3>
+      <h3 className="font-bold text-[var(--text)] mb-3">
+        {subject.subjectName}
+      </h3>
       <div className="border-b border-dashed border-[var(--border)] pb-2 mb-3">
         <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
           <User className="w-4 h-4" />
-          <span>{subject.teacher}</span>
+          <span>Teacher</span>
         </div>
       </div>
       <div className="flex items-center justify-between text-lg font-bold">

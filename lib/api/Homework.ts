@@ -58,7 +58,7 @@ export const homeworkApis = {
     const formData = new FormData();
 
     formData.append("title", data.title);
-    formData.append("subject", data.subject);
+    formData.append("subjectId", data.subjectId);
     formData.append("assignedDate", data.assignedDate);
     formData.append("dueDate", data.dueDate);
 

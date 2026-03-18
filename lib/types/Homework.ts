@@ -480,7 +480,7 @@ export interface Homework {
 
 export interface CreateHomeworkPayload {
   title: string;
-  subject: string;
+  subjectId: string;
   assignedDate: string;
   dueDate: string;
   description?: string;
