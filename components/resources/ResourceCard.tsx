@@ -5,6 +5,7 @@ interface ResourceCardProps {
   resource: Resource;
   chapter: Chapter;
   selectedSubject: Subject | null;
+  onUploadClick?: (chapter: Chapter, subject: Subject) => void;
 }
 
 const getResourceIcon = (iconName: string): React.ReactNode => {
@@ -20,6 +21,7 @@ export default function ResourceCard({
   resource,
   chapter,
   selectedSubject,
+  onUploadClick,
 }: ResourceCardProps) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] p-4 hover:border-[var(--blue)] transition-colors cursor-pointer flex flex-col">
@@ -44,7 +46,14 @@ export default function ResourceCard({
       </div>
       <div className="mt-3 flex justify-between border-t border-[var(--border)] pt-3">
         <button
-          className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs hover:opacity-80 transition-opacity ${
+          onClick={() => onUploadClick?.(chapter, selectedSubject!)}
+          className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border)] rounded-lg text-xs hover:opacity-80 transition-opacity bg-[var(--surface)] hover:bg-[var(--bg-2)]"
+        >
+          <Download className="w-3 h-3" />
+          Upload Resource
+        </button>
+        <button
+          className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs transition-colors ${
             resource.type === "PDF"
               ? "border-red-200 bg-red-50 text-red-600"
               : resource.type === "Video"
@@ -52,19 +61,6 @@ export default function ResourceCard({
                 : resource.type === "Notes"
                   ? "border-yellow-200 bg-yellow-50 text-yellow-600"
                   : "border-gray-200 bg-gray-50 text-gray-600"
-          }`}
-        >
-          {resource.type}
-        </button>
-        <button
-          className={`flex items-center gap-2 px-3 py-1.5 border border-[var(--border)] rounded-lg text-xs transition-colors ${
-            resource.type === "PDF"
-              ? "hover:bg-red-100 hover:text-red-600 hover:border-red-200"
-              : resource.type === "Video"
-                ? "hover:bg-blue-100 hover:text-blue-600 hover:border-blue-200"
-                : resource.type === "Notes"
-                  ? "hover:bg-yellow-100 hover:text-yellow-600 hover:border-yellow-200"
-                  : "hover:bg-gray-100 hover:text-gray-600 hover:border-gray-200"
           }`}
         >
           {resource.type === "PDF" && <Download className="w-3 h-3" />}

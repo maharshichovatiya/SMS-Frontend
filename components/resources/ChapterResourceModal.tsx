@@ -1,7 +1,7 @@
 "use client";
 
-import Modal from "@/components/ui/Modal";
 import ChapterResourceForm from "@/components/resources/ChapterResourceForm";
+import Modal from "@/components/ui/Modal";
 
 interface ChapterResourceModalProps {
   isOpen: boolean;

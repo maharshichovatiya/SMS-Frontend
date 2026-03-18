@@ -1,6 +1,84 @@
 import { Class } from "@/lib/types/Resources";
 
+const apiResponse = {
+  statusCode: 200,
+  message: "Success",
+  data: [
+    {
+      classId: "ab7d2d4a-fa5b-4445-9175-a0dbd33aad2f",
+      className: "UKG-D",
+      subjects: [
+        {
+          subjectId: "3b5511e6-e249-4c02-af41-fecd3674b717",
+          subjectName: "Mathematics",
+          chapters: [
+            {
+              chapterId: "46d75a63-9a71-4494-9d09-ae99f86a0b7c",
+              chapterName: "asdfsf",
+              chapterNo: 1,
+              resources: [
+                {
+                  id: "b409cbf1-4009-4529-adbc-4e1ae0a844fe",
+                  title: "HAMMER",
+                  description: "DOEMSTICKSD",
+                  resourceType: "PDF",
+                  uploadedBy: {
+                    id: "24ccd4f6-c072-46a6-b82a-5c781fdfd07f",
+                    name: "Hassi sduhfi",
+                  },
+                  createdAt: "2026-03-16T11:22:00.142Z",
+                  updatedAt: "2026-03-16T11:22:00.142Z",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  Total_Records: 1,
+};
+
 export const resourcesData: Class[] = [
+  {
+    id: apiResponse.data[0].classId,
+    code: apiResponse.data[0].className,
+    name: `Grade ${apiResponse.data[0].className.replace(/[^0-9]/g, "")} · Section ${apiResponse.data[0].className.slice(-1)}`,
+    level: "Primary",
+    color: "blue",
+    gradient: "var(--blue),var(--indigo)",
+    subjects: apiResponse.data[0].subjects.map(subject => ({
+      id: subject.subjectId,
+      name: subject.subjectName,
+      code: subject.subjectName.replace(/\s+/g, "-").toUpperCase(),
+      teacher: subject.chapters[0]?.resources[0]?.uploadedBy?.name || "Unknown",
+      color: "blue",
+      icon: "calc",
+      chapters: subject.chapters.map(chapter => ({
+        id:
+          chapter.chapterId || `ch-${Math.random().toString(36).substr(2, 9)}`,
+        name: `Ch ${chapter.chapterNo}: ${chapter.chapterName}`,
+        resources: chapter.resources.map(resource => ({
+          title: resource.title,
+          type: resource.resourceType as "PDF" | "Video" | "Notes" | "Link",
+          size: "Unknown",
+          icon:
+            resource.resourceType === "PDF"
+              ? "V"
+              : resource.resourceType === "Video"
+                ? "V"
+                : "V",
+          bg:
+            resource.resourceType === "PDF"
+              ? "rose"
+              : resource.resourceType === "Video"
+                ? "blue"
+                : "amber",
+        })),
+      })),
+    })),
+  },
+
   {
     id: "c1",
     code: "10-A",

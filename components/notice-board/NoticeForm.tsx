@@ -1,40 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createChapterResourceSchema,
-  CreateChapterResourceFormValues,
-} from "@/lib/validations/ChapterResourceSchema";
+  createNoticeSchema,
+  CreateNoticeFormValues,
+} from "@/lib/validations/NoticeSchema";
 import { showToast } from "@/lib/utils/Toast";
-import { FileText, Video, FileText as Notes, Link, Upload } from "lucide-react";
+import {
+  Megaphone,
+  FileText,
+  Calendar,
+  PartyPopper,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+} from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
-interface ChapterResourceFormProps {
-  chapterId?: string;
-  chapterName?: string;
-  subjectName?: string;
+interface NoticeFormProps {
   onSubmitSuccess?: () => void;
   onClose: () => void;
 }
 
-const resourceTypes = [
-  { value: "PDF", label: "PDF Document", icon: FileText, color: "rose" },
-  { value: "Video", label: "Video", icon: Video, color: "blue" },
-  { value: "Notes", label: "Notes", icon: Notes, color: "amber" },
-  { value: "Link", label: "Link", icon: Link, color: "green" },
+const noticeTypes = [
+  { value: "general", label: "General", icon: Megaphone },
+  { value: "exam", label: "Exam", icon: FileText },
+  { value: "holiday", label: "Holiday", icon: Calendar },
+  { value: "event", label: "Event", icon: PartyPopper },
+];
+
+const priorityLevels = [
+  { value: "high", label: "High", icon: AlertTriangle },
+  { value: "medium", label: "Medium", icon: Info },
+  { value: "low", label: "Low", icon: CheckCircle },
 ];
 
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
-  options: Array<{
-    value: string;
-    label: string;
-    icon: LucideIcon;
-    color: string;
-  }>;
+  options: Array<{ value: string; label: string; icon: LucideIcon }>;
   placeholder: string;
   error?: string;
 }
@@ -112,13 +118,10 @@ function CustomSelect({
   );
 }
 
-export default function ChapterResourceForm({
-  chapterId,
-  chapterName,
-  subjectName,
+export default function NoticeForm({
   onSubmitSuccess,
   onClose,
-}: ChapterResourceFormProps) {
+}: NoticeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -127,29 +130,21 @@ export default function ChapterResourceForm({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CreateChapterResourceFormValues>({
-    resolver: zodResolver(createChapterResourceSchema),
+  } = useForm<CreateNoticeFormValues>({
+    resolver: zodResolver(createNoticeSchema),
     mode: "onSubmit",
-    defaultValues: {
-      chapterId: chapterId || "",
-      title: "",
-      description: "",
-      resourceType: "PDF",
-      fileUrl: "",
-      uploadedBy: "",
-      status: "active",
-    },
   });
 
-  const selectedResourceType = watch("resourceType");
+  const selectedType = watch("type");
+  const selectedPriority = watch("priority");
 
-  const onSubmit = async (data: CreateChapterResourceFormValues) => {
+  const onSubmit: SubmitHandler<CreateNoticeFormValues> = async data => {
     try {
       setIsSubmitting(true);
 
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      showToast.success("Resource uploaded successfully!");
+      showToast.success("Notice created successfully!");
       onSubmitSuccess?.();
       onClose();
     } catch (error) {
@@ -163,47 +158,47 @@ export default function ChapterResourceForm({
     onClose();
   };
 
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
-        <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-[var(--text)] mb-2">
-            Chapter Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-                Chapter Name
-              </label>
-              <input
-                type="text"
-                value={chapterName || ""}
-                disabled
-                className="w-full px-3.5 py-2.5 text-sm text-[var(--text-3)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-                Subject Name
-              </label>
-              <input
-                type="text"
-                value={subjectName || ""}
-                disabled
-                className="w-full px-3.5 py-2.5 text-sm text-[var(--text-3)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none"
-              />
-            </div>
-          </div>
+        <div>
+          <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+            Notice Type
+            <span className="text-[var(--rose)] ml-0.5">*</span>
+          </label>
+          <CustomSelect
+            value={selectedType || ""}
+            onChange={value =>
+              setValue(
+                "type",
+                value as "general" | "exam" | "holiday" | "event",
+              )
+            }
+            options={noticeTypes}
+            placeholder="Select notice type"
+            error={errors.type?.message}
+          />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-            Resource Title
+            Notice Title
             <span className="text-[var(--rose)] ml-0.5">*</span>
           </label>
           <input
             type="text"
-            placeholder="Enter resource title"
+            placeholder="Enter notice title"
             {...register("title")}
             className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
               errors.title
@@ -218,103 +213,91 @@ export default function ChapterResourceForm({
           )}
         </div>
 
-        {/* Resource Type */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-            Resource Type
+            Notice Content
             <span className="text-[var(--rose)] ml-0.5">*</span>
           </label>
-          <CustomSelect
-            value={selectedResourceType || ""}
-            onChange={value =>
-              setValue(
-                "resourceType",
-                value as "PDF" | "Video" | "Notes" | "Link",
-              )
-            }
-            options={resourceTypes}
-            placeholder="Select resource type"
-            error={errors.resourceType?.message}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-            Description
-          </label>
           <textarea
-            placeholder="Enter resource description (optional)"
-            rows={4}
-            {...register("description")}
+            placeholder="Enter detailed notice content..."
+            rows={5}
+            {...register("body")}
             className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] resize-vertical ${
-              errors.description
+              errors.body
                 ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                 : "border-[var(--border)]"
             }`}
           />
-          {errors.description && (
+          {errors.body && (
             <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-              {errors.description.message}
+              {errors.body.message}
             </p>
           )}
         </div>
 
-        {selectedResourceType === "Link" && (
+        <div>
+          <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+            Priority Level
+            <span className="text-[var(--rose)] ml-0.5">*</span>
+          </label>
+          <CustomSelect
+            value={selectedPriority || ""}
+            onChange={value =>
+              setValue("priority", value as "high" | "medium" | "low")
+            }
+            options={priorityLevels}
+            placeholder="Select priority level"
+            error={errors.priority?.message}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-              File URL
+              Publish Date
               <span className="text-[var(--rose)] ml-0.5">*</span>
             </label>
             <input
-              type="url"
-              placeholder="https://example.com/resource"
-              {...register("fileUrl")}
-              className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
-                errors.fileUrl
+              type="date"
+              min={getTodayDate()}
+              {...register("publishDate")}
+              className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                errors.publishDate
                   ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
                   : "border-[var(--border)]"
               }`}
             />
-            {errors.fileUrl && (
+            {errors.publishDate && (
               <p className="mt-1 text-xs font-medium text-[var(--rose)]">
-                {errors.fileUrl.message}
+                {errors.publishDate.message}
               </p>
             )}
           </div>
-        )}
 
-        {/* File Upload - Show for non-Link types */}
-        {selectedResourceType !== "Link" && (
           <div>
             <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-              Upload File
+              Expiry Date
               <span className="text-[var(--rose)] ml-0.5">*</span>
             </label>
-            <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 text-[var(--text-3)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--text)]">
-                Click to upload or drag and drop
+            <input
+              type="date"
+              min={getTomorrowDate()}
+              {...register("expireDate")}
+              className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                errors.expireDate
+                  ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                  : "border-[var(--border)]"
+              }`}
+            />
+            {errors.expireDate && (
+              <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+                {errors.expireDate.message}
               </p>
-              <p className="text-xs text-[var(--text-3)]">
-                {selectedResourceType === "PDF" && "PDF files only"}
-                {selectedResourceType === "Video" && "MP4, AVI, MOV files"}
-                {selectedResourceType === "Notes" && "TXT, DOC, DOCX files"}
-              </p>
-            </div>
+            )}
           </div>
-        )}
-
-        {/* Hidden Fields */}
-        <input type="hidden" {...register("chapterId")} />
-        <input
-          type="hidden"
-          {...register("uploadedBy")}
-          value="current-user-id"
-        />
-        <input type="hidden" {...register("status")} value="active" />
+        </div>
       </div>
 
-      {/* Form Actions */}
       <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-[var(--border)]">
         <button
           type="button"
@@ -328,7 +311,7 @@ export default function ChapterResourceForm({
           disabled={isSubmitting}
           className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isSubmitting ? "Uploading..." : "Upload Resource"}
+          {isSubmitting ? "Creating..." : "Post Notice"}
         </button>
       </div>
     </form>

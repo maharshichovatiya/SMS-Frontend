@@ -136,6 +136,16 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/resources",
         },
         {
+          icon: "BookOpen",
+          label: "Notifications",
+          path: "/notifications",
+        },
+        {
+          icon: "BookOpen",
+          label: "Notice-board",
+          path: "/notice-board",
+        },
+        {
           icon: "UserCircle",
           label: "Profile",
           path: "/profile",
