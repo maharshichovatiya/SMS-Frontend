@@ -9,6 +9,7 @@ interface AccountInfoSectionProps {
   showPassword: boolean;
   setShowPassword: (show: boolean) => void;
   onGeneratePassword: () => void;
+  disabled?: boolean;
 }
 
 export default function AccountInfoSection({
@@ -18,6 +19,7 @@ export default function AccountInfoSection({
   showPassword,
   setShowPassword,
   onGeneratePassword,
+  disabled = false,
 }: AccountInfoSectionProps) {
   return (
     <div>
@@ -39,7 +41,10 @@ export default function AccountInfoSection({
               {...register("email")}
               type="text"
               placeholder="example@school.com"
-              className={`input-base pl-9 ${errors.email ? "error" : ""}`}
+              disabled={disabled}
+              className={`input-base pl-9 ${errors.email ? "error" : ""} ${
+                disabled ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
             />
           </div>
           {errors.email && (

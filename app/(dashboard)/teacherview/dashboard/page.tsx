@@ -1,52 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store/Index";
-import teacherApiResponse from "@/lib/data/teacher.json";
+import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import ProfileStats from "@/components/teacherProfile/ProfileStats";
 import AssignedClassCard from "@/components/teacherProfile/AssignedClassCard";
-
-interface ApiTeacherData {
-  id: string;
-  status: string;
-  userId: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  highestQualification: string;
-  specialization: string | null;
-  totalExpMonths: number;
-  salaryPackage: string;
-  dateOfJoining: string;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    middleName: string | null;
-    lastName: string;
-    phone: string;
-    gender: string;
-    dob: string;
-    bloodGroup: string | null;
-    permanentAddress: string | null;
-    currentAddress: string | null;
-    profilePhoto: string | null;
-    school: {
-      id: string;
-      name: string;
-      address: string;
-      affiliationBoard: string;
-    };
-    role: {
-      id: string;
-      roleName: string;
-    };
-  };
-}
 
 const SectionCard: React.FC<{
   title: string;
@@ -77,7 +36,7 @@ const SectionCard: React.FC<{
 const TeacherDashboard: React.FC = () => {
   const userRole =
     useSelector((state: RootState) => state.auth.role) || "teacher";
-  const [teacherData] = useState<ApiTeacherData>(teacherApiResponse.data);
+  const { teacherData, loading, error, userId } = useTeacherProfile();
 
   const mockAssignedClasses = useMemo(
     () => [
@@ -127,8 +86,62 @@ const TeacherDashboard: React.FC = () => {
     ),
     classesAssigned: mockAssignedClasses.length,
     homeworkAssigned: 12,
-    yearsExperience: Math.floor(teacherData.totalExpMonths / 12),
+    avgAttendance: 95,
+    yearsOfExperience: teacherData?.totalExpMonths
+      ? Math.floor(teacherData.totalExpMonths / 12)
+      : 0,
+    resourcesUploaded: 8,
   };
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">
+          User not authenticated. Please login again.
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && !teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading teacher profile...</div>
+      </div>
+    );
+  }
+
+  if (error && !teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">No teacher data available</div>
+      </div>
+    );
+  }
+
+  if (error && !teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!teacherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">No teacher data available</div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-[var(--font-sans)] min-h-screen bg-[var(--color-bg)] p-0">
@@ -150,12 +163,12 @@ const TeacherDashboard: React.FC = () => {
                   boxShadow: `0 6px 20px #3d6cf450`,
                 }}
               >
-                {`${teacherData.user.firstName.charAt(0)}${teacherData.user.lastName.charAt(0)}`.toUpperCase()}
+                {`${teacherData?.user?.firstName?.charAt(0) || ""}${teacherData?.user?.lastName?.charAt(0) || ""}`.toUpperCase()}
               </div>
 
               <div
                 className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-[2.5px] border-white ${
-                  teacherData.status === "active"
+                  teacherData?.status === "active"
                     ? "bg-[#12a47e]"
                     : "bg-[#e83b6a]"
                 }`}
@@ -164,24 +177,24 @@ const TeacherDashboard: React.FC = () => {
 
             <div>
               <div className="text-2xl font-extrabold tracking-[-0.5px] text-[#111827] font-[var(--font-sans)] leading-[1.2]">
-                {teacherData.user.firstName} {teacherData.user.lastName}
+                {teacherData?.user?.firstName} {teacherData?.user?.lastName}
               </div>
               <div className="text-[13.5px] text-[#5c6a8a] mt-1 font-[var(--font-sans)]">
-                {teacherData.designation} · {teacherData.department} Dept.
+                {teacherData?.designation} · {teacherData?.department} Dept.
               </div>
               <div className="flex items-center flex-wrap gap-2 mt-2">
                 <span className="text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#eef1ff] text-[#3d6cf4] font-mono">
-                  {teacherData.employeeCode}
+                  {teacherData?.employeeCode}
                 </span>
 
                 <span
                   className={`text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full font-[var(--font-sans)] ${
-                    teacherData.status === "active"
+                    teacherData?.status === "active"
                       ? "bg-[#e6faf5] text-[#12a47e]"
                       : "bg-[#fff0f4] text-[#e83b6a]"
                   }`}
                 >
-                  {teacherData.status}
+                  {teacherData?.status}
                 </span>
               </div>
             </div>
