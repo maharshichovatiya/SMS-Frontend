@@ -544,3 +544,184 @@ export interface ErrorResponse {
   message: string;
   data: null;
 }
+
+// Types for homework students API response
+export interface HomeworkSubmissionAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: string;
+  fileType: string;
+}
+
+export interface HomeworkSubmission {
+  id: string;
+  submissionDate: string;
+  status: "submitted" | "pending" | "graded";
+  marksObtained: number | null;
+  feedback: string | null;
+  attachments: HomeworkSubmissionAttachment[];
+}
+
+export interface HomeworkStudent {
+  studentId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  rollNo: string | null;
+  admissionNo: string;
+  assignmentType: "class" | "direct";
+  classId: string;
+  className: string;
+  section: string;
+  assignedAt: string;
+  submission?: HomeworkSubmission;
+}
+
+// Assignment types from actual API response
+export interface AssignmentStudent {
+  id: string;
+  admissionNo: string;
+  rollNo: string | null;
+  admissionDate: string;
+  fatherName: string | null;
+  fatherPhone: string | null;
+  motherName: string | null;
+  guardianName: string | null;
+  familyAnnualIncome: string | null;
+  medicalConditions: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    phone: string;
+    gender: string | null;
+    dob: string | null;
+    profilePhoto: string | null;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  academics: Array<{
+    id: string;
+    rollNo: string | null;
+    promotionStatus: string | null;
+    percentage: string | null;
+    remarks: string | null;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    class: {
+      id: string;
+      schoolId: string;
+      className: string;
+      section: string;
+      classTeacherId: string;
+      studentCapacity: number;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+  }>;
+}
+
+export interface Assignment {
+  id: string;
+  homeworkId: string;
+  classId: string | null;
+  studentId: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  classInfo: null | {
+    id: string;
+    className: string;
+    section: string;
+  };
+  studentInfo: AssignmentStudent;
+}
+
+export interface HomeworkDetailResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    success: boolean;
+    data: {
+      id: string;
+      title: string;
+      description: string;
+      subjectId: string;
+      chapterId: string;
+      classno: string | null;
+      assignedDate: string;
+      dueDate: string;
+      status: string;
+      schoolId: string;
+      createdById: string;
+      createdAt: string;
+      updatedAt: string;
+      subject: {
+        id: string;
+        schoolId: string;
+        subjectName: string;
+        subjectCode: string;
+        passingMarks: number;
+        maxMarks: number;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+      chapter: {
+        id: string;
+        chapterNo: number;
+        chapterName: string;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+      attachments: Array<{
+        id: string;
+        homeworkId: string;
+        submissionId: string | null;
+        fileName: string;
+        fileUrl: string;
+        fileSize: string;
+        fileType: string;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+      assignments: Assignment[];
+      homeworkId: string;
+      submittedCount: number;
+      gradedCount: number;
+      pendingCount: number;
+      totalAssignedTo: number;
+    };
+    message: string;
+  };
+}
+
+export interface HomeworkStudentsResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    success: boolean;
+    data: {
+      homeworkId: string;
+      homeworkTitle: string;
+      totalStudents: number;
+      submittedCount: number;
+      pendingCount: number;
+      totalGraded: number;
+      directlyAssignedCount: number;
+      classAssignedCount: number;
+      students: HomeworkStudent[];
+    };
+    message: string;
+  };
+}
