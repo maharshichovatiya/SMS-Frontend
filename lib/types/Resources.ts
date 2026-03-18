@@ -2,7 +2,6 @@ export interface Resource {
   title: string;
   type: "PDF" | "Video" | "Notes" | "Link";
   size: string;
-  icon: string;
   bg: string;
 }
 
@@ -17,7 +16,6 @@ export interface Subject {
   code: string;
   teacher: string;
   color: string;
-  icon: string;
   chapters: Chapter[];
 }
 
