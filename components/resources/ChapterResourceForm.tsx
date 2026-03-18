@@ -56,10 +56,11 @@ function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] appearance-none cursor-pointer flex items-center justify-between ${error
-          ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-          : "border-[var(--border)]"
-          }`}
+        className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] appearance-none cursor-pointer flex items-center justify-between ${
+          error
+            ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+            : "border-[var(--border)]"
+        }`}
       >
         <div className="flex items-center gap-2">
           {SelectedIcon && <SelectedIcon className="w-4 h-4" />}
@@ -195,7 +196,6 @@ export default function ChapterResourceForm({
           </div>
         </div>
 
-        {/* Resource Title */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Resource Title
@@ -205,10 +205,11 @@ export default function ChapterResourceForm({
             type="text"
             placeholder="Enter resource title"
             {...register("title")}
-            className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${errors.title
-              ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-              : "border-[var(--border)]"
-              }`}
+            className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+              errors.title
+                ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                : "border-[var(--border)]"
+            }`}
           />
           {errors.title && (
             <p className="mt-1 text-xs font-medium text-[var(--rose)]">
@@ -217,7 +218,6 @@ export default function ChapterResourceForm({
           )}
         </div>
 
-        {/* Resource Type */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Resource Type
@@ -237,7 +237,6 @@ export default function ChapterResourceForm({
           />
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Description
@@ -246,10 +245,11 @@ export default function ChapterResourceForm({
             placeholder="Enter resource description (optional)"
             rows={4}
             {...register("description")}
-            className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] resize-vertical ${errors.description
-              ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-              : "border-[var(--border)]"
-              }`}
+            className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] resize-vertical ${
+              errors.description
+                ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                : "border-[var(--border)]"
+            }`}
           />
           {errors.description && (
             <p className="mt-1 text-xs font-medium text-[var(--rose)]">
@@ -268,10 +268,11 @@ export default function ChapterResourceForm({
               type="url"
               placeholder="https://example.com/resource"
               {...register("fileUrl")}
-              className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${errors.fileUrl
-                ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
-                : "border-[var(--border)]"
-                }`}
+              className={`w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] placeholder:text-[var(--text-3)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] ${
+                errors.fileUrl
+                  ? "border-[var(--rose)] bg-[var(--rose-light)] focus:border-[var(--rose)] focus:ring-[var(--rose-muted)]"
+                  : "border-[var(--border)]"
+              }`}
             />
             {errors.fileUrl && (
               <p className="mt-1 text-xs font-medium text-[var(--rose)]">

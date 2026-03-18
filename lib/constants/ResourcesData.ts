@@ -100,13 +100,13 @@ export const resourcesData: Class[] = [
         resources: chapter.resources.map(resource => ({
           title: resource.title,
           type: resource.resourceType as "PDF" | "Video" | "Notes" | "Link",
-          size: "Unknown", // API doesn't provide size
+          size: "Unknown",
           icon:
             resource.resourceType === "PDF"
-              ? "📄"
+              ? "V"
               : resource.resourceType === "Video"
-                ? "🎬"
-                : "📝",
+                ? "V"
+                : "V",
           bg:
             resource.resourceType === "PDF"
               ? "rose"
@@ -117,7 +117,6 @@ export const resourcesData: Class[] = [
       })),
     })),
   },
-  // Keep existing mock data for other classes...
   {
     id: "c1",
     code: "10-A",
