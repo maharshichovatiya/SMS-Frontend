@@ -26,7 +26,6 @@ const resourceTypes = [
   { value: "Link", label: "Link", icon: Link, color: "green" },
 ];
 
-// Custom Select Component with Icons
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -147,10 +146,7 @@ export default function ChapterResourceForm({
   const onSubmit = async (data: CreateChapterResourceFormValues) => {
     try {
       setIsSubmitting(true);
-      ``;
-      // TODO: Replace with actual API call
 
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       showToast.success("Resource uploaded successfully!");
@@ -170,7 +166,6 @@ export default function ChapterResourceForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
-        {/* Chapter Info */}
         <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
           <h3 className="text-sm font-semibold text-[var(--text)] mb-2">
             Chapter Information
@@ -201,7 +196,6 @@ export default function ChapterResourceForm({
           </div>
         </div>
 
-        {/* Resource Title */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Resource Title
@@ -244,7 +238,6 @@ export default function ChapterResourceForm({
           />
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Description
@@ -266,7 +259,6 @@ export default function ChapterResourceForm({
           )}
         </div>
 
-        {/* File URL - Only show for Link type */}
         {selectedResourceType === "Link" && (
           <div>
             <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">

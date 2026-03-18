@@ -1,6 +1,5 @@
 import { Class } from "@/lib/types/Resources";
 
-// API Response Data Integration
 const apiResponse = {
   statusCode: 200,
   message: "Success",
@@ -40,7 +39,6 @@ const apiResponse = {
   Total_Records: 1,
 };
 
-// Transform API data to match existing Class interface
 export const resourcesData: Class[] = [
   {
     id: apiResponse.data[0].classId,
@@ -63,13 +61,13 @@ export const resourcesData: Class[] = [
         resources: chapter.resources.map(resource => ({
           title: resource.title,
           type: resource.resourceType as "PDF" | "Video" | "Notes" | "Link",
-          size: "Unknown", // API doesn't provide size
+          size: "Unknown",
           icon:
             resource.resourceType === "PDF"
-              ? "📄"
+              ? "V"
               : resource.resourceType === "Video"
-                ? "🎬"
-                : "📝",
+                ? "V"
+                : "V",
           bg:
             resource.resourceType === "PDF"
               ? "rose"
@@ -80,7 +78,7 @@ export const resourcesData: Class[] = [
       })),
     })),
   },
-  // Keep existing mock data for other classes...
+
   {
     id: "c1",
     code: "10-A",

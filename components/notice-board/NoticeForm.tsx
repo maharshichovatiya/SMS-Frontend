@@ -37,7 +37,6 @@ const priorityLevels = [
   { value: "low", label: "Low", icon: CheckCircle },
 ];
 
-// Custom Select Component with Icons
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -143,9 +142,6 @@ export default function NoticeForm({
     try {
       setIsSubmitting(true);
 
-      // TODO: Replace with actual API call
-
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       showToast.success("Notice created successfully!");
@@ -176,7 +172,6 @@ export default function NoticeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
-        {/* Notice Type */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Notice Type

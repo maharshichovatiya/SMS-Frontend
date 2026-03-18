@@ -91,8 +91,6 @@ function Page() {
   };
 
   const handleNoticeCreated = () => {
-    // TODO: Refresh notices list or add new notice to the list
-    // For now, just close the modal
     setIsModalOpen(false);
   };
 
@@ -124,7 +122,6 @@ function Page() {
         ))}
       </div>
 
-      {/* Notice Creation Modal */}
       <NoticeFormModal
         isOpen={isModalOpen}
         onClose={handleModalClose}

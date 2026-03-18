@@ -24,13 +24,6 @@ function Page() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
 
-  // Initialize with active class
-  // const activeClass = resourcesData.find(c => c.code === "10-A");
-  // if (activeClass && currentView === "classes" && !selectedClass) {
-  //   setSelectedClass(activeClass);
-  //   setCurrentView("subjects");
-  // }
-
   const handleBackToClasses = () => {
     setCurrentView("classes");
     setSelectedClass(null);
@@ -58,9 +51,7 @@ function Page() {
   };
 
   const handleUploadResource = () => {
-    // Allow upload at any level with current context
     if (currentView === "classes" && selectedClass) {
-      // Upload at class level - select first subject and chapter
       const firstSubject = selectedClass.subjects[0];
       const firstChapter = firstSubject?.chapters[0];
       if (firstSubject && firstChapter) {
@@ -69,7 +60,6 @@ function Page() {
         setIsModalOpen(true);
       }
     } else if (currentView === "subjects" && selectedSubject) {
-      // Upload at subject level - select first chapter
       const firstChapter = selectedSubject.chapters[0];
       if (firstChapter) {
         setSelectedChapter(firstChapter);
@@ -80,10 +70,8 @@ function Page() {
       selectedSubject &&
       selectedChapter
     ) {
-      // Upload at chapter level - use current selection
       setIsModalOpen(true);
     } else {
-      // Show dropdowns to select class, subject, and chapter
       setIsModalOpen(true);
     }
   };
@@ -249,13 +237,10 @@ function Page() {
 
       {renderContent()}
 
-      {/* Chapter Resource Upload Modal */}
       <ChapterResourceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmitSuccess={() => {
-          // TODO: Refresh resources list after upload
-        }}
+        onSubmitSuccess={() => {}}
         chapterId={selectedChapter?.id}
         chapterName={selectedChapter?.name}
         subjectName={selectedSubject?.name}
