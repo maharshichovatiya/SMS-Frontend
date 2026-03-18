@@ -119,6 +119,63 @@ export interface StudentHomeworkListResponse {
   };
 }
 
+export interface StudentSubmissionAttachment {
+  id: string;
+  homeworkId: string;
+  submissionId: string | null;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentHomeworkSubmission {
+  id: string;
+  homeworkId: string;
+  studentId: string;
+  submittedAt: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  grade?: string;
+  feedback?: string;
+  status: "submitted" | "graded" | "pending";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentSubmissionItem {
+  id: string;
+  title: string;
+  description: string;
+  subjectId: string;
+  chapterId: string | null;
+  classno: string | null;
+  assignedDate: string;
+  dueDate: string;
+  status: string;
+  schoolId: string;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  subject: Subject;
+  chapter: Chapter | null;
+  attachments: StudentSubmissionAttachment[];
+  submission: StudentHomeworkSubmission | null; // Will be null if not submitted
+}
+
+export interface StudentSubmissionResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    success: boolean;
+    data: StudentSubmissionItem[];
+    message: string;
+  };
+}
+
 export interface Subject {
   id: string;
   schoolId: string;

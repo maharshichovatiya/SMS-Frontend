@@ -1,28 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
-import { StudentListModal } from "@/components/homework/StudentListModal";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
-import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
-import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
-import { StudentSubmissionTable } from "@/components/homework/StudentSubmissionTable";
 import { StudentSubmissionModal } from "@/components/homework/StudentSubmissionModal";
-import {
-  fetchAllHomework,
-  fetchStudentHomework,
-  createNewHomework,
-} from "@/lib/store/HomeworkSlice";
-import { homeworkApis } from "@/lib/api/Homework";
-import { RootState, AppDispatch } from "@/lib/store/Index";
-import { Subject } from "@/lib/types/SubjectTypes";
-import { subjectApis } from "@/lib/api/Subject";
-import { StudentHomework } from "@/lib/types/Homework";
-import api from "@/lib/Axios";
-import { BookOpen } from "lucide-react";
-import { getClassSummary } from "@/lib/api/Classes";
+import { StudentSubmissionTable } from "@/components/homework/StudentSubmissionTable";
 import PageHeader from "@/components/layout/PageHeader";
+import {
+  fetchStudentHomework,
+  fetchStudentSubmissions,
+} from "@/lib/store/HomeworkSlice";
+import { AppDispatch, RootState } from "@/lib/store/Index";
+import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
+import { BookOpen } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 interface StudentSubmission {
   id: string;
@@ -39,122 +30,6 @@ interface StudentSubmission {
   teacher: string;
   description: string;
   className: string;
-}
-
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  className: string;
-  section: string;
-  status: "submitted" | "pending" | "overdue" | "graded";
-  submittedDate?: string;
-  grade?: number;
-  feedback?: string;
-}
-
-interface StudentData {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  rollNo?: string;
-  admissionNo?: string;
-  classId: string;
-  className: string;
-  section: string;
-}
-
-interface ClassItem {
-  id: string;
-  name: string;
-  className: string;
-  section: string;
-  studentCapacity: number;
-}
-
-interface ApiClassItem {
-  id: string;
-  className: string;
-  section: string;
-}
-
-interface ApiStudentItem {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  rollNo?: string;
-  admissionNo?: string;
-}
-
-interface ApiClassData {
-  classId: string;
-  className: string;
-  section: string;
-  students: ApiStudentItem[];
-}
-
-interface HomeworkAssignmentClass {
-  className: string;
-  section: string;
-  classStudents?: Array<{
-    student?: {
-      id: string;
-      user: { firstName: string; lastName: string; email: string };
-      status: string;
-    };
-  }>;
-}
-
-interface HomeworkAssignment {
-  class?: HomeworkAssignmentClass;
-  student?: {
-    id: string;
-    user: { firstName: string; lastName: string; email: string };
-    status: string;
-  };
-}
-
-interface HomeworkOriginalData {
-  assignments?: HomeworkAssignment[];
-}
-
-interface HomeworkForAssignment {
-  id: string;
-  title: string;
-  originalData?: HomeworkOriginalData;
-}
-
-interface HomeworkListItem {
-  id: string;
-  title: string;
-  subject: string | { subjectName: string };
-  dueDate: string;
-  submittedCount?: number;
-  totalAssignedTo?: number;
-  description?: string;
-}
-
-interface HomeworkListResponse {
-  homework?: HomeworkListItem[];
-  data?: { homework?: Array<{ id: string }> };
-}
-
-interface CreateHomeworkData {
-  title: string;
-  subject: string;
-  dueDate: string;
-  description?: string;
-  instructions?: string;
-  assignedTo: string;
-  selectedClass?: string;
-  selectedClasses?: string[];
-  selectedStudents?: string[];
-  allowLateSubmission?: boolean;
-  maxFileSize?: number;
-  attachments?: (string | File)[];
 }
 
 interface TransformedHomework {
@@ -177,428 +52,70 @@ export default function HomeworkPage() {
   const homeworkList = useSelector(
     (state: RootState) => state.homework.studentHomeworkList,
   );
+  const submissionsList = useSelector(
+    (state: RootState) => state.homework.studentSubmissions,
+  );
   const loading = useSelector((state: RootState) => state.homework.loading);
   const error = useSelector((state: RootState) => state.homework.error);
-  const createLoading = useSelector(
-    (state: RootState) => state.homework.createLoading,
-  );
-  const createError = useSelector(
-    (state: RootState) => state.homework.createError,
-  );
 
   const [selectedHomework, setSelectedHomework] =
     useState<StudentHomework | null>(null);
   const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
     useState<StudentHomework | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
-  const [, setHomeworkStudentsLoading] = useState(false);
-  const [isTeacher] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingHomework, setEditingHomework] =
-    useState<TransformedHomework | null>(null);
-  const [showStudentAssignment, setShowStudentAssignment] = useState(false);
-  const [selectedHomeworkForStudents, setSelectedHomeworkForStudents] =
-    useState<HomeworkForAssignment | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [, setSubjectsLoading] = useState(false);
-  const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [, setClassesLoading] = useState(false);
-  const [students, setStudents] = useState<StudentData[]>([]);
-  const [, setStudentsLoading] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
-  const [showClassStudents, setShowClassStudents] = useState(false);
-  const [studentSubmissions, setStudentSubmissions] = useState<
-    StudentSubmission[]
-  >([]);
   const [selectedSubmission, setSelectedSubmission] =
     useState<StudentSubmission | null>(null);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
 
   useEffect(() => {
     dispatch(fetchStudentHomework());
-
-    // Mock student submissions data
-    const mockSubmissions: StudentSubmission[] = [
-      {
-        id: "1",
-        title: "Quadratic Equations",
-        subject: "Mathematics",
-        dueDate: "2026-03-15",
-        status: "submitted",
-        submittedAt: "Mar 14, 2026",
-        file: "quadratic_equations.pdf",
-        fileSize: "2.4 MB",
-        teacher: "Bhagya Patel",
-        description: "Solve all quadratic equations using the formula method",
-        className: "10-A",
-      },
-      {
-        id: "2",
-        title: "Climate Change Essay",
-        subject: "English",
-        dueDate: "2026-03-18",
-        status: "pending",
-        teacher: "Sarah Johnson",
-        description: "Write a 500-word essay on climate change and its effects",
-        className: "10-A",
-      },
-      {
-        id: "3",
-        title: "Chemical Reactions Lab",
-        subject: "Science",
-        dueDate: "2026-03-10",
-        status: "graded",
-        submittedAt: "Mar 9, 2026",
-        file: "lab_report.pdf",
-        fileSize: "1.8 MB",
-        grade: "A+",
-        feedback:
-          "Excellent work! Your analysis of the chemical reactions was thorough and well-documented.",
-        teacher: "Dr. Smith",
-        description: "Complete the lab report on chemical reactions experiment",
-        className: "10-A",
-      },
-    ];
-
-    setTimeout(() => setStudentSubmissions(mockSubmissions), 0);
-
-    const fetchSubjects = async () => {
-      setTimeout(() => setSubjectsLoading(true), 0);
-      try {
-        const subjectsData = await subjectApis.getAll();
-        let subjectsArray: Subject[] = [];
-        if (Array.isArray(subjectsData)) {
-          subjectsArray = subjectsData as Subject[];
-        } else if (
-          subjectsData &&
-          typeof subjectsData === "object" &&
-          "data" in subjectsData &&
-          Array.isArray((subjectsData as { data: unknown }).data)
-        ) {
-          subjectsArray = (subjectsData as { data: Subject[] }).data;
-        } else if (
-          subjectsData &&
-          typeof subjectsData === "object" &&
-          "subjects" in subjectsData &&
-          Array.isArray((subjectsData as { subjects: unknown }).subjects)
-        ) {
-          subjectsArray = (subjectsData as { subjects: Subject[] }).subjects;
-        }
-
-        setSubjects(subjectsArray);
-      } catch {
-        setSubjects([]);
-      }
-      setSubjectsLoading(false);
-    };
-
-    const fetchClasses = async () => {
-      const response = await getClassSummary();
-
-      if (response.success && response.data) {
-        const extractedClasses = (response.data as ApiClassItem[]).map(
-          classItem => ({
-            id: classItem.id,
-            name: `${classItem.className} - ${classItem.section}`,
-            className: classItem.className,
-            section: classItem.section,
-            studentCapacity: 0,
-          }),
-        );
-        setClasses(extractedClasses);
-      } else {
-        setClasses([]);
-      }
-      setClassesLoading(false);
-    };
-
-    const fetchStudents = async () => {
-      setTimeout(() => setStudentsLoading(true), 0);
-      const response = await api.get("/dashboard/students/classteacher");
-
-      if (response.data && response.data.data) {
-        const studentsData = response.data.data;
-        const extractedStudents: StudentData[] = [];
-
-        if (studentsData.classes && Array.isArray(studentsData.classes)) {
-          (studentsData.classes as ApiClassData[]).forEach(
-            (classData: ApiClassData) => {
-              if (classData.students && Array.isArray(classData.students)) {
-                classData.students.forEach((student: ApiStudentItem) => {
-                  extractedStudents.push({
-                    id: student.id,
-                    name: `${student.firstName} ${student.lastName}`,
-                    classId: classData.classId,
-                    email: student.email,
-                    phone: student.phone,
-                    rollNo: student.rollNo,
-                    admissionNo: student.admissionNo,
-                    className: classData.className,
-                    section: classData.section,
-                  });
-                });
-              }
-            },
-          );
-        }
-
-        setStudents(extractedStudents);
-      } else {
-        setStudents([]);
-      }
-      setStudentsLoading(false);
-    };
-
-    fetchSubjects();
-    fetchClasses();
-    fetchStudents();
+    dispatch(fetchStudentSubmissions());
   }, [dispatch]);
 
-  const handleDeleteHomework = async (homeworkId: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this homework? This action cannot be undone.",
-      )
-    ) {
-      const response = await homeworkApis.delete(homeworkId);
-      if (response) {
-        dispatch(
-          fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
-        );
-      }
-    }
+  // Transform API data to match StudentSubmission interface
+  const transformSubmissionData = (
+    item: StudentSubmissionItem,
+  ): StudentSubmission => {
+    const isSubmitted = item.submission !== null;
+    const isGraded = isSubmitted && item.submission?.grade !== null;
+
+    return {
+      id: item.id,
+      title: item.title,
+      subject: item.subject.subjectName,
+      dueDate: item.dueDate,
+      status: isGraded ? "graded" : isSubmitted ? "submitted" : "pending",
+      submittedAt: isSubmitted ? item.submission?.submittedAt : undefined,
+      file: isSubmitted ? item.submission?.fileUrl : undefined,
+      fileSize: isSubmitted ? item.submission?.fileSize : undefined,
+      grade: isGraded ? item.submission?.grade : undefined,
+      feedback: isGraded ? item.submission?.feedback : undefined,
+      teacher: "Teacher", // Will be updated when teacher info is available
+      description: item.description,
+      className: item.classno || "Not Assigned",
+    };
   };
+
+  // Use real submissions data when available
+  const transformedSubmissions: StudentSubmission[] = submissionsList?.data
+    ? submissionsList.data.map(transformSubmissionData)
+    : [];
 
   const handleViewDetails = async (homeworkId: string) => {
     setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
-    const homeworkData = (
-      homeworkList as unknown as HomeworkListResponse
-    )?.homework?.find(hw => hw.id === homeworkId);
+    const homeworkData = homeworkList?.homework?.find(
+      hw => hw.id === homeworkId,
+    );
 
     if (homeworkData) {
       setSelectedHomeworkDetail(homeworkData);
     } else {
-      const fallbackData = (
-        homeworkList as unknown as HomeworkListResponse
-      )?.data?.homework?.find((hw: { id: string }) => hw.id === homeworkId);
-
-      if (fallbackData) {
-        setSelectedHomeworkDetail(fallbackData as unknown as HomeworkListItem);
-        setSelectedHomework(fallbackData as unknown as HomeworkListItem);
-      } else {
-        setSelectedHomeworkDetail(null);
-        setSelectedHomework(null);
-      }
+      setSelectedHomeworkDetail(null);
+      setSelectedHomework(null);
     }
     setDetailLoading(false);
-  };
-
-  const handleStudentAssignment = (homework: HomeworkForAssignment) => {
-    setSelectedHomeworkForStudents(homework);
-    setShowStudentAssignment(true);
-    setHomeworkStudentsLoading(true);
-    setHomeworkStudents([]);
-
-    const homeworkData = (homeworkList as unknown as HomeworkListResponse)
-      ?.homework;
-    const currentHomework = homeworkData?.find(
-      (hw: { id: string }) => hw.id === homework.id,
-    );
-    const studentsFromAssignments: Student[] = [];
-
-    if (
-      currentHomework &&
-      "assignments" in currentHomework &&
-      Array.isArray(currentHomework.assignments)
-    ) {
-      (currentHomework.assignments as HomeworkAssignment[]).forEach(
-        (assignment: HomeworkAssignment) => {
-          if (assignment.class && assignment.class.classStudents) {
-            assignment.class.classStudents.forEach(
-              (classStudent: {
-                student?: {
-                  id: string;
-                  user: { firstName: string; lastName: string; email: string };
-                  status: string;
-                };
-              }) => {
-                if (
-                  classStudent.student &&
-                  classStudent.student.status === "active"
-                ) {
-                  studentsFromAssignments.push({
-                    id: classStudent.student.id,
-                    name: `${classStudent.student.user.firstName} ${classStudent.student.user.lastName}`,
-                    email: classStudent.student.user.email,
-                    className: assignment.class?.className || "",
-                    section: assignment.class?.section || "",
-                    status: "pending",
-                    submittedDate: undefined,
-                    grade: undefined,
-                    feedback: undefined,
-                  });
-                }
-              },
-            );
-          }
-
-          if (assignment.student && assignment.student.user) {
-            const student = assignment.student;
-            studentsFromAssignments.push({
-              id: student.id,
-              name: `${student.user.firstName} ${student.user.lastName}`,
-              email: student.user.email,
-              className: "Individual Assignment",
-              section: "",
-              status: student.status === "submitted" ? "submitted" : "pending",
-            });
-          }
-        },
-      );
-    }
-
-    setHomeworkStudents(studentsFromAssignments);
-    setHomeworkStudentsLoading(false);
-  };
-
-  const handleClassClick = async (classId: string) => {
-    const response = await api.get(`/dashboard/classes/${classId}/students`);
-
-    if (response.data && response.data.students) {
-      const classStudents = response.data.students.map(
-        (student: {
-          id: string;
-          user: { firstName: string; lastName: string; email: string };
-          admissionNo: string;
-          className: string;
-          section: string;
-        }) => ({
-          id: student.id,
-          user: student.user,
-          admissionNo: student.admissionNo,
-          email: student.user.email,
-          className: student.className,
-          section: student.section,
-        }),
-      );
-
-      setSelectedClass(
-        classStudents.length > 0
-          ? {
-              id: classId,
-              name: classStudents[0].className,
-              className: classStudents[0].className,
-              section: classStudents[0].section,
-              studentCapacity: 0,
-            }
-          : null,
-      );
-
-      setShowClassStudents(true);
-    } else {
-      setSelectedClass(null);
-    }
-  };
-
-  const handleEditHomework = async (data: CreateHomeworkData) => {
-    if (!editingHomework?.id) {
-      throw new Error("Homework ID is required for editing");
-    }
-
-    try {
-      const apiData = {
-        title: data.title,
-        description: data.description,
-        dueDate: new Date(data.dueDate).toISOString(),
-      };
-
-      const newAttachments = (data.attachments || []).filter(
-        (file): file is File => file instanceof File,
-      );
-
-      if (newAttachments.length > 0) {
-        const formData = new FormData();
-        formData.append("title", apiData.title);
-        if (apiData.description) {
-          formData.append("description", apiData.description);
-        }
-        formData.append("dueDate", apiData.dueDate);
-
-        newAttachments.forEach((file: File) => {
-          formData.append("attachments", file);
-        });
-
-        await api.patch(`/homework/${editingHomework.id}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      } else {
-        await homeworkApis.update(editingHomework.id, apiData);
-      }
-
-      setShowCreateForm(false);
-      setEditingHomework(null);
-      dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
-    } catch (error) {
-      throw new Error(
-        error instanceof Error ? error.message : "Failed to update homework",
-      );
-    }
-  };
-
-  const handleCreateHomework = async (data: CreateHomeworkData) => {
-    const subject = subjects.find((s: Subject) => s.id === data.subject);
-    if (!subject) return;
-
-    let assignToClasses: Array<{ classId: string }> = [];
-    let assignToStudents: Array<{ studentId: string }> = [];
-
-    if (data.assignedTo === "singleClass" && data.selectedClass) {
-      assignToClasses = [{ classId: data.selectedClass }];
-    }
-    if (data.selectedClasses && data.selectedClasses.length > 0) {
-      assignToClasses = data.selectedClasses.map(classId => ({ classId }));
-    }
-    if (data.assignedTo === "allClasses") {
-      assignToClasses = classes.map((cls: ClassItem) => ({ classId: cls.id }));
-    }
-    if (data.selectedStudents && data.selectedStudents.length > 0) {
-      assignToStudents = data.selectedStudents.map(studentId => ({
-        studentId,
-      }));
-    }
-
-    const apiData = {
-      title: data.title,
-      subject: subject.id,
-      assignedDate: new Date().toISOString(),
-      dueDate: new Date(data.dueDate).toISOString(),
-      description: data.description,
-      assignToClasses,
-      assignToStudents,
-      allowLateSubmission: data.allowLateSubmission,
-      maxFileSize: data.maxFileSize,
-      attachments: (data.attachments || []).filter(
-        (file): file is File => file instanceof File,
-      ),
-    };
-
-    const result = dispatch(
-      createNewHomework(apiData) as unknown as Parameters<typeof dispatch>[0],
-    );
-
-    if (createNewHomework.rejected.match(result)) {
-      throw new Error(
-        (result.payload as string) || "Failed to create homework",
-      );
-    }
-
-    setShowCreateForm(false);
-    dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
   };
 
   // Student submission handlers
@@ -612,34 +129,20 @@ export default function HomeworkPage() {
     setShowSubmissionModal(true);
   };
 
-  const handleSubmissionSubmit = async (data: {
+  const handleSubmissionSubmit = async (_data: {
     file: File;
     notes: string;
   }) => {
-    if (!selectedSubmission) return;
-
-    // Simulate API call
-    // TODO: Replace with actual API call
-
-    // Update submission status in local state
-    setStudentSubmissions(prev =>
-      prev.map(sub =>
-        sub.id === selectedSubmission.id
-          ? {
-              ...sub,
-              status: "submitted",
-              submittedAt: new Date().toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              }),
-              file: data.file.name,
-              fileSize: `${(data.file.size / (1024 * 1024)).toFixed(1)} MB`,
-              notes: data.notes,
-            }
-          : sub,
-      ),
-    );
+    // if (!selectedSubmission) return;
+    // console.log(selectedSubmission?.id, data);
+    // TODO: Implement actual API call for submission
+    // This would be a POST request to submit homework
+    // await homeworkApis.submitHomework(selectedSubmission.id, data);
+    // For now, just refresh the data to show updated status
+    // dispatch(fetchStudentSubmissions());
+    // Close modal
+    // setShowSubmissionModal(false);
+    // setSelectedSubmission(null);
   };
 
   const transformedHomeworkList: TransformedHomework[] =
@@ -676,11 +179,7 @@ export default function HomeworkPage() {
         <div className="text-center">
           <div className="text-red-600 mb-4">Error: {error}</div>
           <button
-            onClick={() =>
-              dispatch(
-                fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
-              )
-            }
+            onClick={() => dispatch(fetchStudentHomework())}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Retry
@@ -695,13 +194,11 @@ export default function HomeworkPage() {
   return (
     <div>
       <PageHeader
-        title="Homework Management"
-        description="Track assignments and manage student submissions"
+        title="My Homework"
+        description="View and manage your homework assignments"
         icon={BookOpen}
         iconBgColor="--blue-light"
         iconColor="--blue"
-        buttonText="Create Homework"
-        onButtonClick={() => setShowCreateForm(true)}
       />
 
       <div
@@ -741,17 +238,12 @@ export default function HomeworkPage() {
               status={hw.status}
               description={hw.description}
               chapterName={hw.chapterName}
-              isModalOpen={
-                !!(selectedHomework || showStudentAssignment || showCreateForm)
-              }
+              isModalOpen={!!selectedHomework}
               onViewDetails={() => handleViewDetails(hw.id)}
-              onEdit={() => {
-                setEditingHomework(hw);
-                setShowCreateForm(true);
-              }}
-              onDelete={() => handleDeleteHomework(hw.id)}
-              onStudentAssignment={() => handleStudentAssignment(hw)}
-              onClassClick={handleClassClick}
+              onEdit={() => {}} // No editing for students
+              onDelete={() => {}} // No deletion for students
+              onStudentAssignment={() => {}} // No assignment for students
+              onClassClick={() => {}} // No class management for students
             />
           </div>
         ))}
@@ -760,7 +252,7 @@ export default function HomeworkPage() {
       {/* Student Submissions Table */}
       <div className="mt-8">
         <StudentSubmissionTable
-          submissions={studentSubmissions}
+          submissions={transformedSubmissions}
           onViewSubmission={handleViewSubmission}
           onSubmitHomework={handleSubmitHomework}
         />
@@ -792,46 +284,9 @@ export default function HomeworkPage() {
                 setSelectedHomeworkDetail(null);
               }}
               homework={selectedHomeworkDetail}
-              onClassClick={handleClassClick}
+              onClassClick={() => {}}
             />
           )}
-        </>
-      )}
-
-      {showStudentAssignment && selectedHomeworkForStudents && (
-        <StudentListModal
-          isOpen={showStudentAssignment}
-          onClose={() => setShowStudentAssignment(false)}
-          homeworkTitle={selectedHomeworkForStudents?.title || "Homework"}
-          students={homeworkStudents}
-        />
-      )}
-
-      {showClassStudents && selectedClass && (
-        <ClassStudentsModal
-          isOpen={showClassStudents}
-          onClose={() => setShowClassStudents(false)}
-          classInfo={selectedClass}
-        />
-      )}
-
-      {showCreateForm && (
-        <>
-          <CreateHomeworkForm
-            onClose={() => {
-              setShowCreateForm(false);
-              setEditingHomework(null);
-            }}
-            onSubmit={
-              editingHomework ? handleEditHomework : handleCreateHomework
-            }
-            subjects={subjects || []}
-            classes={classes}
-            students={students}
-            loading={createLoading}
-            error={createError}
-            editingHomework={null}
-          />
         </>
       )}
 

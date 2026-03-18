@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Upload,
   Calendar,
@@ -12,6 +14,10 @@ import {
   Paperclip,
 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
+import {
+  homeworkSubmissionSchema,
+  HomeworkSubmissionFormData,
+} from "@/lib/validations/homeworkSubmission";
 
 interface StudentSubmission {
   id: string;
@@ -43,12 +49,33 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
   submission,
   onSubmit,
 }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mock student ID - in real app, get from auth context
+  const mockStudentId = "student-123";
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { isSubmitting },
+  } = useForm({
+    resolver: zodResolver(homeworkSubmissionSchema),
+    defaultValues: {
+      homeworkId: submission?.id || "",
+      studentId: mockStudentId,
+      attachments: [],
+      attachmentDate: new Date().toISOString(),
+      notes: "",
+    },
+  });
+
+  const selectedFiles = watch("attachments");
 
   const getDaysRemaining = (dueDate: string) => {
     const due = new Date(dueDate);
@@ -98,12 +125,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
   };
 
   const handleFileSelect = (file: File) => {
-    const maxSize = 25 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert("File size exceeds 25MB limit");
-      return;
-    }
-
+    // Validate file type
     const allowedTypes = [
       "application/pdf",
       "application/msword",
@@ -121,7 +143,8 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
       return;
     }
 
-    setSelectedFile(file);
+    // Update form state
+    setValue("attachments", [file]);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -144,8 +167,8 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
     setIsDragging(false);
   };
 
-  const handleSubmit = async () => {
-    if (!selectedFile || !submission) return;
+  const handleFormSubmit = async (data: HomeworkSubmissionFormData) => {
+    if (!submission) return;
 
     setUploading(true);
     setUploadProgress(0);
@@ -161,16 +184,16 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
     }, 200);
 
     try {
-      await onSubmit({ file: selectedFile, notes });
+      // Call the onSubmit prop with the file data
+      await onSubmit({ file: data.attachments[0], notes: data.notes || "" });
       setUploadProgress(100);
 
       setTimeout(() => {
         setUploading(false);
         onClose();
-        setSelectedFile(null);
-        setNotes("");
+        reset(); // Reset form state
       }, 500);
-    } catch (error) {
+    } catch (_error) {
       setUploading(false);
       alert("Failed to submit homework. Please try again.");
     }
@@ -208,6 +231,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
             ? "Submitted"
             : "Graded"
       }`}
+      className="max-w-2xl"
       footer={
         <div className="flex gap-3 w-full">
           {isPending ? (
@@ -219,8 +243,8 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
-                disabled={!selectedFile || uploading}
+                onClick={handleSubmit(handleFormSubmit)}
+                disabled={selectedFiles.length === 0 || uploading}
                 className="flex-1 px-4 py-2 bg-[var(--blue)] text-white rounded-lg hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {uploading && (
@@ -356,7 +380,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
               </div>
             </div>
 
-            {selectedFile && (
+            {selectedFiles.length > 0 && (
               <div>
                 <div className="flex items-center justify-between p-4 bg-[var(--surface-2)] rounded-lg border border-[var(--border)]">
                   <div className="flex items-center gap-3">
@@ -365,15 +389,15 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                     </div>
                     <div>
                       <div className="font-medium text-[var(--text)]">
-                        {selectedFile.name}
+                        {selectedFiles[0].name}
                       </div>
                       <div className="text-sm text-[var(--text-2)]">
-                        {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                        {(selectedFiles[0].size / (1024 * 1024)).toFixed(1)} MB
                       </div>
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedFile(null)}
+                    onClick={() => setValue("attachments", [])}
                     className="p-2 text-[var(--rose)] hover:bg-[var(--rose-light)] rounded-lg transition-colors"
                   >
                     <AlertTriangle className="w-4 h-4" />
@@ -409,8 +433,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 </span>
               </div>
               <textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
+                {...register("notes")}
                 placeholder="E.g. I used an alternative method for question 3, referred to NCERT solutions for graphs..."
                 className="w-full px-4 py-3 border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--blue)] resize-none bg-[var(--surface)]"
                 rows={4}

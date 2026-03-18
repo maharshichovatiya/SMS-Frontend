@@ -131,4 +131,33 @@ export const homeworkApis = {
     );
     return res.data;
   },
+
+  getStudentSubmissions: async () => {
+    const res = await api.get("/homework-submissions/student");
+    return res.data;
+  },
+
+  submitHomework: async (data: {
+    homeworkId: string;
+    studentId: string;
+    attachments: File[];
+    attachmentDate: string;
+  }) => {
+    const formData = new FormData();
+    formData.append("homeworkId", data.homeworkId);
+    formData.append("studentId", data.studentId);
+    formData.append("attachmentDate", data.attachmentDate);
+
+    // Append each file to FormData
+    data.attachments.forEach((file, _index) => {
+      formData.append(`attachments`, file);
+    });
+
+    const res = await api.post("/homework-submissions", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  },
 };
