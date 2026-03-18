@@ -137,7 +137,6 @@ export default function HomeworkPage() {
   const handleSubmissionSubmit = async (data: { file: File }) => {
     if (!selectedSubmission) return;
 
-    // Call submit POST API for new submission
     const result = await dispatch(
       submitStudentHomework({
         homeworkId: selectedSubmission.id,
@@ -145,7 +144,6 @@ export default function HomeworkPage() {
       }),
     );
 
-    // Re-fetch submissions after successful submit so the table updates
     if (submitStudentHomework.fulfilled.match(result)) {
       dispatch(fetchStudentSubmissions());
     }
@@ -223,7 +221,7 @@ export default function HomeworkPage() {
       </div>
 
       <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
+        className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
         {transformedHomeworkList.map(hw => (
@@ -245,11 +243,12 @@ export default function HomeworkPage() {
               description={hw.description}
               chapterName={hw.chapterName}
               isModalOpen={!!selectedHomework}
+              showActions={false}
               onViewDetails={() => handleViewDetails(hw.id)}
-              onEdit={() => {}} // No editing for students
-              onDelete={() => {}} // No deletion for students
-              onStudentAssignment={() => {}} // No assignment for students
-              onClassClick={() => {}} // No class management for students
+              onEdit={() => {}}
+              onDelete={() => {}}
+              onStudentAssignment={() => {}}
+              onClassClick={() => {}}
             />
           </div>
         ))}

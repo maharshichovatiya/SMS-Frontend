@@ -3,6 +3,8 @@ import PageHeader from "@/components/layout/PageHeader";
 import { resourcesApis } from "@/lib/api/Resources";
 import { Class, Subject, Chapter } from "@/lib/types/Resources";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import Breadcrumb from "@/components/resources/Breadcrumb";
 import ClassCard from "@/components/resources/ClassCard";
@@ -24,6 +26,8 @@ function Page() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [resourcesData, setResourcesData] = useState<Class[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const userRole = useSelector((state: RootState) => state.auth.role);
+  const isStudent = userRole === "student";
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -233,14 +237,16 @@ function Page() {
         icon={FolderOpen}
         iconBgColor="lightcyan"
         iconColor="cyan"
-        buttonText="Upload Resource"
-        onButtonClick={handleUploadResource}
-        buttonIcon={Plus}
-        buttonDisabled={
-          (currentView === "classes" && !selectedClass) ||
-          (currentView === "subjects" && !selectedSubject) ||
-          (currentView === "chapters" && (!selectedSubject || !selectedChapter))
-        }
+        {...(!isStudent && {
+          buttonText: "Upload Resource",
+          onButtonClick: handleUploadResource,
+          buttonIcon: Plus,
+          buttonDisabled:
+            (currentView === "classes" && !selectedClass) ||
+            (currentView === "subjects" && !selectedSubject) ||
+            (currentView === "chapters" &&
+              (!selectedSubject || !selectedChapter)),
+        })}
       />
 
       <Breadcrumb
@@ -267,14 +273,19 @@ function Page() {
 
       {renderContent()}
 
-      <ChapterResourceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmitSuccess={() => {}}
-        chapterId={selectedChapter?.id}
-        chapterName={selectedChapter?.name}
-        subjectName={selectedSubject?.name}
-      />
+      {/* Chapter Resource Upload Modal - only for admin/teacher */}
+      {!isStudent && (
+        <ChapterResourceModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmitSuccess={() => {
+            // TODO: Refresh resources list after upload
+          }}
+          chapterId={selectedChapter?.chapterId}
+          chapterName={selectedChapter?.chapterName}
+          subjectName={selectedSubject?.subjectName}
+        />
+      )}
     </div>
   );
 }

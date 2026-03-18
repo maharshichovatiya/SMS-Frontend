@@ -31,6 +31,7 @@ interface HomeworkCardClassicProps {
   onDelete: () => void;
   onStudentAssignment: () => void;
   onClassClick?: (classId: string) => void;
+  showActions?: boolean;
   assignments?: Array<{
     id: string;
     class?: {
@@ -78,6 +79,7 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   onDelete,
   onStudentAssignment,
   onClassClick,
+  showActions = true, // Default to true for backward compatibility
   assignments = [],
 }) => {
   const getStatusBadge = () => {
@@ -275,32 +277,36 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
             >
               <Eye className="w-4 h-4" />
             </button>
-            <button
-              onClick={onStudentAssignment}
-              className="p-3 text-purple-500 rounded-lg cursor-pointer"
-              title="View Students"
-            >
-              <Users className="w-4 h-4" />
-            </button>
+            {showActions && (
+              <button
+                onClick={onStudentAssignment}
+                className="p-3 text-purple-500 rounded-lg cursor-pointer"
+                title="View Students"
+              >
+                <Users className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="flex space-x-2">
-            <button
-              onClick={onEdit}
-              className="p-3 text-green-500 rounded-lg cursor-pointer"
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
+          {showActions && (
+            <div className="flex space-x-2">
+              <button
+                onClick={onEdit}
+                className="p-3 text-green-500 rounded-lg cursor-pointer"
+                title="Edit"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
 
-            <button
-              onClick={onDelete}
-              className="p-3 text-red-500 rounded-lg cursor-pointer"
-              title="Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+              <button
+                onClick={onDelete}
+                className="p-3 text-red-500 rounded-lg cursor-pointer"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

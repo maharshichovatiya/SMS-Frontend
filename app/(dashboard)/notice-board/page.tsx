@@ -1,6 +1,8 @@
 "use client";
 import PageHeader from "@/components/layout/PageHeader";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
 import { Megaphone, Plus } from "lucide-react";
 import NoticeCard from "@/components/notice-board/NoticeCard";
 import NoticeFilter from "@/components/notice-board/NoticeFilter";
@@ -68,6 +70,8 @@ function Page() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [notices, setNotices] = useState<Notice[]>(mockNotices);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const userRole = useSelector((state: RootState) => state.auth.role);
+  const isStudent = userRole === "student";
 
   const filteredNotices = notices.filter(notice => {
     const matchesFilter =
@@ -102,9 +106,11 @@ function Page() {
         icon={Megaphone}
         iconBgColor="--amber-light"
         iconColor="--amber"
-        buttonText="Post Notice"
-        onButtonClick={handlePostNotice}
-        buttonIcon={Plus}
+        {...(!isStudent && {
+          buttonText: "Post Notice",
+          onButtonClick: handlePostNotice,
+          buttonIcon: Plus,
+        })}
       />
 
       <div className="flex items-center justify-between gap-4 mt-6 px-4">
@@ -122,11 +128,14 @@ function Page() {
         ))}
       </div>
 
-      <NoticeFormModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSubmitSuccess={handleNoticeCreated}
-      />
+      {/* Notice Creation Modal - only for admin/teacher */}
+      {!isStudent && (
+        <NoticeFormModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSubmitSuccess={handleNoticeCreated}
+        />
+      )}
     </div>
   );
 }
