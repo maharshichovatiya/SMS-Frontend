@@ -41,7 +41,7 @@ export default function Breadcrumb({
         </button>
         <span className="text-xs text-[var(--text-3)] select-none">/</span>
         <span className="font-bold text-[var(--text)]">
-          {selectedClass?.code} - {selectedClass?.name}
+          {selectedClass?.className}
         </span>
       </div>
     );
@@ -62,11 +62,11 @@ export default function Breadcrumb({
         className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2"
       >
         <ArrowLeft className="w-4 h-4" />
-        {selectedClass?.code} - {selectedClass?.name}
+        {selectedClass?.className}
       </button>
       <span className="text-xs text-[var(--text-3)] select-none">/</span>
       <span className="font-bold text-[var(--text)]">
-        {selectedSubject?.name}
+        {selectedSubject?.subjectName}
       </span>
     </div>
   );

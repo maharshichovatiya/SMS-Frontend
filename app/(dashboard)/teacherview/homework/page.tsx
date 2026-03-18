@@ -123,14 +123,14 @@ interface HomeworkListResponse {
 
 interface CreateHomeworkData {
   title: string;
-  subject: string;
+  subjectId: string;
   dueDate: string;
   description?: string;
-  instructions?: string;
   chapterId?: string;
-  assignedTo: string;
+  assignedTo?: "singleClass" | "singleStudent" | "multipleStudents";
   selectedClass?: string;
   selectedClasses?: string[];
+  selectedGroup?: string;
   selectedStudents?: string[];
   allowLateSubmission?: boolean;
   maxFileSize?: number;
@@ -190,19 +190,19 @@ export default function HomeworkPage() {
         const subjectsData = await subjectApis.getAll();
         let subjectsArray: Subject[] = [];
         if (Array.isArray(subjectsData)) {
-          subjectsArray = subjectsData as Subject[];
+          subjectsArray = subjectsData;
         } else if (
           subjectsData &&
           typeof subjectsData === "object" &&
           "data" in subjectsData &&
-          Array.isArray((subjectsData as { data: unknown }).data)
+          Array.isArray((subjectsData as { data: Subject[] }).data)
         ) {
           subjectsArray = (subjectsData as { data: Subject[] }).data;
         } else if (
           subjectsData &&
           typeof subjectsData === "object" &&
           "subjects" in subjectsData &&
-          Array.isArray((subjectsData as { subjects: unknown }).subjects)
+          Array.isArray((subjectsData as { subjects: Subject[] }).subjects)
         ) {
           subjectsArray = (subjectsData as { subjects: Subject[] }).subjects;
         }
@@ -296,23 +296,25 @@ export default function HomeworkPage() {
     setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
-    const homeworkData = (
-      homeworkList as unknown as HomeworkListResponse
-    )?.homework?.find(hw => hw.id === homeworkId);
+    if (homeworkList && homeworkList.homework) {
+      const homeworkData = homeworkList.homework.find(
+        (hw: HomeworkListItem) => hw.id === homeworkId,
+      );
 
-    if (homeworkData) {
-      setSelectedHomeworkDetail(homeworkData);
-    } else {
-      const fallbackData = (
-        homeworkList as unknown as HomeworkListResponse
-      )?.data?.homework?.find((hw: { id: string }) => hw.id === homeworkId);
-
-      if (fallbackData) {
-        setSelectedHomeworkDetail(fallbackData as unknown as HomeworkListItem);
-        setSelectedHomework(fallbackData as unknown as HomeworkListItem);
+      if (homeworkData) {
+        setSelectedHomeworkDetail(homeworkData);
       } else {
-        setSelectedHomeworkDetail(null);
-        setSelectedHomework(null);
+        const fallbackData = homeworkList.homework?.find(
+          (hw: HomeworkListItem) => hw.id === homeworkId,
+        );
+
+        if (fallbackData) {
+          setSelectedHomeworkDetail(fallbackData);
+          setSelectedHomework(fallbackData);
+        } else {
+          setSelectedHomeworkDetail(null);
+          setSelectedHomework(null);
+        }
       }
     }
     setDetailLoading(false);
@@ -479,7 +481,7 @@ export default function HomeworkPage() {
   };
 
   const handleCreateHomework = async (data: CreateHomeworkData) => {
-    const subject = subjects.find((s: Subject) => s.id === data.subject);
+    const subject = subjects.find((s: Subject) => s.id === data.subjectId);
     if (!subject) return;
 
     let assignToClasses: Array<{ classId: string }> = [];
@@ -502,7 +504,7 @@ export default function HomeworkPage() {
 
     const apiData = {
       title: data.title,
-      subject: subject.id,
+      subjectId: subject.id,
       assignedDate: new Date().toISOString(),
       dueDate: new Date(data.dueDate).toISOString(),
       description: data.description,
@@ -720,9 +722,6 @@ export default function HomeworkPage() {
             onSubmit={
               editingHomework ? handleEditHomework : handleCreateHomework
             }
-            subjects={subjects || []}
-            classes={classes}
-            students={students}
             loading={createLoading}
             error={createError}
             editingHomework={null}

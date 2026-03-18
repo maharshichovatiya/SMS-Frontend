@@ -1,24 +1,27 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { subjectApis } from "@/lib/api/Subject";
 import { Chapter } from "@/lib/types/SubjectTypes";
+import {
+  fetchSubjectsForHomework,
+  fetchClassesForHomework,
+  fetchStudentsForHomework,
+  selectHomeworkFormSubjects,
+  selectHomeworkFormClasses,
+  selectHomeworkFormStudents,
+  selectHomeworkFormLoading,
+  selectHomeworkFormError,
+  ClassData,
+  StudentData,
+  SubjectData,
+} from "@/lib/store/HomeworkFormSlice";
+import { AppDispatch } from "@/lib/store/Index";
 
 interface CreateHomeworkFormProps {
   onClose: () => void;
   onSubmit: (homeworkData: HomeworkData) => void;
-  subjects?: Array<{ id: string; subjectName: string }>;
-  classes?: Array<{
-    id: string;
-    name: string;
-    className: string;
-  }>;
-  students?: Array<{
-    id: string;
-    name: string;
-    classId: string | null;
-    email: string;
-  }>;
   loading?: boolean;
   error?: string | null;
   editingHomework?: HomeworkData | null;
@@ -27,7 +30,7 @@ interface CreateHomeworkFormProps {
 interface HomeworkData {
   title: string;
   description: string;
-  subject: string;
+  subjectId: string;
   chapterId?: string;
   assignedTo: "singleClass" | "singleStudent" | "multipleStudents";
   selectedClass: string;
@@ -38,52 +41,27 @@ interface HomeworkData {
   attachments: (string | File)[];
 }
 
-const mockClasses = [
-  { id: "1", name: "Class 10-A" },
-  { id: "2", name: "Class 10-B" },
-  { id: "3", name: "Class 9-A" },
-  { id: "4", name: "Class 9-B" },
-  { id: "5", name: "Class 11-C" },
-];
-
-const mockGroups = [
-  { id: "1", name: "Science Group", classId: "1" },
-  { id: "2", name: "Math Group", classId: "1" },
-  { id: "3", name: "English Group", classId: "2" },
-  { id: "4", name: "Physics Group", classId: "3" },
-];
-
-const mockStudents = [
-  { id: "1", name: "Arjun Kumar", classId: "1", groupId: "1" },
-  { id: "2", name: "Priya Shah", classId: "1", groupId: "1" },
-  { id: "3", name: "Divya Mehta", classId: "1", groupId: "2" },
-  { id: "4", name: "Kavya Patel", classId: "2", groupId: "3" },
-  { id: "5", name: "Rohan Desai", classId: "2", groupId: "3" },
-  { id: "6", name: "Sneha Iyer", classId: "3", groupId: "4" },
-];
-
-const mockSubjects = [
-  { id: "1", subjectName: "Mathematics" },
-  { id: "2", subjectName: "Science" },
-  { id: "3", subjectName: "English" },
-  { id: "4", subjectName: "Physics" },
-  { id: "5", subjectName: "Chemistry" },
-  { id: "6", subjectName: "Biology" },
-  { id: "7", subjectName: "Computer Science" },
-  { id: "8", subjectName: "History" },
-  { id: "9", subjectName: "Geography" },
-];
-
 export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   onClose,
   onSubmit,
-  subjects = mockSubjects,
-  classes = mockClasses,
-  students = mockStudents,
   loading = false,
   error: _error = null,
   editingHomework = null,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const subjects = useSelector(selectHomeworkFormSubjects);
+  const classes = useSelector(selectHomeworkFormClasses);
+  const students = useSelector(selectHomeworkFormStudents);
+  const reduxLoading = useSelector(selectHomeworkFormLoading);
+  const reduxError = useSelector(selectHomeworkFormError);
+
+  useEffect(() => {
+    dispatch(fetchSubjectsForHomework());
+    dispatch(fetchClassesForHomework());
+    dispatch(fetchStudentsForHomework());
+  }, [dispatch]);
+
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -95,14 +73,14 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   const [formData, setFormData] = useState<HomeworkData>({
     title: editingHomework?.title || "",
     description: editingHomework?.description || "",
-    subject: editingHomework?.subject || "",
+    subjectId: editingHomework?.subjectId || "",
     chapterId: editingHomework?.chapterId || "",
     assignedTo: editingHomework?.assignedTo || "singleClass",
     selectedClass: editingHomework?.selectedClass || "",
     selectedClasses: editingHomework?.selectedClasses || [],
     selectedGroup: editingHomework?.selectedGroup || "",
     selectedStudents: editingHomework?.selectedStudents || [],
-    dueDate: editingHomework?.dueDate || "",
+    dueDate: editingHomework?.dueDate || getTodayDate(),
     attachments: editingHomework?.attachments || [],
   });
 
@@ -112,11 +90,11 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
 
   useEffect(() => {
     const fetchChapters = async () => {
-      if (formData.subject && !editingHomework) {
+      if (formData.subjectId && !editingHomework) {
         try {
           setChaptersLoading(true);
           const chaptersData = await subjectApis.getChaptersBySubject(
-            formData.subject,
+            formData.subjectId,
           );
           const chaptersArray = Array.isArray(chaptersData) ? chaptersData : [];
           setChapters(chaptersArray);
@@ -131,7 +109,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     };
 
     fetchChapters();
-  }, [formData.subject, editingHomework]);
+  }, [formData.subjectId, editingHomework]);
 
   const handleInputChange = (
     field: keyof HomeworkData,
@@ -178,8 +156,8 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
-    if (!formData.subject && !editingHomework)
-      newErrors.subject = "Subject is required";
+    if (!formData.subjectId && !editingHomework)
+      newErrors.subjectId = "Subject is required";
     if (!formData.dueDate) newErrors.dueDate = "Due date is required";
 
     if (!editingHomework) {
@@ -212,11 +190,11 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
     }
   };
 
-  const _filteredGroups = mockGroups.filter(group =>
-    formData.selectedClass ? group.classId === formData.selectedClass : true,
+  const _filteredGroups = classes.filter((cls: ClassItem) =>
+    formData.selectedClass ? cls.id === formData.selectedClass : true,
   );
 
-  const filteredStudents = students.filter(student => {
+  const filteredStudents = students.filter((student: StudentData) => {
     if (formData.selectedClass && student.classId !== formData.selectedClass) {
       return false;
     }
@@ -402,25 +380,28 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                         Subject *
                       </label>
                       <select
-                        value={formData.subject}
+                        value={formData.subjectId}
                         onChange={e =>
-                          handleInputChange("subject", e.target.value)
+                          handleInputChange("subjectId", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.subject ? "border-red-500" : "border-gray-300"
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.subjectId ? "border-red-500" : "border-gray-300"}`}
+                        disabled={reduxLoading.subjects}
                       >
-                        <option value="">Select Subject</option>
+                        <option value="">
+                          {reduxLoading.subjects
+                            ? "Loading subjects..."
+                            : "Select Subject"}
+                        </option>
                         {Array.isArray(subjects) &&
-                          subjects.map(subject => (
+                          subjects.map((subject: SubjectData) => (
                             <option key={subject.id} value={subject.id}>
                               {subject.subjectName}
                             </option>
                           ))}
                       </select>
-                      {errors.subject && (
+                      {errors.subjectId && (
                         <p className="text-red-500 text-sm mt-1">
-                          {errors.subject}
+                          {errors.subjectId}
                         </p>
                       )}
                     </div>
@@ -435,7 +416,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                           handleInputChange("chapterId", e.target.value)
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={!formData.subject || chaptersLoading}
+                        disabled={!formData.subjectId || chaptersLoading}
                       >
                         <option value="">
                           {chaptersLoading
@@ -525,13 +506,13 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                       </label>
                       {classes.length === 0 ? (
                         <div className="text-center py-4 text-gray-500">
-                          {loading
+                          {reduxLoading.classes
                             ? "Loading classes..."
                             : "No classes available"}
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {classes.map(cls => (
+                          {classes.map((cls: ClassData) => (
                             <button
                               key={cls.id}
                               type="button"
@@ -572,7 +553,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                       >
                         <option value="">All Classes</option>
-                        {classes.map(cls => (
+                        {classes.map((cls: ClassData) => (
                           <option key={cls.id} value={cls.id}>
                             {cls.name}
                           </option>
@@ -585,7 +566,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
 
                       {students.length === 0 ? (
                         <div className="text-center py-4 text-gray-500">
-                          {loading
+                          {reduxLoading.students
                             ? "Loading students..."
                             : "No students available"}
                         </div>
@@ -595,7 +576,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                         </div>
                       ) : (
                         <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
-                          {filteredStudents.map(student => (
+                          {filteredStudents.map((student: StudentData) => (
                             <label
                               key={student.id}
                               className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
@@ -613,12 +594,13 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                                   {student.name}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {classes.find(c => c.id === student.classId)
-                                    ?.name || "No class"}
+                                  {classes.find(
+                                    (c: ClassData) => c.id === student.classId,
+                                  )?.name || "No class"}
                                 </div>
-                                {(student as { email?: string }).email && (
+                                {student.email && (
                                   <div className="text-xs text-gray-400">
-                                    {(student as { email?: string }).email}
+                                    {student.email}
                                   </div>
                                 )}
                               </div>
@@ -648,7 +630,7 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                       >
                         <option value="">All Classes</option>
-                        {classes.map(cls => (
+                        {classes.map((cls: ClassData) => (
                           <option key={cls.id} value={cls.id}>
                             {cls.name}
                           </option>
@@ -658,13 +640,19 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Students *
                       </label>
-                      {filteredStudents.length === 0 ? (
+                      {students.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          {reduxLoading.students
+                            ? "Loading students..."
+                            : "No students available"}
+                        </div>
+                      ) : filteredStudents.length === 0 ? (
                         <div className="text-center py-4 text-gray-500">
                           No students available
                         </div>
                       ) : (
                         <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                          {filteredStudents.map(student => (
+                          {filteredStudents.map((student: StudentData) => (
                             <label
                               key={student.id}
                               className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer last:border-b-0"
@@ -682,12 +670,13 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
                                   {student.name}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {classes.find(c => c.id === student.classId)
-                                    ?.name || "No class"}
+                                  {classes.find(
+                                    (c: ClassData) => c.id === student.classId,
+                                  )?.name || "No class"}
                                 </div>
-                                {(student as { email?: string }).email && (
+                                {student.email && (
                                   <div className="text-xs text-gray-400">
-                                    {(student as { email?: string }).email}
+                                    {student.email}
                                   </div>
                                 )}
                               </div>

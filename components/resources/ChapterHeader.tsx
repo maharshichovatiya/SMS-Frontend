@@ -21,7 +21,7 @@ export default function ChapterHeader({
       >
         <div className="flex flex-col justify-between m-4">
           <h3 className="text-lg font-bold text-[var(--text)] flex items-center gap-2">
-            {chapter.name}
+            {chapter.chapterName}
             {isSelected && (
               <span className="ml-2 px-2 py-1 text-xs bg-[var(--blue)] text-white rounded-full">
                 Selected
