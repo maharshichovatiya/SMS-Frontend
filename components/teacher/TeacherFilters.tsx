@@ -65,8 +65,7 @@ export default function TeacherFilters({
       (filters.salary?.length ?? 0) > 0 ||
       (filters.ageGroup?.length ?? 0) > 0 ||
       (filters.tenure?.length ?? 0) > 0 ||
-      (filters.gender?.length ?? 0) > 0 ||
-      (filters.status?.length ?? 0) > 0
+      (filters.gender?.length ?? 0) > 0
     );
   });
   const activeFilterCount = useSelector((state: RootState) => {
@@ -78,7 +77,6 @@ export default function TeacherFilters({
       ...(filters.ageGroup ?? []),
       ...(filters.tenure ?? []),
       ...(filters.gender ?? []),
-      ...(filters.status ?? []),
     ].filter(Boolean).length;
   });
 

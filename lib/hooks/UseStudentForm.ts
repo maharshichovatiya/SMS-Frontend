@@ -256,46 +256,6 @@ export function UseStudentForm({
     }
   }, [formData, initialData, isEditMode]);
 
-  useEffect(() => {
-    if (initialData) {
-      const formDataToReset: Partial<StudentFormValues> = {
-        firstName: initialData.firstName,
-        middleName: initialData.middleName,
-        lastName: initialData.lastName,
-        email: initialData.email,
-        phone: initialData.phone,
-        rollNo: initialData.rollNo,
-        admissionDate: initialData.admissionDate,
-        dob: initialData.dob,
-        gender:
-          ((initialData.gender || initialData.user?.gender) as
-            | "male"
-            | "female"
-            | "other"
-            | "") || "",
-        fatherName: initialData.fatherName,
-        fatherPhone: initialData.fatherPhone,
-        motherName: initialData.motherName,
-        guardianName: initialData.guardianName,
-        familyAnnualIncome: initialData.familyAnnualIncome
-          ? Math.floor(Number(initialData.familyAnnualIncome)).toString()
-          : "",
-        medicalConditions: initialData.medicalConditions,
-        bloodGroup: initialData.bloodGroup || "",
-        aadhaarNo: initialData.aadhaarNo || "",
-        panNo: initialData.panNo || "",
-        permanentAddress: initialData.permanentAddress || "",
-        currentAddress: initialData.currentAddress || "",
-        bankName: initialData.bankName || "",
-        accountNo: initialData.accountNo || "",
-        ifscCode: initialData.ifscCode || "",
-        branch: initialData.branch || "",
-        password: initialData.password || "",
-      };
-      reset(formDataToReset);
-    }
-  }, [initialData, reset, setValue]);
-
   const handleAcademicYearChange = (academicYearId: string) => {
     setSelectedAcademicYear(academicYearId);
 

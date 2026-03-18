@@ -98,8 +98,7 @@ export default function TeachersPage() {
     (filters.salary?.length ?? 0) > 0 ||
     (filters.ageGroup?.length ?? 0) > 0 ||
     (filters.tenure?.length ?? 0) > 0 ||
-    (filters.gender?.length ?? 0) > 0 ||
-    (filters.status?.length ?? 0) > 0;
+    (filters.gender?.length ?? 0) > 0;
 
   const showingFrom = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const showingTo = Math.min(currentPage * pageSize, totalRecords);

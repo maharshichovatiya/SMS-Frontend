@@ -298,22 +298,25 @@ export default function Subjects() {
             <SubjectCardSkeleton key={i} />
           ))
         ) : subjects.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-full bg-[var(--surface-2)] flex items-center justify-center mb-4">
-              <BookOpen className="w-8 h-8 text-[var(--text-3)]" />
-            </div>
-            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
-              {searchQuery ? "No Subjects Found" : "No Subjects Available"}
-            </h3>
-            <p className="text-sm text-[var(--text-2)] mb-4">
-              {searchQuery
-                ? `No subjects match "${searchQuery}". Try a different search term.`
-                : "Subject management is currently under development."}
+          <div className="col-span-full flex flex-col items-center justify-center mt-16 sm:mt-24 text-[var(--text-2)] px-4 text-center">
+            <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 mb-3 opacity-30" />
+            <p className="text-base sm:text-lg font-medium">
+              {searchQuery ||
+              minPassingMarks ||
+              maxPassingMarks ||
+              minTotalMarks ||
+              maxTotalMarks
+                ? "No results match your search"
+                : "No subjects found"}
             </p>
-            <p className="text-xs text-[var(--text-3)]">
-              {searchQuery
-                ? "Clear the search to see all subjects."
-                : 'Click "Add Subject" to create your first subject when the feature is available.'}
+            <p className="text-xs sm:text-sm">
+              {searchQuery ||
+              minPassingMarks ||
+              maxPassingMarks ||
+              minTotalMarks ||
+              maxTotalMarks
+                ? "Try adjusting your search or filters."
+                : 'Click "Add Subject" to get started.'}
             </p>
           </div>
         ) : (

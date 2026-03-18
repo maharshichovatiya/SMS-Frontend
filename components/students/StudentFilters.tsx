@@ -138,32 +138,49 @@ export default function StudentFilters() {
                       Class
                     </label>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                      {classes.map(cls => (
-                        <div
-                          key={cls.id}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors duration-[var(--duration)]"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`class-${cls.id}`}
-                            checked={filters.classId?.includes(cls.id) || false}
-                            onChange={e =>
-                              handleCheckboxChange(
-                                "classId",
-                                cls.id,
-                                e.target.checked,
-                              )
-                            }
-                            className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                      {classes.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-4 text-center">
+                          <Users
+                            size={20}
+                            className="mb-2 opacity-30 text-[var(--text-3)]"
                           />
-                          <label
-                            htmlFor={`class-${cls.id}`}
-                            className="text-sm text-[var(--text)] cursor-pointer hover:text-[var(--text-2)] transition-colors duration-[var(--duration)] flex-1"
-                          >
-                            Class {cls.className}-{cls.section}
-                          </label>
+                          <p className="text-xs text-[var(--text-3)] font-medium">
+                            No classes available
+                          </p>
+                          <p className="text-xs text-[var(--text-3)] opacity-70 mt-0.5">
+                            Create a class to enable this filter.
+                          </p>
                         </div>
-                      ))}
+                      ) : (
+                        classes.map(cls => (
+                          <div
+                            key={cls.id}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors duration-[var(--duration)]"
+                          >
+                            <input
+                              type="checkbox"
+                              id={`class-${cls.id}`}
+                              checked={
+                                filters.classId?.includes(cls.id) || false
+                              }
+                              onChange={e =>
+                                handleCheckboxChange(
+                                  "classId",
+                                  cls.id,
+                                  e.target.checked,
+                                )
+                              }
+                              className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                            />
+                            <label
+                              htmlFor={`class-${cls.id}`}
+                              className="text-sm text-[var(--text)] cursor-pointer hover:text-[var(--text-2)] transition-colors duration-[var(--duration)] flex-1"
+                            >
+                              Class {cls.className}-{cls.section}
+                            </label>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -174,37 +191,52 @@ export default function StudentFilters() {
                       Academic Year
                     </label>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                      {academicYears.map(year => (
-                        <div
-                          key={year.id}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors duration-[var(--duration)]"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`year-${year.id}`}
-                            checked={filters.academicYearId === year.id}
-                            onChange={e =>
-                              handleCheckboxChange(
-                                "academicYearId",
-                                year.id,
-                                e.target.checked,
-                              )
-                            }
-                            className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                      {academicYears.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-4 text-center">
+                          <GraduationCap
+                            size={20}
+                            className="mb-2 opacity-30 text-[var(--text-3)]"
                           />
-                          <label
-                            htmlFor={`year-${year.id}`}
-                            className="text-sm text-[var(--text)] cursor-pointer hover:text-[var(--text-2)] transition-colors duration-[var(--duration)] flex-1"
-                          >
-                            {year.yearName}
-                            {year.isCurrent && (
-                              <span className="ml-2 text-xs text-[var(--blue)] font-medium bg-[var(--blue-light)] px-2 py-0.5 rounded-full">
-                                Current
-                              </span>
-                            )}
-                          </label>
+                          <p className="text-xs text-[var(--text-3)] font-medium">
+                            No academic years available
+                          </p>
+                          <p className="text-xs text-[var(--text-3)] opacity-70 mt-0.5">
+                            Add an academic year to enable this filter.
+                          </p>
                         </div>
-                      ))}
+                      ) : (
+                        academicYears.map(year => (
+                          <div
+                            key={year.id}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--surface-3)] transition-colors duration-[var(--duration)]"
+                          >
+                            <input
+                              type="checkbox"
+                              id={`year-${year.id}`}
+                              checked={filters.academicYearId === year.id}
+                              onChange={e =>
+                                handleCheckboxChange(
+                                  "academicYearId",
+                                  year.id,
+                                  e.target.checked,
+                                )
+                              }
+                              className="w-4 h-4 text-[var(--blue)] border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--blue-muted)] cursor-pointer"
+                            />
+                            <label
+                              htmlFor={`year-${year.id}`}
+                              className="text-sm text-[var(--text)] cursor-pointer hover:text-[var(--text-2)] transition-colors duration-[var(--duration)] flex-1"
+                            >
+                              {year.yearName}
+                              {year.isCurrent && (
+                                <span className="ml-2 text-xs text-[var(--blue)] font-medium bg-[var(--blue-light)] px-2 py-0.5 rounded-full">
+                                  Current
+                                </span>
+                              )}
+                            </label>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
