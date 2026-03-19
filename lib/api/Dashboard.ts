@@ -47,6 +47,81 @@ export interface DashboardSummaryResponse {
   data: DashboardSummary;
 }
 
+export interface Student {
+  id: string;
+  admissionNo: string;
+  rollNo: string | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+export interface Subject {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  passingMarks?: number;
+  maxMarks?: number;
+}
+
+export interface ClassData {
+  classId: string;
+  className: string;
+  section: string;
+  studentCount: number;
+  students?: Student[];
+  subjects?: Subject[];
+}
+
+export interface TeacherDashboardSummary {
+  totalStudents: number;
+  classes: ClassData[];
+  summary: {
+    totalClasses: number;
+    averageStudentsPerClass: number;
+  };
+}
+
+export interface ClassDashboardResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    totalStudents: number;
+    classes: ClassData[];
+    subjects: number;
+    summary: {
+      totalClasses: number;
+      totalSubjects: number;
+      averageStudentsPerClass: number;
+    };
+  };
+}
+
+export interface SubjectDashboardResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    totalSubjects: number;
+    totalClasses: number;
+    subjectsByClass: {
+      classId: string;
+      className: string;
+      section: string;
+      subjects: Subject[];
+    }[];
+    summary: {
+      averageSubjectsPerClass: number;
+    };
+  };
+}
+
+export interface TeacherDashboardResponse {
+  statusCode: number;
+  message: string;
+  data: TeacherDashboardSummary;
+}
+
 export const dashboardApis = {
   getSummary: async () => {
     const res = await api.get<DashboardSummaryResponse>("/dashboard/summary");
@@ -63,6 +138,22 @@ export const dashboardApis = {
     const res = await api.get<RecentTeachersResponse>(
       "/dashboard/recent-teachers",
     );
+    return res.data;
+  },
+  getTeacherDashboardData: async () => {
+    const res = await api.get<TeacherDashboardResponse>(
+      "/dashboard/students/classteacher",
+    );
+    return res.data;
+  },
+  getClassData: async () => {
+    const res = await api.get<ClassDashboardResponse>(
+      "/dashboard/students/class",
+    );
+    return res.data;
+  },
+  getSubjectData: async () => {
+    const res = await api.get<SubjectDashboardResponse>("/dashboard/subjects");
     return res.data;
   },
 };

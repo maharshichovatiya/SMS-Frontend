@@ -1,6 +1,7 @@
 import { AxiosError } from "axios";
 import api from "@/lib/Axios";
 import { ApiResponse, GetTeachers, Teacher } from "../types/Teacher";
+import { TeacherProfileResponse, TeacherProfileData } from "./TeacherProfile";
 
 export type GetTeachersResponse = {
   statusCode: number;
@@ -162,10 +163,52 @@ export const updateTeacher = async (
   }
 };
 
+export const updateTeacherProfileByUserId = async (
+  userId: string,
+  data: Partial<Teacher>,
+): Promise<ApiResponse<Teacher>> => {
+  try {
+    const res = await api.patch(`/teachers/user/${userId}`, data);
+
+    return {
+      success: true,
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+
+    return {
+      success: false,
+      message:
+        err.response?.data?.message || "Failed to update teacher profile.",
+    };
+  }
+};
+
+export const updateTeacherByUserId = async (
+  userId: string,
+  data: Partial<Teacher>,
+): Promise<ApiResponse<Teacher>> => {
+  try {
+    const res = await api.patch(`/teachers/profile/${userId}`, data);
+
+    return {
+      success: true,
+      data: res.data,
+    };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+
+    return {
+      success: false,
+      message: err.response?.data?.message || "Failed to update teacher.",
+    };
+  }
+};
+
 export const deleteTeacher = async (id: string): Promise<ApiResponse<null>> => {
   try {
     await api.delete(`/teachers/${id}`);
-
     return {
       success: true,
       data: null,
@@ -177,5 +220,19 @@ export const deleteTeacher = async (id: string): Promise<ApiResponse<null>> => {
       success: false,
       message: err.response?.data?.message || "Failed to delete teacher.",
     };
+  }
+};
+
+export const getTeacherById = async (
+  id: string,
+): Promise<TeacherProfileData> => {
+  try {
+    const response = await api.get<TeacherProfileResponse>(`/teachers/${id}`);
+    return response.data.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(
+      err.response?.data?.message || "Failed to fetch teacher details",
+    );
   }
 };

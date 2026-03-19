@@ -3,6 +3,7 @@
 import { Users } from "lucide-react";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import StudentTableActions from "./StudentTableActions";
+import StudentTableActionsSimple from "./StudentTableActionsSimple";
 import { Student } from "./StudentTable";
 
 interface StudentTableRowProps {
@@ -13,6 +14,7 @@ interface StudentTableRowProps {
   onAssignClass: (student: Student) => void;
   onStatusToggle: (student: Student) => void;
   togglingStatus?: string | null;
+  simpleActions?: boolean;
 }
 
 function getInitials(firstName: string, lastName: string) {
@@ -51,6 +53,7 @@ export default function StudentTableRow({
   onAssignClass,
   onStatusToggle,
   togglingStatus,
+  simpleActions = false,
 }: StudentTableRowProps) {
   const fullName = `${student.firstName} ${student.lastName}`;
   const initials = getInitials(student.firstName, student.lastName);
@@ -120,7 +123,9 @@ export default function StudentTableRow({
       </td>
 
       <td className="px-5 py-4 text-sm text-[var(--text-2)] whitespace-nowrap">
-        {formatAdmissionDate(student.admissionDate)}
+        {simpleActions
+          ? student.email || "N/A"
+          : formatAdmissionDate(student.admissionDate)}
       </td>
 
       <td className="px-5 py-4">
@@ -135,8 +140,8 @@ export default function StudentTableRow({
               px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap
               ${
                 student.status === "Active"
-                  ? "bg-[var(--green-light)] text-[var(--green)]"
-                  : "bg-[var(--rose-light)] text-[var(--rose)]"
+                  ? "bg-[var(--green-light)] text-[var(--green)] border border-[var(--green)]/20"
+                  : "bg-[var(--rose-light)] text-[var(--rose)] border border-[var(--rose)]/20"
               }
             `}
           >
@@ -145,12 +150,20 @@ export default function StudentTableRow({
         </div>
       </td>
 
-      <StudentTableActions
-        student={student}
-        onView={onView}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      {simpleActions ? (
+        <StudentTableActionsSimple
+          student={student}
+          onView={onView}
+          onEdit={onEdit}
+        />
+      ) : (
+        <StudentTableActions
+          student={student}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      )}
     </tr>
   );
 }

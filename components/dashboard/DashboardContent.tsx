@@ -3,6 +3,8 @@
 import { Users, BookOpen, Building } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/store/Index";
 import {
   dashboardApis,
   DashboardSummary,
@@ -13,47 +15,8 @@ import DashboardTableSkeleton from "@/components/skeletons/DashboardTableSkeleto
 import { ProfileData } from "@/lib/types/Profile";
 import { getProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  glowColor: string;
-  label: string;
-  value: string;
-  trend: string;
-  trendUp: boolean;
-}
-
-function StatCard({
-  icon,
-  iconBg,
-  iconColor,
-  glowColor,
-  label,
-  value,
-}: StatCardProps) {
-  return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-5 py-[22px] shadow-[var(--shadow)] relative overflow-hidden transition-all duration-200 ">
-      <div
-        className="absolute -right-[30px] -top-[30px] w-[100px] h-[100px] rounded-full opacity-[0.08]"
-        style={{ background: glowColor }}
-      />
-      <div
-        className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${iconBg}`}
-        style={{ color: iconColor }}
-      >
-        {icon}
-      </div>
-      <div className="text-[13px] font-bold text-[var(--text-2)] uppercase tracking-[0.5px] mb-2">
-        {label}
-      </div>
-      <div className="text-[38px] font-extrabold tracking-[-1.5px] text-[var(--text)] mb-[8px] leading-none">
-        {value}
-      </div>
-    </div>
-  );
-}
+import StudentDashboard from "@/components/dashboard/StudentDashboard";
+import StatCard from "@/components/ui/StatCard";
 
 type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
 
@@ -117,14 +80,10 @@ function QuickItem({
   );
 }
 
-export default function DashboardContent() {
-  const router = useRouter();
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [recentAdmissions, setRecentAdmissions] = useState<RecentAdmission[]>(
-    [],
-  );
-  const [recentTeachers, setRecentTeachers] = useState<RecentTeacher[]>([]);
-  const [loading, setLoading] = useState(true);
+function DashboardContentWithRole() {
+  const dispatch = useDispatch<AppDispatch>();
+  const userRole =
+    useSelector((state: RootState) => state.auth.role) || "admin";
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
@@ -138,6 +97,26 @@ export default function DashboardContent() {
     };
     fetchProfile();
   }, []);
+
+  if (userRole === "student") {
+    return (
+      <>
+        <StudentDashboard profile={profile} />
+      </>
+    );
+  }
+
+  return <AdminDashboardContent profile={profile} />;
+}
+
+function AdminDashboardContent({ profile }: { profile: ProfileData | null }) {
+  const router = useRouter();
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [recentAdmissions, setRecentAdmissions] = useState<RecentAdmission[]>(
+    [],
+  );
+  const [recentTeachers, setRecentTeachers] = useState<RecentTeacher[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -521,4 +500,8 @@ export default function DashboardContent() {
       </div>
     </>
   );
+}
+
+export default function DashboardContent() {
+  return <DashboardContentWithRole />;
 }

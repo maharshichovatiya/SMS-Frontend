@@ -382,10 +382,20 @@ const subjectsSlice = createSlice({
         state.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteChapter.fulfilled, state => {
+      .addCase(deleteChapter.fulfilled, (state, action) => {
         state.isDeleting = false;
         state.deletingChapter = null;
         state.error = null;
+
+        // Update selectedSubject to remove the deleted chapter
+        if (state.selectedSubject && state.selectedSubject.chapters) {
+          state.selectedSubject = {
+            ...state.selectedSubject,
+            chapters: state.selectedSubject.chapters.filter(
+              chapter => chapter.id !== action.payload.chapterId,
+            ),
+          };
+        }
       })
       .addCase(deleteChapter.rejected, (state, action) => {
         state.isDeleting = false;

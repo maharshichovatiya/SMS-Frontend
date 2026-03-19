@@ -61,6 +61,7 @@ export default function StudentsTable({
   onRefresh,
   hasActiveFilters,
   searchQuery,
+  simpleActions = false,
 }: {
   students: Student[];
   totalStudents: number;
@@ -73,6 +74,7 @@ export default function StudentsTable({
   onRefresh?: () => void;
   hasActiveFilters?: boolean;
   searchQuery?: string;
+  simpleActions?: boolean;
 }) {
   const totalPages = Math.ceil(totalStudents / pageSize);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -216,7 +218,7 @@ export default function StudentsTable({
                     "DOB",
                     "Guardian",
                     "Contact",
-                    "Admitted",
+                    simpleActions ? "Email" : "Admitted",
                     "Status",
                     "",
                   ].map(col => (
@@ -241,6 +243,7 @@ export default function StudentsTable({
                     onAssignClass={handleAssignClass}
                     onStatusToggle={handleStatusToggle}
                     togglingStatus={togglingStatus}
+                    simpleActions={simpleActions}
                   />
                 ))}
               </tbody>

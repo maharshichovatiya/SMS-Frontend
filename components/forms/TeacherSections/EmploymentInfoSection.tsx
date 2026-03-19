@@ -11,11 +11,13 @@ import { TeacherFormData } from "@/lib/validations/TeacherSchema";
 interface EmploymentInfoSectionProps {
   register: UseFormRegister<TeacherFormData>;
   errors: FieldErrors<TeacherFormData>;
+  disabled?: boolean;
 }
 
 export default function EmploymentInfoSection({
   register,
   errors,
+  disabled = false,
 }: EmploymentInfoSectionProps) {
   return (
     <div>
@@ -35,9 +37,10 @@ export default function EmploymentInfoSection({
             />
             <select
               {...register("department")}
+              disabled={disabled}
               className={`input-base pl-9 appearance-none ${
                 errors.department ? "error" : ""
-              }`}
+              } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
             >
               <option value="">Select department</option>
               <option value="academic">Academic</option>
@@ -69,7 +72,10 @@ export default function EmploymentInfoSection({
             <input
               {...register("designation")}
               placeholder="Senior Teacher"
-              className={`input-base pl-9 ${errors.designation ? "error" : ""}`}
+              disabled={disabled}
+              className={`input-base pl-9 ${errors.designation ? "error" : ""} ${
+                disabled ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
             />
           </div>
           {errors.designation && (
