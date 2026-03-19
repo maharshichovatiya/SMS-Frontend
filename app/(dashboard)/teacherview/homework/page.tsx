@@ -7,10 +7,6 @@ import {
   StudentListModal,
   HomeworkData,
 } from "@/components/homework/StudentListModal";
-import {
-  StudentListModal,
-  HomeworkData,
-} from "@/components/homework/StudentListModal";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
