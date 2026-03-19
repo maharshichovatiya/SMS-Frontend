@@ -106,12 +106,19 @@ export const schoolDetailsSchema = z.object({
     .optional(),
   establishmentYear: z
     .string()
-    .regex(/^(18|19|20)\d{2}$/, "Invalid establishment year")
-    .refine(val => {
-      const year = parseInt(val);
-      return year >= 1800 && year <= new Date().getFullYear();
-    }, "Establishment year must be between 1800 and current year")
-    .optional(),
+    .refine(val => !val || /^(18|19|20)\d{2}$/.test(val), {
+      message: "Invalid establishment year",
+    })
+    .refine(
+      val => {
+        if (!val) return true;
+        const year = parseInt(val, 10);
+        return year >= 1800 && year <= new Date().getFullYear();
+      },
+      { message: "Establishment year must be between 1800 and current year" },
+    )
+    .optional()
+    .or(z.literal("")),
   adminEmail: z
     .string()
     .optional()
@@ -119,21 +126,59 @@ export const schoolDetailsSchema = z.object({
       message: "Admin email must be less than 100 characters",
     })
     .refine(val => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-      message: "Invalid admin email format",
+      message: "Invalid admin email address",
     })
     .refine(val => !val || val.trim().length > 0, {
       message: "Admin email cannot be only whitespace",
     }),
   websiteUrl: z
     .string()
-    .max(200, "Website URL must be less than 200 characters")
+    .trim()
+    .refine(
+      val => {
+        if (!val) return true; // allow empty
+        try {
+          const url = new URL(val);
+          return ["http:", "https:"].includes(url.protocol);
+        } catch {
+          return false;
+        }
+      },
+      { message: "Please enter a valid URL (e.g., https://example.com)" },
+    )
+    .refine(
+      val => {
+        if (!val) return true;
+        try {
+          const url = new URL(val);
+          const host = url.hostname;
+          // must have a real domain with a valid TLD (at least 2 chars)
+          return /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(host);
+        } catch {
+          return false;
+        }
+      },
+      { message: "URL must have a valid domain (e.g., https://example.com)" },
+    )
+    .refine(
+      val => {
+        if (!val) return true;
+        try {
+          const url = new URL(val);
+          // block localhost and private/internal IPs
+          const host = url.hostname;
+          return !/^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
+            host,
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: "URL must point to a public website, not a local address" },
+    )
+    .max(2083, "URL is too long") // 2083 is the max URL length in most browsers
     .optional()
-    .refine(val => !val || /^https?:\/\/.+/.test(val), {
-      message: "Website URL must start with http:// or https://",
-    })
-    .refine(val => !val || /^https?:\/\/[^\s/$.?#][^\s]*$/.test(val), {
-      message: "Invalid website URL format",
-    }),
+    .or(z.literal("")),
 });
 
 export type PersonalDetails = z.infer<typeof personalDetailsSchema>;

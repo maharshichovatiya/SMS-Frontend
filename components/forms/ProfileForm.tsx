@@ -15,6 +15,7 @@ import {
   profileSchema,
 } from "@/lib/validations/ProfileSchema";
 import Modal from "@/components/ui/Modal";
+import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
 
 export default function ProfileForm() {
   const [profileId, setProfileId] = useState("");
@@ -126,8 +127,7 @@ export default function ProfileForm() {
     setIsEditOpen(true);
   };
 
-  if (loading)
-    return <div className="p-4 text-[var(--text-2)]">Loading...</div>;
+  if (loading) return <ProfileSkeleton />;
 
   return (
     <>
