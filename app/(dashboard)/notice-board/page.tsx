@@ -1,73 +1,39 @@
 "use client";
 import PageHeader from "@/components/layout/PageHeader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { AppDispatch } from "@/lib/store/Index";
+import { RootState } from "@/lib/store/Index";
+import { fetchNotices, clearError } from "@/lib/store/NoticeSlice";
 import { Megaphone, Plus } from "lucide-react";
 import NoticeCard from "@/components/notice-board/NoticeCard";
 import NoticeFilter from "@/components/notice-board/NoticeFilter";
 import NoticeSearch from "@/components/notice-board/NoticeSearch";
 import NoticeFormModal from "@/components/notice-board/NoticeFormModal";
-import { Notice, NoticeFilterType } from "@/lib/types/Notice";
-
-const mockNotices: Notice[] = [
-  {
-    id: "1",
-    type: "Exam Notice",
-    icon: "FileText",
-    title: "Mid-Term Examination Schedule",
-    body: "Mid-term exams will begin from March 20, 2026. Detailed schedule has been shared with class teachers. Students must carry their hall tickets.",
-    priority: "high",
-    borderColor: "#ef4444",
-    iconColor: "#ef4444",
-    hasAttachment: true,
-    author: "Admin",
-    date: "Mar 5",
-  },
-  {
-    id: "2",
-    type: "Holiday Notice",
-    icon: "Calendar",
-    title: "Holi Festival Holiday",
-    body: "School will remain closed on March 14-15, 2026 on account of Holi festival. Regular classes resume on March 16.",
-    priority: "medium",
-    borderColor: "#22c55e",
-    iconColor: "#22c55e",
-    hasAttachment: false,
-    author: "Admin",
-    date: "Mar 3",
-  },
-  {
-    id: "3",
-    type: "General Notice",
-    icon: "Megaphone",
-    title: "Annual Day Rehearsals",
-    body: "Annual day rehearsals will start from March 25. Students participating in cultural programs should report to the auditorium during activity period.",
-    priority: "low",
-    borderColor: "#3b82f6",
-    iconColor: "#3b82f6",
-    hasAttachment: false,
-    author: "Meera Gupta",
-    date: "Mar 2",
-  },
-  {
-    id: "4",
-    type: "Event Notice",
-    icon: "PartyPopper",
-    title: "Science Exhibition 2026",
-    body: "Inter-school Science Exhibition will be held on April 5-6, 2026. Interested students should register with their science teachers by March 22.",
-    priority: "medium",
-    borderColor: "#f59e0b",
-    iconColor: "#f59e0b",
-    hasAttachment: true,
-    author: "Vivek Pandey",
-    date: "Mar 1",
-  },
-];
+import NoticeDeleteModal from "@/components/notice-board/NoticeDeleteModal";
+import { NoticeFilterType, Notice, ApiNotice } from "@/lib/types/Notice";
+import { removeNotice } from "@/lib/store/NoticeSlice";
+import { showToast } from "@/lib/utils/Toast";
 
 function Page() {
   const [selectedFilter, setSelectedFilter] = useState<NoticeFilterType>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [notices, setNotices] = useState<Notice[]>(mockNotices);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedNotice, setSelectedNotice] = useState<ApiNotice | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [noticeToDelete, setNoticeToDelete] = useState<Notice | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { notices, apiNotices, loading, error } = useSelector(
+    (state: RootState) => state.notices,
+  );
+  const userRole = useSelector((state: RootState) => state.auth.role);
+  const isStudent = userRole === "student";
+
+  useEffect(() => {
+    dispatch(fetchNotices());
+  }, [dispatch]);
 
   const filteredNotices = notices.filter(notice => {
     const matchesFilter =
@@ -83,16 +49,86 @@ function Page() {
   });
 
   const handlePostNotice = () => {
+    setSelectedNotice(null);
     setIsModalOpen(true);
+  };
+
+  const handleEditNotice = (notice: Notice) => {
+    const apiNotice = apiNotices.find(n => n.id === notice.id) || null;
+    setSelectedNotice(apiNotice);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteNoticeClick = (notice: Notice) => {
+    setNoticeToDelete(notice);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!noticeToDelete) return;
+    setIsDeleting(true);
+    try {
+      const result = await dispatch(removeNotice(noticeToDelete.id));
+      if (removeNotice.fulfilled.match(result)) {
+        showToast.success("Notice deleted successfully");
+      } else {
+        throw new Error(
+          (result.payload as string) || "Failed to delete notice",
+        );
+      }
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete notice";
+      showToast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setNoticeToDelete(null);
+    }
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+    setSelectedNotice(null);
   };
 
   const handleNoticeCreated = () => {
     setIsModalOpen(false);
+    setSelectedNotice(null);
   };
+
+  const handleRetry = () => {
+    dispatch(clearError());
+    dispatch(fetchNotices());
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading notices...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">Error</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -102,9 +138,11 @@ function Page() {
         icon={Megaphone}
         iconBgColor="--amber-light"
         iconColor="--amber"
-        buttonText="Post Notice"
-        onButtonClick={handlePostNotice}
-        buttonIcon={Plus}
+        {...(!isStudent && {
+          buttonText: "Post Notice",
+          onButtonClick: handlePostNotice,
+          buttonIcon: Plus,
+        })}
       />
 
       <div className="flex items-center justify-between gap-4 mt-6 px-4">
@@ -117,16 +155,46 @@ function Page() {
       </div>
 
       <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredNotices.map((notice, index) => (
-          <NoticeCard key={notice.id} notice={notice} index={index} />
-        ))}
+        {filteredNotices.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-500 text-lg">No notices found</div>
+            <p className="text-gray-400 mt-2">
+              {searchQuery || selectedFilter !== "all"
+                ? "Try adjusting your filters or search"
+                : "No notices have been posted yet"}
+            </p>
+          </div>
+        ) : (
+          filteredNotices.map((notice, index) => (
+            <NoticeCard
+              key={notice.id}
+              notice={notice}
+              index={index}
+              showActions={!isStudent}
+              onEdit={handleEditNotice}
+              onDelete={handleDeleteNoticeClick}
+            />
+          ))
+        )}
       </div>
 
-      <NoticeFormModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSubmitSuccess={handleNoticeCreated}
-      />
+      {!isStudent && (
+        <>
+          <NoticeFormModal
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            onSubmitSuccess={handleNoticeCreated}
+            notice={selectedNotice}
+          />
+          <NoticeDeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            notice={noticeToDelete}
+            onConfirm={handleConfirmDelete}
+            isDeleting={isDeleting}
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -1,3 +1,180 @@
+export interface StudentTeacher {
+  id: string;
+  email: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  phone: string;
+  gender: string;
+  dob: string;
+  profilePhoto: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  teacher: {
+    id: string;
+    status: string;
+    userId: string;
+    employeeCode: string;
+    staffCategory: string;
+    department: string;
+    designation: string;
+    highestQualification: string;
+    specialization: string | null;
+    totalExpMonths: number;
+    salaryPackage: string;
+    dateOfJoining: string;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      middleName: string;
+      lastName: string;
+      phone: string;
+      gender: string;
+      dob: string;
+      profilePhoto: string | null;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+  };
+  userId: string;
+  employeeCode: string;
+  staffCategory: string;
+  department: string;
+  designation: string;
+  highestQualification: string;
+  specialization: string | null;
+  totalExpMonths: number;
+  salaryPackage: string;
+  dateOfJoining: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    phone: string;
+    gender: string;
+    dob: string;
+    profilePhoto: string | null;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface Chapter {
+  id: string;
+  chapterName: string;
+  chapterNo: number;
+  status: string;
+}
+
+export interface StudentHomework {
+  id: string;
+  title: string;
+  description: string;
+  subjectId: string;
+  chapterId: string | null;
+  classno: string | null;
+  assignedDate: string;
+  dueDate: string;
+  status: string;
+  schoolId: string;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  subject: Subject;
+  chapter: Chapter | null;
+  attachments: Array<{
+    id: string;
+    homeworkId: string;
+    submissionId: string | null;
+    fileName: string;
+    fileUrl: string;
+    fileSize: string;
+    fileType: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  homeworkId: string;
+  teacher: StudentTeacher;
+  assignmentType: string;
+  isOverdue: boolean;
+}
+
+export interface StudentHomeworkListResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    success: boolean;
+    data: {
+      count: number;
+      homework: StudentHomework[];
+    };
+  };
+}
+
+export interface StudentSubmissionAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: string;
+  fileType: string;
+}
+
+export interface StudentHomeworkSubmission {
+  id: string;
+  submissionDate: string;
+  status: "submitted" | "graded" | "pending";
+  marksObtained: number | null;
+  feedback: string | null;
+  submissionAttachments: StudentSubmissionAttachment[];
+}
+
+export interface HomeworkAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: string;
+  fileType: string;
+}
+
+export interface StudentSubmissionTeacher {
+  firstName: string;
+  lastName: string;
+}
+
+export interface StudentSubmissionItem {
+  homeworkId: string;
+  title: string;
+  description: string;
+  subject: Subject;
+  chapter: Chapter | null;
+  assignedDate: string;
+  dueDate: string;
+  homeworkAttachments: HomeworkAttachment[];
+  submission: StudentHomeworkSubmission | null;
+  teacher: StudentSubmissionTeacher;
+}
+
+export interface StudentSubmissionResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    success: boolean;
+    data: {
+      count: number;
+      homework: StudentSubmissionItem[];
+    };
+    message: string;
+  };
+}
+
 export interface Subject {
   id: string;
   schoolId: string;
@@ -303,7 +480,7 @@ export interface Homework {
 
 export interface CreateHomeworkPayload {
   title: string;
-  subject: string;
+  subjectId: string;
   assignedDate: string;
   dueDate: string;
   description?: string;

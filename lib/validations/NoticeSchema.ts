@@ -54,6 +54,12 @@ export const createNoticeSchema = z
           message: "Expiry date must be in the future",
         },
       ),
+    targetType: z
+      .enum(["school", "class", "teacher"])
+      .refine(val => val !== undefined, {
+        message: "Target type is required",
+      }),
+    targetIds: z.array(z.string()).optional(),
   })
   .refine(
     data => {

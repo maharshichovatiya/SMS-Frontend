@@ -4,6 +4,8 @@ import {
   CreateHomeworkPayload,
   AssignToClassesPayload,
   AssignToStudentsPayload,
+  StudentHomework,
+  StudentHomeworkListResponse,
 } from "../types/Homework";
 import { homeworkApis } from "../api/Homework";
 
@@ -11,6 +13,10 @@ interface HomeworkState {
   homeworkList: {
     count: number;
     homework: Homework[];
+  } | null;
+  studentHomeworkList: {
+    count: number;
+    homework: StudentHomework[];
   } | null;
   currentHomework: Homework | null;
   loading: boolean;
@@ -23,6 +29,7 @@ interface HomeworkState {
 
 const initialState: HomeworkState = {
   homeworkList: null,
+  studentHomeworkList: null,
   currentHomework: null,
   loading: false,
   error: null,
@@ -45,6 +52,23 @@ export const fetchAllHomework = createAsyncThunk(
     }
   },
 );
+
+export const fetchStudentHomework = createAsyncThunk<
+  StudentHomeworkListResponse,
+  void,
+  { rejectValue: string }
+>("homework/fetchStudentHomework", async (_, { rejectWithValue }) => {
+  try {
+    const response = await homeworkApis.getStudentHomework();
+    return response;
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch student homework",
+    );
+  }
+});
 
 export const fetchHomeworkById = createAsyncThunk(
   "homework/fetchById",
@@ -181,6 +205,24 @@ const homeworkSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchAllHomework.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(fetchStudentHomework.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudentHomework.fulfilled, (state, action) => {
+        state.loading = false;
+        state.studentHomeworkList = {
+          count: action.payload.data?.data?.count || 0,
+          homework: action.payload.data?.data?.homework || [],
+        };
+        state.error = null;
+      })
+      .addCase(fetchStudentHomework.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

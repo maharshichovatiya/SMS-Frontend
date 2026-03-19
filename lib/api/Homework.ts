@@ -8,6 +8,8 @@ import {
   AssignToClassesPayload,
   AssignToStudentsPayload,
   AssignResponse,
+  StudentHomeworkListResponse,
+  StudentHomework,
 } from "../types/Homework";
 
 export type {
@@ -18,6 +20,8 @@ export type {
   AssignToClassesPayload,
   AssignToStudentsPayload,
   AssignResponse,
+  StudentHomeworkListResponse,
+  StudentHomework,
 };
 
 const filterEmptyOptionalFields = (data: Partial<CreateHomeworkPayload>) => {
@@ -40,6 +44,11 @@ export const homeworkApis = {
     return res.data;
   },
 
+  getStudentHomework: async () => {
+    const res = await api.get<StudentHomeworkListResponse>("/homework/student");
+    return res.data;
+  },
+
   getById: async (homeworkId: string) => {
     const res = await api.get<HomeworkResponse>(`/homework/${homeworkId}`);
     return res.data;
@@ -49,7 +58,7 @@ export const homeworkApis = {
     const formData = new FormData();
 
     formData.append("title", data.title);
-    formData.append("subject", data.subject);
+    formData.append("subjectId", data.subjectId);
     formData.append("assignedDate", data.assignedDate);
     formData.append("dueDate", data.dueDate);
 

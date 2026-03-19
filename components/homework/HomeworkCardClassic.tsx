@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { Eye, Edit, Trash2, Calendar, User, BookOpen } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Calendar,
+  User,
+  BookOpen,
+  Users,
+} from "lucide-react";
 
 interface HomeworkCardClassicProps {
   id: string;
@@ -15,12 +23,15 @@ interface HomeworkCardClassicProps {
   status: "active" | "completed" | "overdue" | "draft";
   description?: string;
   chapterName?: string;
+  chapterNo?: number;
   isModalOpen?: boolean;
   onViewDetails: () => void;
+  onDetails?: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onStudentAssignment: () => void;
   onClassClick?: (classId: string) => void;
+  showActions?: boolean;
   assignments?: Array<{
     id: string;
     class?: {
@@ -60,12 +71,15 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   status,
   description,
   chapterName,
+  chapterNo,
   isModalOpen = false,
   onViewDetails,
+  onDetails,
   onEdit,
   onDelete,
   onStudentAssignment,
   onClassClick,
+  showActions = true, // Default to true for backward compatibility
   assignments = [],
 }) => {
   const getStatusBadge = () => {
@@ -110,36 +124,35 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   return (
     <div
       data-homework-id={id}
-      className={`group bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition ${
+      className={`bg-white border-2 border-gray-300 rounded-2xl shadow-lg overflow-hidden ${
         isModalOpen ? "opacity-60 pointer-events-none" : ""
       }`}
     >
-      <div className="p-5">
+      <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-blue-600 mb-2 leading-tight">
-              Title: {title}
+            <h3 className="text-xl font-bold text-black mb-3 leading-tight">
+              {title}
             </h3>
 
             {description && (
-              <p className="text-sm text-green-600 mb-2 line-clamp-2 leading-relaxed">
-                Description: {description}
+              <p className="text-sm text-gray-800 mb-3 line-clamp-2 leading-relaxed font-medium">
+                {description}
               </p>
             )}
 
-            <div className="flex flex-col space-y-1 text-sm">
+            <div className="flex flex-col space-y-2 text-sm">
               <div className="flex items-center">
-                <BookOpen className="w-4 h-4 mr-2 text-purple-500" />
-                <span className="text-purple-600 font-medium">
-                  Subject Name: {subject}
-                </span>
+                <BookOpen className="w-4 h-4 mr-2 text-purple-600" />
+                <span className="text-black font-semibold">{subject}</span>
               </div>
 
-              {chapterName && (
+              {(chapterNo || chapterName) && (
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
-                  <span className="text-orange-600 font-medium">
-                    Chapter Name: {chapterName}
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  <span className="text-black font-semibold">
+                    {chapterNo && `Chapter ${chapterNo}: `}
+                    {chapterName}
                   </span>
                 </div>
               )}
@@ -239,48 +252,61 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
             </div>
           )}
 
-        <div className="space-y-3 mb-4">
+        <div className="space-y-4 mb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-600">
-              <User className="w-4 h-4 mr-2 text-gray-400" />
+            <div className="flex items-center text-sm text-black font-medium">
+              <User className="w-4 h-4 mr-2 text-gray-500" />
               <span>{teacher}</span>
             </div>
 
             <div
-              className={`flex items-center text-sm font-medium ${getDueDateColor()}`}
+              className={`flex items-center text-sm font-bold text-black bg-gray-100 px-3 py-1 rounded-lg`}
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              <span>{new Date(dueDate).toLocaleDateString()}</span>
+              <Calendar className="w-4 h-4 mr-2 text-red-500" />
+              <span>Due Date: {new Date(dueDate).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex space-x-1">
+        <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
+          <div className="flex space-x-2">
             <button
               onClick={onViewDetails}
-              className="p-2 text-blue-600 rounded-lg"
+              className="p-3 text-blue-500 rounded-lg cursor-pointer"
               title="View Details"
             >
               <Eye className="w-4 h-4" />
             </button>
-
-            <button
-              onClick={onEdit}
-              className="p-2 text-green-600 rounded-lg"
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onDelete}
-              className="p-2 text-red-600 rounded-lg"
-              title="Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {showActions && (
+              <button
+                onClick={onStudentAssignment}
+                className="p-3 text-purple-500 rounded-lg cursor-pointer"
+                title="View Students"
+              >
+                <Users className="w-4 h-4" />
+              </button>
+            )}
           </div>
+
+          {showActions && (
+            <div className="flex space-x-2">
+              <button
+                onClick={onEdit}
+                className="p-3 text-green-500 rounded-lg cursor-pointer"
+                title="Edit"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={onDelete}
+                className="p-3 text-red-500 rounded-lg cursor-pointer"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

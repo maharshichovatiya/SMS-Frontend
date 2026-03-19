@@ -3,8 +3,8 @@
 import { Users, BookOpen, Building } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState, AppDispatch } from "@/lib/store/Index";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
 import {
   dashboardApis,
   DashboardSummary,
@@ -82,7 +82,6 @@ function QuickItem({
 }
 
 function DashboardContentWithRole() {
-  const dispatch = useDispatch<AppDispatch>();
   const userRole =
     useSelector((state: RootState) => state.auth.role) || "admin";
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -92,7 +91,7 @@ function DashboardContentWithRole() {
       try {
         const data = await getProfile();
         setProfile(data);
-      } catch (error) {
+      } catch {
         showToast.error("Failed to load profile.");
       }
     };
@@ -212,7 +211,6 @@ function AdminDashboardContent({ profile }: { profile: ProfileData | null }) {
           glowColor="var(--blue)"
           label="Total Students"
           value={getStatValue(summary?.students)}
-          trend="↑ 12% from last year"
           trendUp
         />
         <StatCard
@@ -222,7 +220,6 @@ function AdminDashboardContent({ profile }: { profile: ProfileData | null }) {
           glowColor="var(--green)"
           label="Teachers"
           value={getStatValue(summary?.teachers)}
-          trend="↑ 4 new this term"
           trendUp
         />
         <StatCard
@@ -232,7 +229,6 @@ function AdminDashboardContent({ profile }: { profile: ProfileData | null }) {
           glowColor="var(--cyan)"
           label="Subjects"
           value={getStatValue(summary?.subjects)}
-          trend="↑ 2 added this year"
           trendUp
         />
         <StatCard
@@ -242,7 +238,6 @@ function AdminDashboardContent({ profile }: { profile: ProfileData | null }) {
           glowColor="var(--amber)"
           label="Classes"
           value={getStatValue(summary?.classes)}
-          trend="↓ 1 merged"
           trendUp={false}
         />
       </div>

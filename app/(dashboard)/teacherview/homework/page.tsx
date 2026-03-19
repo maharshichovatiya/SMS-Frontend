@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
-import { StudentListModal } from "@/components/homework/StudentListModal";
+import {
+  StudentListModal,
+  HomeworkData,
+} from "@/components/homework/StudentListModal";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
@@ -120,13 +123,14 @@ interface HomeworkListResponse {
 
 interface CreateHomeworkData {
   title: string;
-  subject: string;
+  subjectId: string;
   dueDate: string;
   description?: string;
-  instructions?: string;
-  assignedTo: string;
+  chapterId?: string;
+  assignedTo?: "singleClass" | "singleStudent" | "multipleStudents";
   selectedClass?: string;
   selectedClasses?: string[];
+  selectedGroup?: string;
   selectedStudents?: string[];
   allowLateSubmission?: boolean;
   maxFileSize?: number;
@@ -144,8 +148,9 @@ interface TransformedHomework {
   total: number;
   status: "active" | "completed" | "overdue";
   description: string;
-  chapterName?: string;
   chapterId?: string;
+  chapterName?: string;
+  chapterNo?: number;
 }
 
 export default function HomeworkPage() {
@@ -158,15 +163,15 @@ export default function HomeworkPage() {
   const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
     useState<HomeworkListItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
+  const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
-  const [isTeacher] = useState(true);
+  const __isTeacher = true;
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHomework, setEditingHomework] =
     useState<TransformedHomework | null>(null);
   const [showStudentAssignment, setShowStudentAssignment] = useState(false);
   const [selectedHomeworkForStudents, setSelectedHomeworkForStudents] =
-    useState<HomeworkForAssignment | null>(null);
+    useState<HomeworkData | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [, setSubjectsLoading] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -185,19 +190,19 @@ export default function HomeworkPage() {
         const subjectsData = await subjectApis.getAll();
         let subjectsArray: Subject[] = [];
         if (Array.isArray(subjectsData)) {
-          subjectsArray = subjectsData as Subject[];
+          subjectsArray = subjectsData;
         } else if (
           subjectsData &&
           typeof subjectsData === "object" &&
           "data" in subjectsData &&
-          Array.isArray((subjectsData as { data: unknown }).data)
+          Array.isArray((subjectsData as { data: Subject[] }).data)
         ) {
           subjectsArray = (subjectsData as { data: Subject[] }).data;
         } else if (
           subjectsData &&
           typeof subjectsData === "object" &&
           "subjects" in subjectsData &&
-          Array.isArray((subjectsData as { subjects: unknown }).subjects)
+          Array.isArray((subjectsData as { subjects: Subject[] }).subjects)
         ) {
           subjectsArray = (subjectsData as { subjects: Subject[] }).subjects;
         }
@@ -291,39 +296,47 @@ export default function HomeworkPage() {
     setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
-    const homeworkData = (
-      homeworkList as unknown as HomeworkListResponse
-    )?.homework?.find(hw => hw.id === homeworkId);
+    if (homeworkList && homeworkList.homework) {
+      const homeworkData = homeworkList.homework.find(
+        (hw: HomeworkListItem) => hw.id === homeworkId,
+      );
 
-    if (homeworkData) {
-      setSelectedHomeworkDetail(homeworkData);
-    } else {
-      const fallbackData = (
-        homeworkList as unknown as HomeworkListResponse
-      )?.data?.homework?.find((hw: { id: string }) => hw.id === homeworkId);
-
-      if (fallbackData) {
-        setSelectedHomeworkDetail(fallbackData as unknown as HomeworkListItem);
-        setSelectedHomework(fallbackData as unknown as HomeworkListItem);
+      if (homeworkData) {
+        setSelectedHomeworkDetail(homeworkData);
       } else {
-        setSelectedHomeworkDetail(null);
-        setSelectedHomework(null);
+        const fallbackData = homeworkList.homework?.find(
+          (hw: HomeworkListItem) => hw.id === homeworkId,
+        );
+
+        if (fallbackData) {
+          setSelectedHomeworkDetail(fallbackData);
+          setSelectedHomework(fallbackData);
+        } else {
+          setSelectedHomeworkDetail(null);
+          setSelectedHomework(null);
+        }
       }
     }
     setDetailLoading(false);
   };
 
-  const handleStudentAssignment = (homework: HomeworkForAssignment) => {
-    setSelectedHomeworkForStudents(homework);
+  const handleStudentAssignment = (homework: HomeworkListItem) => {
     setShowStudentAssignment(true);
     setHomeworkStudentsLoading(true);
-    setHomeworkStudents([]);
+    _setHomeworkStudents([]);
 
     const homeworkData = (homeworkList as unknown as HomeworkListResponse)
       ?.homework;
     const currentHomework = homeworkData?.find(
       (hw: { id: string }) => hw.id === homework.id,
     );
+
+    if (currentHomework) {
+      setSelectedHomeworkForStudents(
+        currentHomework as unknown as HomeworkData,
+      );
+    }
+
     const studentsFromAssignments: Student[] = [];
 
     if (
@@ -377,7 +390,7 @@ export default function HomeworkPage() {
       );
     }
 
-    setHomeworkStudents(studentsFromAssignments);
+    _setHomeworkStudents(studentsFromAssignments);
     setHomeworkStudentsLoading(false);
   };
 
@@ -460,15 +473,15 @@ export default function HomeworkPage() {
       setShowCreateForm(false);
       setEditingHomework(null);
       dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
-        error instanceof Error ? error.message : "Failed to update homework",
+        _error instanceof Error ? _error.message : "Failed to update homework",
       );
     }
   };
 
   const handleCreateHomework = async (data: CreateHomeworkData) => {
-    const subject = subjects.find((s: Subject) => s.id === data.subject);
+    const subject = subjects.find((s: Subject) => s.id === data.subjectId);
     if (!subject) return;
 
     let assignToClasses: Array<{ classId: string }> = [];
@@ -491,10 +504,11 @@ export default function HomeworkPage() {
 
     const apiData = {
       title: data.title,
-      subject: subject.id,
+      subjectId: subject.id,
       assignedDate: new Date().toISOString(),
       dueDate: new Date(data.dueDate).toISOString(),
       description: data.description,
+      chapterId: data.chapterId || null,
       assignToClasses,
       assignToStudents,
       allowLateSubmission: data.allowLateSubmission,
@@ -518,16 +532,35 @@ export default function HomeworkPage() {
     dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
   };
 
+  interface HomeworkItem {
+    id: string;
+    title: string;
+    subject?: string | { subjectName: string };
+    dueDate: string;
+    submittedCount?: number;
+    totalAssignedTo?: number;
+    description?: string;
+    chapterId?: string;
+    chapterName?: string;
+    chapterNo?: number;
+    chapter?: {
+      id: string;
+      chapterName: string;
+      chapterNo: number;
+    };
+  }
+
   const transformedHomeworkList: TransformedHomework[] =
     (homeworkList as unknown as HomeworkListResponse)?.homework?.map(
-      (hw: HomeworkListItem) => ({
+      (hw: HomeworkItem) => ({
         id: hw.id,
         title: hw.title,
         subject:
-          typeof hw.subject === "string"
-            ? hw.subject
-            : ((hw.subject as { subjectName: string })?.subjectName ??
-              "Subject"),
+          typeof hw.subject === "object" &&
+          hw.subject !== null &&
+          "subjectName" in hw.subject
+            ? hw.subject.subjectName
+            : (hw.subject as string) || "Subject",
         class: "Class",
         teacher: "Teacher",
         dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
@@ -539,12 +572,9 @@ export default function HomeworkPage() {
         total: hw.totalAssignedTo ?? 0,
         status: "active" as const,
         description: hw.description ?? "",
-        chapterId:
-          "chapterId" in hw ? (hw.chapterId as string | undefined) : undefined,
-        chapterName:
-          "chapterName" in hw
-            ? (hw.chapterName as string | undefined)
-            : undefined,
+        chapterId: hw.chapterId || hw.chapter?.id,
+        chapterName: hw.chapterName || hw.chapter?.chapterName,
+        chapterNo: hw.chapterNo || hw.chapter?.chapterNo,
       }),
     ) || [];
 
@@ -594,22 +624,7 @@ export default function HomeworkPage() {
       />
 
       <div
-        className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp"
-        style={{ animationDelay: "0.05s" }}
-      >
-        <div className="px-[22px] py-5">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search homework..."
-              className="w-full px-4 py-3 border-[1.5px] border-[#dde3f5] rounded-lg font-[var(--font-sans)] text-[13.5px] text-[#111827] outline-none transition-all duration-200 bg-[#fafbff] cursor-text focus:border-[#3d6cf4] focus:shadow-[0_0_0_3px_rgba(61,108,244,0.1)]"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] animate-fadeUp"
+        className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
         {transformedHomeworkList.map(hw => (
@@ -630,6 +645,7 @@ export default function HomeworkPage() {
               status={hw.status}
               description={hw.description}
               chapterName={hw.chapterName}
+              chapterNo={hw.chapterNo}
               isModalOpen={
                 !!(selectedHomework || showStudentAssignment || showCreateForm)
               }
@@ -683,7 +699,8 @@ export default function HomeworkPage() {
           isOpen={showStudentAssignment}
           onClose={() => setShowStudentAssignment(false)}
           homeworkTitle={selectedHomeworkForStudents?.title || "Homework"}
-          students={homeworkStudents}
+          homeworkId={selectedHomeworkForStudents?.id}
+          homeworkData={selectedHomeworkForStudents}
         />
       )}
 
@@ -705,9 +722,6 @@ export default function HomeworkPage() {
             onSubmit={
               editingHomework ? handleEditHomework : handleCreateHomework
             }
-            subjects={subjects || []}
-            classes={classes}
-            students={students}
             loading={createLoading}
             error={createError}
             editingHomework={null}

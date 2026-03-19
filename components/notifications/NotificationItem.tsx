@@ -8,6 +8,7 @@ import {
   User,
   Video,
 } from "lucide-react";
+import TruncatedText from "@/components/ui/TruncatedText";
 
 interface Notification {
   id: string;
@@ -37,10 +38,18 @@ const getLucideIcon = (iconName: string) => {
   return iconMap[iconName] || <FileText className="w-4 h-4" />;
 };
 
+const stripHtml = (html: string) => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+};
+
 export default function NotificationItem({
   notification,
   onClick,
 }: NotificationItemProps) {
+  const plainTextMessage = stripHtml(notification.message);
+
   return (
     <div
       key={notification.id}
@@ -55,11 +64,14 @@ export default function NotificationItem({
         {getLucideIcon(notification.icon)}
       </div>
 
-      <div>
-        <div
-          className="text-[13px] text-[var(--text2)] leading-[1.5]"
-          dangerouslySetInnerHTML={{ __html: notification.message }}
-        />
+      <div className="flex-1">
+        <div className="text-[13px] text-[var(--text2)] leading-[1.5]">
+          <TruncatedText
+            text={plainTextMessage}
+            maxChars={120}
+            className="inline"
+          />
+        </div>
         <div className="text-[11px] text-[var(--text3)] mt-[3px]">
           {notification.time}
         </div>

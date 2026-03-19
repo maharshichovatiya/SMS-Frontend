@@ -1,11 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
-import { ApiTeacherData } from "@/lib/types/Teacher";
 import { Award } from "lucide-react";
+import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import PageHeader from "@/components/layout/PageHeader";
-import TeacherForm from "@/components/forms/TeacherForm";
-import Modal from "@/components/ui/Modal";
+import { ProfileFieldProps, ProfileTab } from "@/lib/types/teacher-profile";
 
 interface ApiTeacherData {
   id: string;
@@ -677,51 +675,6 @@ const TeacherProfilePage: React.FC = () => {
 
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
-
-      <Modal
-        isOpen={showForm}
-        onClose={handleFormCancel}
-        title="Edit Profile"
-        description="Update your personal and professional information. Some fields are disabled for security reasons."
-        className="max-w-4xl w-full"
-      >
-        <TeacherForm
-          mode="edit"
-          teacherId={teacherData.id}
-          userId={teacherData.userId}
-          onCancel={handleFormCancel}
-          onSuccess={handleFormSave}
-          defaultValues={{
-            firstName: teacherData.user?.firstName,
-            lastName: teacherData.user?.lastName,
-            email: teacherData.user?.email,
-            phone: teacherData.user?.phone,
-            gender: teacherData.user?.gender || "male",
-            dob: teacherData.user?.dob || "",
-
-            designation: teacherData.designation,
-            experienceYears: Math.floor((teacherData.totalExpMonths || 0) / 12),
-            experienceMonths: (teacherData.totalExpMonths || 0) % 12,
-
-            highestQualification: teacherData.highestQualification,
-
-            currentAddress: teacherData.currentAddress || "",
-            permanentAddress: teacherData.permanentAddress || "",
-
-            department: teacherData.department,
-            dateOfJoining: teacherData.createdAt
-              ? new Date(teacherData.createdAt).toISOString().split("T")[0]
-              : "",
-            bloodGroup: "",
-            aadhaarNo: "",
-            panNo: "",
-            bankName: "",
-            accountNo: "",
-            ifscCode: "",
-            branch: "",
-          }}
-        />
-      </Modal>
 
       <style jsx>{`
         @keyframes fadeUp {

@@ -1,8 +1,10 @@
 "use client";
 import PageHeader from "@/components/layout/PageHeader";
-import { resourcesData } from "@/lib/constants/ResourcesData";
+import { resourcesApis } from "@/lib/api/Resources";
 import { Class, Subject, Chapter } from "@/lib/types/Resources";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import Breadcrumb from "@/components/resources/Breadcrumb";
 import ClassCard from "@/components/resources/ClassCard";
@@ -10,6 +12,7 @@ import SubjectCard from "@/components/resources/SubjectCard";
 import ChapterHeader from "@/components/resources/ChapterHeader";
 import ResourceCard from "@/components/resources/ResourceCard";
 import ResourceFilter from "@/components/resources/ResourceFilter";
+import ChapterResourceModal from "@/components/resources/ChapterResourceModal";
 type ResourceType = "all" | "pdf" | "video" | "notes";
 
 function Page() {
@@ -21,6 +24,31 @@ function Page() {
   const [resourceFilter, setResourceFilter] = useState<ResourceType>("all");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [resourcesData, setResourcesData] = useState<Class[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const userRole = useSelector((state: RootState) => state.auth.role);
+  const isStudent = userRole === "student";
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const data = await resourcesApis.getChapterResources();
+        setResourcesData(data);
+      } catch (_error) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, []);
+
+  // Initialize with active class
+  // const activeClass = resourcesData.find(c => c.code === "10-A");
+  // if (activeClass && currentView === "classes" && !selectedClass) {
+  //   setSelectedClass(activeClass);
+  //   setCurrentView("subjects");
+  // }
 
   const handleBackToClasses = () => {
     setCurrentView("classes");
@@ -87,7 +115,7 @@ function Page() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {resourcesData.map((classItem, i) => (
           <ClassCard
-            key={classItem.id}
+            key={classItem.classId}
             classItem={classItem}
             index={i}
             onClick={classItem => {
@@ -107,7 +135,7 @@ function Page() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {selectedClass.subjects.map(subject => (
           <SubjectCard
-            key={subject.id}
+            key={subject.subjectId}
             subject={subject}
             onClick={handleSubjectClick}
           />
@@ -124,7 +152,7 @@ function Page() {
       resources: chapter.resources.filter(
         resource =>
           resourceFilter === "all" ||
-          resource.type.toLowerCase() === resourceFilter.toLowerCase(),
+          resource.resourceType.toLowerCase() === resourceFilter.toLowerCase(),
       ),
     }));
 
@@ -136,19 +164,19 @@ function Page() {
         />
         {filteredChapters.map((chapter, chapterIndex) => (
           <div
-            key={chapterIndex}
+            key={chapter.chapterId}
             className="mb-8 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]"
           >
             <ChapterHeader
               chapter={chapter}
-              isSelected={selectedChapter?.name === chapter.name}
+              isSelected={selectedChapter?.chapterName === chapter.chapterName}
               onClick={() => handleChapterSelect(chapter)}
             />
             {chapter.resources.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4 mt-4">
                 {chapter.resources.map((resource, resourceIndex) => (
                   <ResourceCard
-                    key={resourceIndex}
+                    key={resource.id}
                     resource={resource}
                     chapter={chapter}
                     selectedSubject={selectedSubject}
@@ -203,20 +231,22 @@ function Page() {
           currentView === "classes"
             ? "Browse study materials by class and subject"
             : currentView === "subjects"
-              ? `Subjects and resources for ${selectedClass?.code}`
-              : `Resources for ${selectedSubject?.name}`
+              ? `Subjects and resources for ${selectedClass?.className}`
+              : `Resources for ${selectedSubject?.subjectName}`
         }
         icon={FolderOpen}
         iconBgColor="lightcyan"
         iconColor="cyan"
-        buttonText="Upload Resource"
-        onButtonClick={handleUploadResource}
-        buttonIcon={Plus}
-        buttonDisabled={
-          (currentView === "classes" && !selectedClass) ||
-          (currentView === "subjects" && !selectedSubject) ||
-          (currentView === "chapters" && (!selectedSubject || !selectedChapter))
-        }
+        {...(!isStudent && {
+          buttonText: "Upload Resource",
+          onButtonClick: handleUploadResource,
+          buttonIcon: Plus,
+          buttonDisabled:
+            (currentView === "classes" && !selectedClass) ||
+            (currentView === "subjects" && !selectedSubject) ||
+            (currentView === "chapters" &&
+              (!selectedSubject || !selectedChapter)),
+        })}
       />
 
       <Breadcrumb
@@ -243,14 +273,19 @@ function Page() {
 
       {renderContent()}
 
-      <ChapterResourceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmitSuccess={() => {}}
-        chapterId={selectedChapter?.id}
-        chapterName={selectedChapter?.name}
-        subjectName={selectedSubject?.name}
-      />
+      {/* Chapter Resource Upload Modal - only for admin/teacher */}
+      {!isStudent && (
+        <ChapterResourceModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmitSuccess={() => {
+            // TODO: Refresh resources list after upload
+          }}
+          chapterId={selectedChapter?.chapterId}
+          chapterName={selectedChapter?.chapterName}
+          subjectName={selectedSubject?.subjectName}
+        />
+      )}
     </div>
   );
 }

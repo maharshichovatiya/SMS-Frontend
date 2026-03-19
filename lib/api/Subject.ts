@@ -121,6 +121,29 @@ export const subjectApis = {
     await api.delete(`/subjects/${id}`);
   },
 
+  assignTeacherToSubject: async (
+    subjectId: string,
+    teacherId: string,
+    classId: string,
+  ): Promise<void> => {
+    await api.post(`/class-subject/assign-teacher`, {
+      subjectId,
+      teacherId,
+      classId,
+    });
+  },
+
+  removeTeacherFromSubject: async (classSubjectId: string): Promise<void> => {
+    await api.patch(`/class-subject/${classSubjectId}/remove-teacher`);
+  },
+
+  getSubjectAssignments: async (): Promise<SubjectAssignment[]> => {
+    const res = await api.get<{ data: SubjectAssignment[] }>(
+      "/class-subject/assignments",
+    );
+    return res.data.data;
+  },
+
   getChaptersBySubject: async (subjectId: string): Promise<Chapter[]> => {
     const res = await api.get<{
       data: {

@@ -9,6 +9,10 @@ import type {
 import PageHeader from "@/components/layout/PageHeader";
 import Modal from "@/components/ui/Modal";
 import StudentForm from "@/components/forms/StudentSections/StudentForm";
+import {
+  getStudentProfile,
+  type StudentProfileData,
+} from "@/lib/api/StudentProfile";
 
 interface ApiStudentData {
   id: string;
@@ -183,7 +187,7 @@ const ProfileTabBar: React.FC<{
   );
 };
 
-const ProfileHeader: React.FC<{
+const _ProfileHeader: React.FC<{
   student: ApiStudentData;
   isEditing: boolean;
   onEditToggle: () => void;
@@ -264,56 +268,108 @@ const StudentProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
-
-  // Mock student data - in real app, this would come from API
   const [studentData, setStudentData] = useState<ApiStudentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const mockStudentData: ApiStudentData = {
-      id: "1",
-      status: "active",
-      userId: "student-1",
-      rollNumber: "STU2024001",
-      grade: "10-A",
-      section: "A",
-      enrollmentDate: "2023-06-15",
-      guardianName: "Robert Johnson",
-      guardianPhone: "+1-234-567-8901",
-      createdAt: "2023-06-15T10:30:00Z",
-      updatedAt: "2024-03-10T14:20:00Z",
-      user: {
-        id: "student-1",
-        email: "john.doe@school.com",
-        firstName: "John",
-        middleName: "Michael",
-        lastName: "Doe",
-        phone: "+1-234-567-8900",
-        gender: "Male",
-        dob: "2008-05-15",
-        bloodGroup: "O+",
-        permanentAddress: "123 Main St, City, State 12345",
-        currentAddress: "456 Oak Ave, Current City, State 67890",
-        profilePhoto: null,
-        school: {
-          id: "school-1",
-          name: "Springfield High School",
-          address: "789 Education Blvd, Springfield, IL 62701",
-          affiliationBoard: "State Board of Education",
-        },
-        role: {
-          id: "student",
-          roleName: "Student",
-        },
-      },
+    const fetchStudentProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const profileData: StudentProfileData = await getStudentProfile();
+
+        // Map API response to existing interface
+        const mappedData: ApiStudentData = {
+          id: profileData.id,
+          status: profileData.status,
+          userId: profileData.user.id,
+          rollNumber: profileData.rollNo || "N/A",
+          grade: profileData.academics[0]?.class.className || "N/A",
+          section: profileData.academics[0]?.class.section || "N/A",
+          enrollmentDate: profileData.admissionDate,
+          guardianName:
+            profileData.fatherName || profileData.guardianName || "N/A",
+          guardianPhone: profileData.fatherPhone || "N/A",
+          createdAt: "",
+          updatedAt: "",
+          user: {
+            id: profileData.user.id,
+            email: profileData.user.email,
+            firstName: profileData.user.firstName,
+            middleName: profileData.user.middleName,
+            lastName: profileData.user.lastName,
+            phone: profileData.user.phone,
+            gender: profileData.user.gender,
+            dob: profileData.user.dob,
+            bloodGroup: profileData.user.bloodGroup,
+            permanentAddress: profileData.user.permanentAddress,
+            currentAddress: profileData.user.currentAddress,
+            profilePhoto: profileData.user.profilePhoto,
+            school: {
+              id: profileData.user.school.id,
+              name: profileData.user.school.name,
+              address: profileData.user.school.address,
+              affiliationBoard: profileData.user.school.affiliationBoard,
+            },
+            role: {
+              id: profileData.user.role.id,
+              roleName: profileData.user.role.roleName,
+            },
+          },
+        };
+
+        setStudentData(mappedData);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch student profile";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setTimeout(() => {
-      setStudentData(mockStudentData);
-    }, 0);
+    fetchStudentProfile();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">Error</div>
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!studentData) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-600">No profile data available</p>
+        </div>
+      </div>
+    );
   }
 
   const handleEditToggle = () => {
@@ -322,15 +378,13 @@ const StudentProfilePage: React.FC = () => {
 
   const handleFormSave = async () => {
     setShowForm(false);
-    // TODO: Implement API call to save changes
   };
 
-  const handleFormCancel = () => {
+  const _handleFormCancel = () => {
     setShowForm(false);
   };
 
-  const handleSave = () => {
-    // TODO: Implement API call to save changes
+  const _handleSave = () => {
     setIsEditing(false);
   };
 
@@ -576,7 +630,7 @@ const StudentProfilePage: React.FC = () => {
     </SectionCard>
   );
 
-  const renderGuardian = () => (
+  const _renderGuardian = () => (
     <SectionCard title="Guardian Information" delay={0.12}>
       <FieldGrid>
         <ProfileField
@@ -628,7 +682,7 @@ const StudentProfilePage: React.FC = () => {
       {/* Edit Profile Modal */}
       <Modal
         isOpen={showForm}
-        onClose={handleFormCancel}
+        onClose={_handleFormCancel}
         title="Edit Profile"
         description="Update your personal information"
       >

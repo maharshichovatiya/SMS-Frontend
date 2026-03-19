@@ -1,7 +1,16 @@
 "use client";
 
-import { FileText, CheckCircle, Star, Calendar } from "lucide-react";
+import React, { useEffect } from "react";
+import { FileText, CheckCircle, Star, Calendar, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/store/Index";
+import {
+  fetchStudentSummary,
+  fetchUpcomingHomework,
+  fetchStudentSubjects,
+} from "@/lib/store/StudentDashboardSlice";
+
 import StatCard from "@/components/ui/StatCard";
 import { ProfileData } from "@/lib/types/Profile";
 
@@ -86,8 +95,6 @@ interface SubjectRowProps {
   badgeText: string;
   subjectName: string;
   teacherName: string;
-  grade: string;
-  gradeColor: string;
 }
 
 function SubjectRow({
@@ -95,8 +102,6 @@ function SubjectRow({
   badgeText,
   subjectName,
   teacherName,
-  grade,
-  gradeColor,
 }: SubjectRowProps) {
   return (
     <div className="flex items-center justify-between px-[18px] py-[11px] border-b border-[var(--border)] last:border-b-0">
@@ -109,9 +114,6 @@ function SubjectRow({
           </div>
         </div>
       </div>
-      <div className="text-[14px] font-bold" style={{ color: gradeColor }}>
-        {grade}
-      </div>
     </div>
   );
 }
@@ -122,6 +124,17 @@ export default function StudentDashboard({
   profile: ProfileData | null;
 }) {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { summary, upcomingHomework, subjects, loading } = useSelector(
+    (state: RootState) => state.studentDashboard,
+  );
+
+  useEffect(() => {
+    dispatch(fetchStudentSummary());
+    dispatch(fetchUpcomingHomework());
+    dispatch(fetchStudentSubjects());
+  }, [dispatch]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -152,15 +165,19 @@ export default function StudentDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4 mb-[22px] max-xl:grid-cols-2">
         <StatCard
           icon={<FileText size={20} />}
           iconBg="bg-[var(--indigo-light)]"
           iconColor="var(--indigo)"
           glowColor="var(--indigo)"
           label="Pending Homework"
-          value="3"
-          trend="1 due tomorrow"
+          value={summary?.pendingHomework?.count?.toString() || "0"}
+          trend={
+            summary?.pendingHomework?.dueTomorrow
+              ? `${summary.pendingHomework.dueTomorrow} due tomorrow`
+              : "0 due tomorrow"
+          }
           trendUp={false}
           animationDelay="0.04s"
         />
@@ -169,22 +186,33 @@ export default function StudentDashboard({
           iconBg="bg-[var(--green-light)]"
           iconColor="var(--green)"
           glowColor="var(--green)"
-          label="Attendance"
-          value="94%"
-          trend="↑ Excellent"
+          label="Submitted Homework"
+          value={summary?.submittedHomework?.count?.toString() || "0"}
+          trend="Submit"
           trendUp={true}
-          animationDelay="0.09s"
+          animationDelay="0.04s"
         />
         <StatCard
           icon={<Star size={20} />}
           iconBg="bg-[var(--blue-light)]"
           iconColor="var(--blue)"
           glowColor="var(--blue)"
-          label="Avg Grade"
-          value="A+"
-          trend="Top 5% of class"
+          label="Graded Homework"
+          value={summary?.gradedHomework?.count?.toString() || "0"}
+          trend="Grade"
           trendUp={true}
-          animationDelay="0.14s"
+          animationDelay="0.04s"
+        />
+        <StatCard
+          icon={<BookOpen size={20} />}
+          iconBg="bg-[var(--blue-light)]"
+          iconColor="var(--blue)"
+          glowColor="var(--blue)"
+          label="Resources"
+          value={summary?.resources?.count?.toString() || "0"}
+          trend="Materials"
+          trendUp={true}
+          animationDelay="0.04s"
         />
       </div>
 
@@ -203,40 +231,62 @@ export default function StudentDashboard({
           </div>
 
           <div className="divide-y divide-[var(--border)]">
-            <HomeworkItem
-              icon={<Calendar size={16} />}
-              iconBg="bg-[var(--rose-light)]"
-              iconColor="var(--rose)"
-              title="Quadratic Equations"
-              subject="Mathematics"
-              dueDate="Mar 15"
-              status="pending"
-              onClick={handleHomeworkClick}
-            />
-            <HomeworkItem
-              icon={<FileText size={16} />}
-              iconBg="bg-[var(--blue-light)]"
-              iconColor="var(--blue)"
-              title="Climate Change Essay"
-              subject="English"
-              dueDate="Mar 18"
-              status="pending"
-              onClick={handleHomeworkClick}
-            />
-            <HomeworkItem
-              icon={<CheckCircle size={16} />}
-              iconBg="bg-[var(--green-light)]"
-              iconColor="var(--green)"
-              title="Chemical Reactions Lab"
-              subject="Science"
-              dueDate="Mar 10"
-              status="graded"
-              onClick={handleHomeworkClick}
-            />
+            {loading.upcomingHomework ? (
+              <div className="px-6 py-4 text-sm text-[var(--text-2)] text-center">
+                Loading homework...
+              </div>
+            ) : upcomingHomework && upcomingHomework.length > 0 ? (
+              upcomingHomework.map((hw, idx) => {
+                let icon = <FileText size={16} />;
+                let iconBg = "bg-[var(--blue-light)]";
+                let iconColor = "var(--blue)";
+
+                if (hw.submissionStatus.toLowerCase() === "graded") {
+                  icon = <CheckCircle size={16} />;
+                  iconBg = "bg-[var(--green-light)]";
+                  iconColor = "var(--green)";
+                } else if (
+                  hw.submissionStatus.toLowerCase() === "pending" ||
+                  hw.submissionStatus.toLowerCase() === "not_submitted"
+                ) {
+                  icon = <Calendar size={16} />;
+                  iconBg = "bg-[var(--rose-light)]";
+                  iconColor = "var(--rose)";
+                }
+
+                return (
+                  <HomeworkItem
+                    key={idx}
+                    icon={icon}
+                    iconBg={iconBg}
+                    iconColor={iconColor}
+                    title={hw.title}
+                    subject={hw.subjectName}
+                    dueDate={
+                      typeof hw.dueDate === "string"
+                        ? new Date(hw.dueDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "No date"
+                    }
+                    status={
+                      hw.submissionStatus.toLowerCase() === "graded"
+                        ? "graded"
+                        : "pending"
+                    }
+                    onClick={handleHomeworkClick}
+                  />
+                );
+              })
+            ) : (
+              <div className="px-6 py-4 text-sm text-[var(--text-2)] text-center">
+                No upcoming homework
+              </div>
+            )}
           </div>
         </div>
 
-        {/* My Subjects Card */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)]">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
             <h3 className="text-lg font-semibold text-[var(--text)]">
@@ -251,38 +301,32 @@ export default function StudentDashboard({
           </div>
 
           <div className="divide-y divide-[var(--border)]">
-            <SubjectRow
-              badgeVariant="blue"
-              badgeText="Math"
-              subjectName="Mathematics"
-              teacherName="Sunita Mishra"
-              grade="A+"
-              gradeColor="var(--green)"
-            />
-            <SubjectRow
-              badgeVariant="green"
-              badgeText="Sci"
-              subjectName="Science"
-              teacherName="Vivek Pandey"
-              grade="A"
-              gradeColor="var(--green)"
-            />
-            <SubjectRow
-              badgeVariant="indigo"
-              badgeText="Eng"
-              subjectName="English"
-              teacherName="Rekha Tiwari"
-              grade="B+"
-              gradeColor="var(--blue)"
-            />
-            <SubjectRow
-              badgeVariant="cyan"
-              badgeText="CS"
-              subjectName="Computer Science"
-              teacherName="Vivek Pandey"
-              grade="A+"
-              gradeColor="var(--green)"
-            />
+            {loading.subjects ? (
+              <div className="px-6 py-4 text-sm text-[var(--text-2)] text-center">
+                Loading subjects...
+              </div>
+            ) : subjects && subjects.length > 0 ? (
+              subjects.map((subject, idx) => {
+                const variants = ["blue", "green", "indigo", "cyan"] as const;
+                const badgeVariant = variants[idx % variants.length];
+                const badgeText = subject.subjectName
+                  .substring(0, 3)
+                  .toUpperCase();
+                return (
+                  <SubjectRow
+                    key={idx}
+                    badgeVariant={badgeVariant}
+                    badgeText={badgeText}
+                    subjectName={subject.subjectName}
+                    teacherName={`${subject.teacherFirstName} ${subject.teacherLastName}`}
+                  />
+                );
+              })
+            ) : (
+              <div className="px-6 py-4 text-sm text-[var(--text-2)] text-center">
+                No subjects assigned
+              </div>
+            )}
           </div>
         </div>
       </div>
