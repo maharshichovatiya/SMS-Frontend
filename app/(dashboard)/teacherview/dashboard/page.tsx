@@ -4,6 +4,10 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Building, BookOpen, Users, Award } from "lucide-react";
 import { RootState, AppDispatch } from "@/lib/store/Index";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Building, BookOpen, Users, Award } from "lucide-react";
+import { RootState, AppDispatch } from "@/lib/store/Index";
 import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
 import {
   fetchTeacherDashboardData,
@@ -17,6 +21,18 @@ import {
 } from "@/lib/store/AssignSubjectSlice";
 import { showToast } from "@/lib/utils/Toast";
 import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
+import {
+  fetchTeacherDashboardData,
+  clearError,
+} from "@/lib/store/TeacherDashboardSlice";
+import { fetchAssignClassData } from "@/lib/store/AssignClassSlice";
+import {
+  fetchAssignSubjectData,
+  Subject,
+  SubjectClass,
+} from "@/lib/store/AssignSubjectSlice";
+import { showToast } from "@/lib/utils/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const SectionCard: React.FC<{
   title: string;
@@ -115,12 +131,14 @@ const TeacherDashboard: React.FC = () => {
   }
 
   return (
-    <CommonTeacherHeader
-      useApiData={true}
-      userRole={userRole}
-      showSearch={false}
-      showFilter={false}
-    >
+    <div>
+      <PageHeader
+        title="Teacher Dashboard"
+        description="Overview of your classes, subjects, and students"
+        icon={Award}
+        iconBgColor="--blue-light"
+        iconColor="--blue"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-[22px]">
         <div className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] p-6">
           <div className="flex items-center justify-between">
@@ -368,7 +386,7 @@ const TeacherDashboard: React.FC = () => {
           </div>
         </SectionCard>
       </div>
-    </CommonTeacherHeader>
+    </div>
   );
 };
 

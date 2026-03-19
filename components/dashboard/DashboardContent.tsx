@@ -16,6 +16,7 @@ import { ProfileData } from "@/lib/types/Profile";
 import { getProfile } from "@/lib/api/Profile";
 import { showToast } from "@/lib/utils/Toast";
 import StudentDashboard from "@/components/dashboard/StudentDashboard";
+import TeacherDashboard from "@/components/dashboard/TeacherDashboard";
 import StatCard from "@/components/ui/StatCard";
 
 type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
@@ -102,6 +103,14 @@ function DashboardContentWithRole() {
     return (
       <>
         <StudentDashboard profile={profile} />
+      </>
+    );
+  }
+
+  if (userRole === "teacher") {
+    return (
+      <>
+        <TeacherDashboard profile={profile} />
       </>
     );
   }

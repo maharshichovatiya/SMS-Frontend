@@ -1,25 +1,25 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useTeacherProfile } from "@/lib/hooks/UseTeacherProfile";
-import { ApiTeacherData } from "@/lib/types/Teacher";
-import { Award } from "lucide-react";
-import PageHeader from "@/components/layout/PageHeader";
-import TeacherForm from "@/components/forms/TeacherForm";
-import Modal from "@/components/ui/Modal";
 
-interface ApiTeacherData {
+import React, { useState, useEffect } from "react";
+import { Award } from "lucide-react";
+import type {
+  ProfileTab,
+  ProfileFieldProps,
+} from "@/lib/types/student-profile";
+import PageHeader from "@/components/layout/PageHeader";
+import Modal from "@/components/ui/Modal";
+import StudentForm from "@/components/forms/StudentSections/StudentForm";
+
+interface ApiStudentData {
   id: string;
   status: string;
   userId: string;
-  employeeCode: string;
-  staffCategory: string;
-  department: string;
-  designation: string;
-  highestQualification: string;
-  specialization: string | null;
-  totalExpMonths: number;
-  salaryPackage: string;
-  dateOfJoining: string;
+  rollNumber: string;
+  grade: string;
+  section: string;
+  enrollmentDate: string;
+  guardianName: string;
+  guardianPhone: string;
   createdAt: string;
   updatedAt: string;
   user: {
@@ -157,9 +157,8 @@ const ProfileTabBar: React.FC<{
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "personal", label: "Personal" },
-    { id: "professional", label: "Professional" },
-    { id: "academic", label: "Qualification" },
-    { id: "classes", label: "School" },
+    { id: "academic", label: "Academics" },
+    { id: "school", label: "School" },
   ];
 
   return (
@@ -185,13 +184,11 @@ const ProfileTabBar: React.FC<{
 };
 
 const ProfileHeader: React.FC<{
-  teacher: ApiTeacherData;
+  student: ApiStudentData;
   isEditing: boolean;
   onEditToggle: () => void;
-  onSave: () => void;
-  onCancel: () => void;
-}> = ({ teacher, onEditToggle }) => {
-  const { user } = teacher;
+}> = ({ student, onEditToggle }) => {
+  const { user } = student;
 
   const initials =
     `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
@@ -221,7 +218,7 @@ const ProfileHeader: React.FC<{
 
             <div
               className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-[2.5px] border-white ${
-                teacher.status === "active" ? "bg-[#12a47e]" : "bg-[#e83b6a]"
+                student.status === "active" ? "bg-[#12a47e]" : "bg-[#e83b6a]"
               }`}
             />
           </div>
@@ -231,21 +228,21 @@ const ProfileHeader: React.FC<{
               {user.firstName} {user.lastName}
             </div>
             <div className="text-[13.5px] text-[#5c6a8a] mt-1 font-[var(--font-sans)]">
-              {teacher.designation} · {teacher.department} Dept.
+              Grade {student.grade} · Section {student.section}
             </div>
             <div className="flex items-center flex-wrap gap-2 mt-2">
               <span className="text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#eef1ff] text-[#3d6cf4] font-mono">
-                {teacher.employeeCode}
+                {student.rollNumber}
               </span>
 
               <span
                 className={`text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full font-[var(--font-sans)] ${
-                  teacher.status === "active"
+                  student.status === "active"
                     ? "bg-[#e6faf5] text-[#12a47e]"
                     : "bg-[#fff0f4] text-[#e83b6a]"
                 }`}
               >
-                {teacher.status}
+                {student.status}
               </span>
             </div>
           </div>
@@ -263,42 +260,69 @@ const ProfileHeader: React.FC<{
   );
 };
 
-const TeacherProfilePage: React.FC = () => {
-  const { teacherData, loading, error, refetch } = useTeacherProfile();
+const StudentProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  const [draft, setDraft] = useState<ApiTeacherData | null>(null);
+  // Mock student data - in real app, this would come from API
+  const [studentData, setStudentData] = useState<ApiStudentData | null>(null);
 
   useEffect(() => {
-    if (teacherData) {
-      setTimeout(() => {
-        setDraft(JSON.parse(JSON.stringify(teacherData)) as ApiTeacherData);
-      }, 0);
-    }
-  }, [teacherData]);
+    const mockStudentData: ApiStudentData = {
+      id: "1",
+      status: "active",
+      userId: "student-1",
+      rollNumber: "STU2024001",
+      grade: "10-A",
+      section: "A",
+      enrollmentDate: "2023-06-15",
+      guardianName: "Robert Johnson",
+      guardianPhone: "+1-234-567-8901",
+      createdAt: "2023-06-15T10:30:00Z",
+      updatedAt: "2024-03-10T14:20:00Z",
+      user: {
+        id: "student-1",
+        email: "john.doe@school.com",
+        firstName: "John",
+        middleName: "Michael",
+        lastName: "Doe",
+        phone: "+1-234-567-8900",
+        gender: "Male",
+        dob: "2008-05-15",
+        bloodGroup: "O+",
+        permanentAddress: "123 Main St, City, State 12345",
+        currentAddress: "456 Oak Ave, Current City, State 67890",
+        profilePhoto: null,
+        school: {
+          id: "school-1",
+          name: "Springfield High School",
+          address: "789 Education Blvd, Springfield, IL 62701",
+          affiliationBoard: "State Board of Education",
+        },
+        role: {
+          id: "student",
+          roleName: "Student",
+        },
+      },
+    };
 
-  if (loading && !teacherData) {
-    return null;
-  }
+    setTimeout(() => {
+      setStudentData(mockStudentData);
+    }, 0);
+  }, []);
 
-  if (error && !teacherData) {
-    return null;
-  }
-
-  if (!teacherData) {
+  if (!studentData) {
     return null;
   }
 
   const handleEditToggle = () => {
     setShowForm(true);
-    setIsEditing(false);
   };
 
   const handleFormSave = async () => {
     setShowForm(false);
-    await refetch();
+    // TODO: Implement API call to save changes
   };
 
   const handleFormCancel = () => {
@@ -306,28 +330,23 @@ const TeacherProfilePage: React.FC = () => {
   };
 
   const handleSave = () => {
+    // TODO: Implement API call to save changes
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    if (teacherData) {
-      const teacherDataCopy = JSON.parse(
-        JSON.stringify(teacherData),
-      ) as ApiTeacherData;
-      setDraft(teacherDataCopy);
-    }
     setIsEditing(false);
   };
 
   const handleFieldChange = (field: string, value: string) => {
-    setDraft((prev: ApiTeacherData | null) => ({
+    setStudentData((prev: ApiStudentData | null) => ({
       ...prev!,
       [field]: value,
     }));
   };
 
   const handleUserFieldChange = (field: string, value: string) => {
-    setDraft((prev: ApiTeacherData | null) => ({
+    setStudentData((prev: ApiStudentData | null) => ({
       ...prev!,
       user: {
         ...prev!.user,
@@ -336,7 +355,7 @@ const TeacherProfilePage: React.FC = () => {
     }));
   };
 
-  const current = isEditing ? draft! : (teacherData! as ApiTeacherData);
+  const current = isEditing ? studentData! : (studentData! as ApiStudentData);
 
   const renderOverview = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px]">
@@ -360,7 +379,6 @@ const TeacherProfilePage: React.FC = () => {
             label="Phone"
             value={current.user.phone || ""}
             isEditing={false}
-            mono
           />
           <ProfileField
             label="Date of Birth"
@@ -381,67 +399,30 @@ const TeacherProfilePage: React.FC = () => {
       </SectionCard>
 
       <SectionCard
-        title="Professional Details"
-        subtitle="Employment information"
+        title="Academic Details"
+        subtitle="Grade and section information"
         delay={0.1}
       >
         <FieldGrid>
           <ProfileField
-            label="Employee Code"
-            value={current.employeeCode}
+            label="Roll Number"
+            value={current.rollNumber}
             isEditing={false}
             mono
           />
+          <ProfileField label="Grade" value={current.grade} isEditing={false} />
           <ProfileField
-            label="Designation"
-            value={current.designation}
+            label="Section"
+            value={current.section}
             isEditing={false}
           />
           <ProfileField
-            label="Department"
-            value={current.department}
+            label="Enrollment Date"
+            value={current.enrollmentDate}
             isEditing={false}
-          />
-          <ProfileField
-            label="Staff Category"
-            value={current.staffCategory}
-            isEditing={false}
-          />
-          <ProfileField
-            label="Date of Joining"
-            value={current.dateOfJoining}
-            isEditing={false}
-          />
-          <ProfileField
-            label="Experience"
-            value={`${current.totalExpMonths} months`}
-            isEditing={false}
+            type="date"
           />
         </FieldGrid>
-      </SectionCard>
-
-      <SectionCard
-        title="Academic Info"
-        subtitle="Qualifications & specializations"
-        delay={0.15}
-        className="lg:col-span-2"
-      >
-        <div className="mb-[14px]">
-          <div className="text-[11px] font-bold text-[#9aa5c4] uppercase tracking-[0.5px] mb-2 font-[var(--font-sans)]">
-            Highest Qualification
-          </div>
-          <div className="text-[14px] font-semibold text-[#111827] font-[var(--font-sans)]">
-            {current.highestQualification}
-          </div>
-        </div>
-        <div>
-          <div className="text-[11px] font-bold text-[#9aa5c4] uppercase tracking-[0.5px] mb-2 font-[var(--font-sans)]">
-            Specialization
-          </div>
-          <div className="text-[14px] font-semibold text-[#111827] font-[var(--font-sans)]">
-            {current.specialization || "Not specified"}
-          </div>
-        </div>
       </SectionCard>
     </div>
   );
@@ -527,72 +508,44 @@ const TeacherProfilePage: React.FC = () => {
     </>
   );
 
-  const renderProfessional = () => (
-    <>
-      <SectionCard title="Employment Details" delay={0.04}>
-        <FieldGrid>
-          <ProfileField
-            label="Employee Code"
-            value={current.employeeCode}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("employeeCode", v)}
-            readOnly
-            mono
-          />
-          <ProfileField
-            label="Designation"
-            value={current.designation}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("designation", v)}
-            readOnly
-          />
-          <ProfileField
-            label="Department"
-            value={current.department}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("department", v)}
-            readOnly
-          />
-          <ProfileField
-            label="Staff Category"
-            value={current.staffCategory}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("staffCategory", v)}
-            readOnly
-          />
-          <ProfileField
-            label="Date of Joining"
-            value={current.dateOfJoining}
-            isEditing={isEditing}
-            type="date"
-            onChange={v => handleFieldChange("dateOfJoining", v)}
-            readOnly
-          />
-          <ProfileField
-            label="Experience (months)"
-            value={String(current.totalExpMonths)}
-            isEditing={isEditing}
-            type="number"
-            onChange={v => handleFieldChange("totalExpMonths", v)}
-          />
-          <ProfileField
-            label="Salary Package"
-            value={current.salaryPackage}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("salaryPackage", v)}
-          />
-          <ProfileField
-            label="Highest Qualification"
-            value={current.highestQualification}
-            isEditing={isEditing}
-            onChange={v => handleFieldChange("highestQualification", v)}
-          />
-        </FieldGrid>
-      </SectionCard>
-    </>
+  const renderAcademic = () => (
+    <SectionCard
+      title="Academic Information"
+      subtitle="Grade and section information"
+      delay={0.04}
+    >
+      <FieldGrid>
+        <ProfileField
+          label="Roll Number"
+          value={current.rollNumber}
+          isEditing={isEditing}
+          onChange={v => handleFieldChange("rollNumber", v)}
+          mono
+        />
+        <ProfileField
+          label="Grade"
+          value={current.grade}
+          isEditing={isEditing}
+          onChange={v => handleFieldChange("grade", v)}
+        />
+        <ProfileField
+          label="Section"
+          value={current.section}
+          isEditing={isEditing}
+          onChange={v => handleFieldChange("section", v)}
+        />
+        <ProfileField
+          label="Enrollment Date"
+          value={current.enrollmentDate}
+          isEditing={isEditing}
+          type="date"
+          onChange={v => handleFieldChange("enrollmentDate", v)}
+        />
+      </FieldGrid>
+    </SectionCard>
   );
 
-  const renderClasses = () => (
+  const renderSchool = () => (
     <SectionCard
       title="School Information"
       subtitle={`${current.user.school.name}`}
@@ -623,24 +576,21 @@ const TeacherProfilePage: React.FC = () => {
     </SectionCard>
   );
 
-  const renderAcademic = () => (
-    <SectionCard
-      title="Academic Information"
-      subtitle="Qualifications & specializations"
-      delay={0.04}
-    >
+  const renderGuardian = () => (
+    <SectionCard title="Guardian Information" delay={0.12}>
       <FieldGrid>
         <ProfileField
-          label="Highest Qualification"
-          value={current.highestQualification}
+          label="Guardian Name"
+          value={current.guardianName}
           isEditing={isEditing}
-          onChange={v => handleFieldChange("highestQualification", v)}
+          onChange={v => handleFieldChange("guardianName", v)}
         />
         <ProfileField
-          label="Specialization"
-          value={current.specialization || ""}
+          label="Guardian Phone"
+          value={current.guardianPhone}
           isEditing={isEditing}
-          onChange={v => handleFieldChange("specialization", v)}
+          type="tel"
+          onChange={v => handleFieldChange("guardianPhone", v)}
         />
       </FieldGrid>
     </SectionCard>
@@ -652,12 +602,10 @@ const TeacherProfilePage: React.FC = () => {
         return renderOverview();
       case "personal":
         return renderPersonal();
-      case "professional":
-        return renderProfessional();
       case "academic":
         return renderAcademic();
-      case "classes":
-        return renderClasses();
+      case "school":
+        return renderSchool();
       default:
         return renderOverview();
     }
@@ -666,60 +614,40 @@ const TeacherProfilePage: React.FC = () => {
   return (
     <div>
       <PageHeader
-        title="Teacher Profile"
-        description="Manage your personal and professional information"
+        title="Student Profile"
+        description="Manage your personal and academic information"
         icon={Award}
         iconBgColor="--blue-light"
         iconColor="--blue"
         buttonText="Edit Profile"
         onButtonClick={handleEditToggle}
       />
-
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
 
+      {/* Edit Profile Modal */}
       <Modal
         isOpen={showForm}
         onClose={handleFormCancel}
         title="Edit Profile"
-        description="Update your personal and professional information. Some fields are disabled for security reasons."
-        className="max-w-4xl w-full"
+        description="Update your personal information"
       >
-        <TeacherForm
-          mode="edit"
-          teacherId={teacherData.id}
-          userId={teacherData.userId}
-          onCancel={handleFormCancel}
-          onSuccess={handleFormSave}
-          defaultValues={{
-            firstName: teacherData.user?.firstName,
-            lastName: teacherData.user?.lastName,
-            email: teacherData.user?.email,
-            phone: teacherData.user?.phone,
-            gender: teacherData.user?.gender || "male",
-            dob: teacherData.user?.dob || "",
-
-            designation: teacherData.designation,
-            experienceYears: Math.floor((teacherData.totalExpMonths || 0) / 12),
-            experienceMonths: (teacherData.totalExpMonths || 0) % 12,
-
-            highestQualification: teacherData.highestQualification,
-
-            currentAddress: teacherData.currentAddress || "",
-            permanentAddress: teacherData.permanentAddress || "",
-
-            department: teacherData.department,
-            dateOfJoining: teacherData.createdAt
-              ? new Date(teacherData.createdAt).toISOString().split("T")[0]
-              : "",
-            bloodGroup: "",
-            aadhaarNo: "",
-            panNo: "",
-            bankName: "",
-            accountNo: "",
-            ifscCode: "",
-            branch: "",
+        <StudentForm
+          initialData={{
+            firstName: studentData?.user.firstName,
+            lastName: studentData?.user.lastName,
+            middleName: studentData?.user.middleName,
+            email: studentData?.user.email,
+            phone: studentData?.user.phone,
+            gender: studentData?.user.gender,
+            dob: studentData?.user.dob,
+            bloodGroup: studentData?.user.bloodGroup,
+            permanentAddress: studentData?.user.permanentAddress,
+            currentAddress: studentData?.user.currentAddress,
+            guardianName: studentData?.guardianName,
+            guardianPhone: studentData?.guardianPhone,
           }}
+          onSubmitSuccess={handleFormSave}
         />
       </Modal>
 
@@ -739,4 +667,4 @@ const TeacherProfilePage: React.FC = () => {
   );
 };
 
-export default TeacherProfilePage;
+export default StudentProfilePage;

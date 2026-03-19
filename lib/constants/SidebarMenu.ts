@@ -81,18 +81,13 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Home",
           label: "Dashboard",
-          path: "/teacherview/dashboard",
+          path: "/dashboard",
         },
       ],
     },
     {
       title: "Modules",
       items: [
-        {
-          icon: "Building",
-          label: "Homework",
-          path: "/teacherview/homework",
-        },
         {
           icon: "Building",
           label: "My Class",
@@ -104,6 +99,16 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/teacherview/classes",
         },
         {
+          icon: "Users",
+          label: "Assign Students",
+          path: "/teacherview/assignstudents",
+        },
+        {
+          icon: "ClipboardList",
+          label: "Homework",
+          path: "/teacherview/homework",
+        },
+        {
           icon: "Bell",
           label: "Notifications",
           path: "/teacherview/notifications",
@@ -111,7 +116,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Folder",
           label: "Resources",
-          path: "/teacherview/resources",
+          path: "/resources",
         },
       ],
     },
@@ -121,7 +126,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "UserCircle",
           label: "Profile",
-          path: "/teacherview/profile",
+          path: "/profile",
         },
       ],
     },
@@ -154,6 +159,11 @@ export const SIDEBAR_MENUS: RoleMenus = {
           icon: "FileText",
           label: "Resources",
           path: "/resources",
+        },
+        {
+          icon: "ClipboardList",
+          label: "Homework",
+          path: "/teacherview/homework",
         },
         {
           icon: "Bell",
