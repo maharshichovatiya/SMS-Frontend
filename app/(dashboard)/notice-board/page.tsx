@@ -97,20 +97,6 @@ function Page() {
     setSelectedNotice(null);
   };
 
-  const getInitialTargetType = () => {
-    if (
-      !initialData ||
-      !initialData.noticeTargets ||
-      initialData.noticeTargets.length === 0
-    )
-      return undefined;
-    const targetInfo = initialData.noticeTargets[0] as {
-      targetType: string;
-      targetId: string;
-    };
-    return targetInfo.targetType as "school" | "class" | "teacher" | undefined;
-  };
-
   const handleRetry = () => {
     dispatch(clearError());
     dispatch(fetchNotices());

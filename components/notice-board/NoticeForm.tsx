@@ -50,8 +50,6 @@ const priorityLevels = [
   { value: "low", label: "Low", icon: CheckCircle },
 ];
 
-<<<<<<< HEAD
-=======
 const targetOptions = [
   { value: "school", label: "All School", icon: School },
   { value: "class", label: "Specific Classes", icon: BookOpen },
@@ -59,7 +57,6 @@ const targetOptions = [
 ];
 
 // Custom Select Component with Icons
->>>>>>> e60cc82 (feat: add notice target in notice-board with edit and delete)
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -161,11 +158,8 @@ export default function NoticeForm({
       initialData.noticeTargets.length === 0
     )
       return undefined;
-    const targetInfo = initialData.noticeTargets[0] as {
-      targetType: string;
-      targetId: string;
-    };
-    return targetInfo.targetType as "school" | "class" | "teacher";
+    const targetInfo = initialData.noticeTargets[0] as { targetType?: string };
+    return targetInfo.targetType as "school" | "class" | "teacher" | undefined;
   };
 
   const getInitialTargetIds = () => {
@@ -176,7 +170,7 @@ export default function NoticeForm({
     )
       return [];
     return initialData.noticeTargets.map(
-      (t: { targetType: string; targetId: string }) => t.targetId,
+      t => (t as { targetId: string }).targetId,
     );
   };
 
@@ -219,18 +213,14 @@ export default function NoticeForm({
         try {
           const cls = await classApis.getAll();
           setClasses(cls);
-        } catch (err) {
-          showToast.apiError(err);
-        }
+        } catch {}
         setLoadingTargets(false);
       } else if (selectedTargetType === "teacher" && teachers.length === 0) {
         setLoadingTargets(true);
         try {
           const res = await getTeachersForAssignClass();
           if (res.success && res.data) setTeachers(res.data);
-        } catch (err) {
-          showToast.apiError(err);
-        }
+        } catch {}
         setLoadingTargets(false);
       }
     };
@@ -332,8 +322,6 @@ export default function NoticeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
-<<<<<<< HEAD
-=======
         {/* Target Audience */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
@@ -433,7 +421,6 @@ export default function NoticeForm({
         )}
 
         {/* Notice Type */}
->>>>>>> e60cc82 (feat: add notice target in notice-board with edit and delete)
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Notice Type

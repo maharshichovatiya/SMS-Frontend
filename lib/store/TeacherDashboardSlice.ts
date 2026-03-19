@@ -9,6 +9,40 @@ export interface Student {
   lastName: string;
   email: string;
   phone: string;
+  middleName?: string | null;
+  admissionDate?: string | null;
+  dob?: string | null;
+  gender?: string | null;
+  status?: string | null;
+  fatherName?: string | null;
+  motherName?: string | null;
+  guardianName?: string | null;
+  familyAnnualIncome?: string | null;
+  medicalConditions?: string | null;
+  bloodGroup?: string | null;
+  aadhaarNo?: string | null;
+  panNo?: string | null;
+  permanentAddress?: string | null;
+  currentAddress?: string | null;
+  bankName?: string | null;
+  accountNo?: string | null;
+  ifscCode?: string | null;
+  branch?: string | null;
+  fatherPhone?: string | null;
+  academics?: {
+    status?: string | null;
+    promotionStatus?: string | null;
+    percentage?: string | null;
+    remarks?: string | null;
+    academicYear?: {
+      yearName?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+    };
+    class?: {
+      section?: string | null;
+    };
+  }[];
 }
 
 export interface ClassData {

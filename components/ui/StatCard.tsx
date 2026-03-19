@@ -53,7 +53,7 @@ export default function StatCard({
 
   return (
     <div
-      className={`bg-[var(--surface)] border border-[var(--border)] rounded-2xl ${currentSize.container} shadow-[var(--shadow)] relative overflow-hidden transition-all duration-200 hover:translate-y-[-3px] hover:shadow-[var(--shadow-lg)] cursor-default animate-fade-up`}
+      className={`bg-[var(--surface)] border border-[var(--border)] rounded-2xl ${currentSize.container} shadow-[var(--shadow)] relative overflow-hidden transition-all duration-200 hover:translate-y-[-2px] cursor-default animate-fade-up`}
       style={{ animationDelay }}
     >
       <div
