@@ -10,15 +10,22 @@ import NoticeCard from "@/components/notice-board/NoticeCard";
 import NoticeFilter from "@/components/notice-board/NoticeFilter";
 import NoticeSearch from "@/components/notice-board/NoticeSearch";
 import NoticeFormModal from "@/components/notice-board/NoticeFormModal";
-import { NoticeFilterType } from "@/lib/types/Notice";
+import NoticeDeleteModal from "@/components/notice-board/NoticeDeleteModal";
+import { NoticeFilterType, Notice, ApiNotice } from "@/lib/types/Notice";
+import { removeNotice } from "@/lib/store/NoticeSlice";
+import { showToast } from "@/lib/utils/Toast";
 
 function Page() {
   const [selectedFilter, setSelectedFilter] = useState<NoticeFilterType>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedNotice, setSelectedNotice] = useState<ApiNotice | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [noticeToDelete, setNoticeToDelete] = useState<Notice | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { notices, loading, error } = useSelector(
+  const { notices, apiNotices, loading, error } = useSelector(
     (state: RootState) => state.notices,
   );
   const userRole = useSelector((state: RootState) => state.auth.role);
@@ -42,16 +49,66 @@ function Page() {
   });
 
   const handlePostNotice = () => {
+    setSelectedNotice(null);
     setIsModalOpen(true);
+  };
+
+  const handleEditNotice = (notice: Notice) => {
+    const apiNotice = apiNotices.find(n => n.id === notice.id) || null;
+    setSelectedNotice(apiNotice);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteNoticeClick = (notice: Notice) => {
+    setNoticeToDelete(notice);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!noticeToDelete) return;
+    setIsDeleting(true);
+    try {
+      const result = await dispatch(removeNotice(noticeToDelete.id));
+      if (removeNotice.fulfilled.match(result)) {
+        showToast.success("Notice deleted successfully");
+      } else {
+        throw new Error(
+          (result.payload as string) || "Failed to delete notice",
+        );
+      }
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete notice";
+      showToast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setNoticeToDelete(null);
+    }
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+    setSelectedNotice(null);
   };
 
   const handleNoticeCreated = () => {
-    dispatch(fetchNotices());
     setIsModalOpen(false);
+    setSelectedNotice(null);
+  };
+
+  const getInitialTargetType = () => {
+    if (
+      !initialData ||
+      !initialData.noticeTargets ||
+      initialData.noticeTargets.length === 0
+    )
+      return undefined;
+    const targetInfo = initialData.noticeTargets[0] as {
+      targetType: string;
+      targetId: string;
+    };
+    return targetInfo.targetType as "school" | "class" | "teacher" | undefined;
   };
 
   const handleRetry = () => {
@@ -123,18 +180,34 @@ function Page() {
           </div>
         ) : (
           filteredNotices.map((notice, index) => (
-            <NoticeCard key={notice.id} notice={notice} index={index} />
+            <NoticeCard
+              key={notice.id}
+              notice={notice}
+              index={index}
+              showActions={!isStudent}
+              onEdit={handleEditNotice}
+              onDelete={handleDeleteNoticeClick}
+            />
           ))
         )}
       </div>
 
-      {/* Notice Creation Modal - only for admin/teacher */}
       {!isStudent && (
-        <NoticeFormModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          onSubmitSuccess={handleNoticeCreated}
-        />
+        <>
+          <NoticeFormModal
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            onSubmitSuccess={handleNoticeCreated}
+            notice={selectedNotice}
+          />
+          <NoticeDeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            notice={noticeToDelete}
+            onConfirm={handleConfirmDelete}
+            isDeleting={isDeleting}
+          />
+        </>
       )}
     </div>
   );

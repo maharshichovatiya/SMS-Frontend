@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, CheckCircle, Star, Calendar } from "lucide-react";
+import { FileText, CheckCircle, Star, Calendar, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import StatCard from "@/components/ui/StatCard";
 import { ProfileData } from "@/lib/types/Profile";
@@ -86,8 +86,6 @@ interface SubjectRowProps {
   badgeText: string;
   subjectName: string;
   teacherName: string;
-  grade: string;
-  gradeColor: string;
 }
 
 function SubjectRow({
@@ -95,8 +93,6 @@ function SubjectRow({
   badgeText,
   subjectName,
   teacherName,
-  grade,
-  gradeColor,
 }: SubjectRowProps) {
   return (
     <div className="flex items-center justify-between px-[18px] py-[11px] border-b border-[var(--border)] last:border-b-0">
@@ -108,9 +104,6 @@ function SubjectRow({
             {teacherName}
           </div>
         </div>
-      </div>
-      <div className="text-[14px] font-bold" style={{ color: gradeColor }}>
-        {grade}
       </div>
     </div>
   );
@@ -152,7 +145,7 @@ export default function StudentDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4 mb-[22px] max-xl:grid-cols-2">
         <StatCard
           icon={<FileText size={20} />}
           iconBg="bg-[var(--indigo-light)]"
@@ -169,22 +162,33 @@ export default function StudentDashboard({
           iconBg="bg-[var(--green-light)]"
           iconColor="var(--green)"
           glowColor="var(--green)"
-          label="Attendance"
-          value="94%"
-          trend="↑ Excellent"
+          label="Submitted Homework"
+          value="2"
+          trend="Submit"
           trendUp={true}
-          animationDelay="0.09s"
+          animationDelay="0.04s"
         />
         <StatCard
           icon={<Star size={20} />}
           iconBg="bg-[var(--blue-light)]"
           iconColor="var(--blue)"
           glowColor="var(--blue)"
-          label="Avg Grade"
-          value="A+"
-          trend="Top 5% of class"
+          label="Graded Homework"
+          value="1"
+          trend="Grade"
           trendUp={true}
-          animationDelay="0.14s"
+          animationDelay="0.04s"
+        />
+        <StatCard
+          icon={<BookOpen size={20} />}
+          iconBg="bg-[var(--blue-light)]"
+          iconColor="var(--blue)"
+          glowColor="var(--blue)"
+          label="Resources"
+          value="10"
+          trend="Materials"
+          trendUp={true}
+          animationDelay="0.04s"
         />
       </div>
 
@@ -236,7 +240,6 @@ export default function StudentDashboard({
           </div>
         </div>
 
-        {/* My Subjects Card */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)]">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
             <h3 className="text-lg font-semibold text-[var(--text)]">
@@ -256,32 +259,24 @@ export default function StudentDashboard({
               badgeText="Math"
               subjectName="Mathematics"
               teacherName="Sunita Mishra"
-              grade="A+"
-              gradeColor="var(--green)"
             />
             <SubjectRow
               badgeVariant="green"
               badgeText="Sci"
               subjectName="Science"
               teacherName="Vivek Pandey"
-              grade="A"
-              gradeColor="var(--green)"
             />
             <SubjectRow
               badgeVariant="indigo"
               badgeText="Eng"
               subjectName="English"
               teacherName="Rekha Tiwari"
-              grade="B+"
-              gradeColor="var(--blue)"
             />
             <SubjectRow
               badgeVariant="cyan"
               badgeText="CS"
               subjectName="Computer Science"
               teacherName="Vivek Pandey"
-              grade="A+"
-              gradeColor="var(--green)"
             />
           </div>
         </div>

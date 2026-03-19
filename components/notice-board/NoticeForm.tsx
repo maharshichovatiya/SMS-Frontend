@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/lib/store/Index";
+import { classApis, Class as ClassType } from "@/lib/api/Class";
+import { getTeachersForAssignClass } from "@/lib/api/Teacher";
+import { AssignTeacher } from "@/lib/store/TeacherSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createNoticeSchema,
   CreateNoticeFormValues,
 } from "@/lib/validations/NoticeSchema";
 import { showToast } from "@/lib/utils/Toast";
-import { addNotice } from "@/lib/store/NoticeSlice";
+import { addNotice, editNotice } from "@/lib/store/NoticeSlice";
 import type { AppDispatch } from "@/lib/store/Index";
 import {
   Megaphone,
@@ -19,12 +23,18 @@ import {
   AlertTriangle,
   Info,
   CheckCircle,
+  Users,
+  BookOpen,
+  School,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+
+import { ApiNotice } from "@/lib/api/Notice";
 
 interface NoticeFormProps {
   onSubmitSuccess?: () => void;
   onClose: () => void;
+  initialData?: ApiNotice | null;
 }
 
 const noticeTypes = [
@@ -40,6 +50,16 @@ const priorityLevels = [
   { value: "low", label: "Low", icon: CheckCircle },
 ];
 
+<<<<<<< HEAD
+=======
+const targetOptions = [
+  { value: "school", label: "All School", icon: School },
+  { value: "class", label: "Specific Classes", icon: BookOpen },
+  { value: "teacher", label: "Specific Teachers", icon: Users },
+];
+
+// Custom Select Component with Icons
+>>>>>>> e60cc82 (feat: add notice target in notice-board with edit and delete)
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -124,9 +144,41 @@ function CustomSelect({
 export default function NoticeForm({
   onSubmitSuccess,
   onClose,
+  initialData,
 }: NoticeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
+  const schoolId = useSelector((state: RootState) => state.auth.schoolId);
+
+  const [classes, setClasses] = useState<ClassType[]>([]);
+  const [teachers, setTeachers] = useState<AssignTeacher[]>([]);
+  const [loadingTargets, setLoadingTargets] = useState(false);
+
+  const getInitialTargetType = () => {
+    if (
+      !initialData ||
+      !initialData.noticeTargets ||
+      initialData.noticeTargets.length === 0
+    )
+      return undefined;
+    const targetInfo = initialData.noticeTargets[0] as {
+      targetType: string;
+      targetId: string;
+    };
+    return targetInfo.targetType as "school" | "class" | "teacher";
+  };
+
+  const getInitialTargetIds = () => {
+    if (
+      !initialData ||
+      !initialData.noticeTargets ||
+      initialData.noticeTargets.length === 0
+    )
+      return [];
+    return initialData.noticeTargets.map(
+      (t: { targetType: string; targetId: string }) => t.targetId,
+    );
+  };
 
   const {
     register,
@@ -137,16 +189,88 @@ export default function NoticeForm({
   } = useForm<CreateNoticeFormValues>({
     resolver: zodResolver(createNoticeSchema),
     mode: "onSubmit",
+    defaultValues: initialData
+      ? {
+          title: initialData.title,
+          body: initialData.description,
+          type: initialData.noticeType as
+            | "general"
+            | "exam"
+            | "holiday"
+            | "event",
+          priority: initialData.priority,
+          publishDate: initialData.publishDate.split("T")[0],
+          expireDate: initialData.expiryDate.split("T")[0],
+          targetType: getInitialTargetType(),
+          targetIds: getInitialTargetIds(),
+        }
+      : undefined,
   });
 
   const selectedType = watch("type");
   const selectedPriority = watch("priority");
+  const selectedTargetType = watch("targetType");
+  const selectedTargetIds = watch("targetIds");
+
+  useEffect(() => {
+    const fetchTargets = async () => {
+      if (selectedTargetType === "class" && classes.length === 0) {
+        setLoadingTargets(true);
+        try {
+          const cls = await classApis.getAll();
+          setClasses(cls);
+        } catch (err) {
+          showToast.apiError(err);
+        }
+        setLoadingTargets(false);
+      } else if (selectedTargetType === "teacher" && teachers.length === 0) {
+        setLoadingTargets(true);
+        try {
+          const res = await getTeachersForAssignClass();
+          if (res.success && res.data) setTeachers(res.data);
+        } catch (err) {
+          showToast.apiError(err);
+        }
+        setLoadingTargets(false);
+      }
+    };
+    fetchTargets();
+  }, [selectedTargetType, classes.length, teachers.length]);
+
+  const handleTargetToggle = (id: string) => {
+    const current = selectedTargetIds || [];
+    if (current.includes(id)) {
+      setValue(
+        "targetIds",
+        current.filter((t: string) => t !== id),
+      );
+    } else {
+      setValue("targetIds", [...current, id]);
+    }
+  };
 
   const onSubmit: SubmitHandler<CreateNoticeFormValues> = async data => {
     try {
       setIsSubmitting(true);
 
       // Map form data to API payload
+      const noticeTargets =
+        data.targetType === "school"
+          ? [{ targetType: "school", targetId: schoolId || "" }]
+          : (data.targetIds || []).map(id => ({
+              targetType: data.targetType,
+              targetId: id,
+            }));
+
+      if (
+        data.targetType !== "school" &&
+        (!data.targetIds || data.targetIds.length === 0)
+      ) {
+        showToast.error(`Please select at least one ${data.targetType}`);
+        setIsSubmitting(false);
+        return;
+      }
+
       const apiPayload = {
         title: data.title,
         description: data.body,
@@ -154,18 +278,34 @@ export default function NoticeForm({
         priority: data.priority,
         publishDate: data.publishDate,
         expiryDate: data.expireDate,
+        noticeTargets,
       };
 
-      const result = await dispatch(addNotice(apiPayload));
-
-      if (addNotice.fulfilled.match(result)) {
-        showToast.success("Notice created successfully!");
-        onSubmitSuccess?.();
-        onClose();
-      } else {
-        throw new Error(
-          (result.payload as string) || "Failed to create notice",
+      let result;
+      if (initialData) {
+        result = await dispatch(
+          editNotice({ id: initialData.id, data: apiPayload }),
         );
+        if (editNotice.fulfilled.match(result)) {
+          showToast.success("Notice updated successfully!");
+          onSubmitSuccess?.();
+          onClose();
+        } else {
+          throw new Error(
+            (result.payload as string) || "Failed to update notice",
+          );
+        }
+      } else {
+        result = await dispatch(addNotice(apiPayload));
+        if (addNotice.fulfilled.match(result)) {
+          showToast.success("Notice created successfully!");
+          onSubmitSuccess?.();
+          onClose();
+        } else {
+          throw new Error(
+            (result.payload as string) || "Failed to create notice",
+          );
+        }
       }
     } catch (error) {
       showToast.apiError(error);
@@ -192,6 +332,108 @@ export default function NoticeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
+<<<<<<< HEAD
+=======
+        {/* Target Audience */}
+        <div>
+          <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+            Target Audience
+            <span className="text-[var(--rose)] ml-0.5">*</span>
+          </label>
+          <CustomSelect
+            value={selectedTargetType || ""}
+            onChange={value => {
+              setValue("targetType", value as "school" | "class" | "teacher");
+              setValue("targetIds", []);
+            }}
+            options={targetOptions}
+            placeholder="Select target audience"
+            error={errors.targetType?.message}
+          />
+        </div>
+
+        {selectedTargetType === "class" && (
+          <div>
+            <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+              Select Classes
+              <span className="text-[var(--rose)] ml-0.5">*</span>
+            </label>
+            {loadingTargets ? (
+              <p className="text-sm text-[var(--text-3)]">Loading classes...</p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-[var(--radius-sm)] bg-[var(--surface-2)]">
+                {classes.map(cls => (
+                  <label
+                    key={cls.id}
+                    className="flex items-center p-3 border-b border-[var(--border)] hover:bg-[var(--surface)] cursor-pointer last:border-b-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={(selectedTargetIds || []).includes(cls.id)}
+                      onChange={() => handleTargetToggle(cls.id)}
+                      className="w-4 h-4 text-[var(--primary)] border-[var(--border)] rounded focus:ring-[var(--primary)]"
+                    />
+                    <div className="ml-3 font-medium text-sm text-[var(--text)]">
+                      Class {cls.className}{" "}
+                      {cls.section ? `- ${cls.section}` : ""}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            {errors.targetIds && (
+              <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+                {errors.targetIds.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {selectedTargetType === "teacher" && (
+          <div>
+            <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+              Select Teachers
+              <span className="text-[var(--rose)] ml-0.5">*</span>
+            </label>
+            {loadingTargets ? (
+              <p className="text-sm text-[var(--text-3)]">
+                Loading teachers...
+              </p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-[var(--radius-sm)] bg-[var(--surface-2)]">
+                {teachers.map(teacher => (
+                  <label
+                    key={teacher.id}
+                    className="flex items-center p-3 border-b border-[var(--border)] hover:bg-[var(--surface)] cursor-pointer last:border-b-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={(selectedTargetIds || []).includes(teacher.id)}
+                      onChange={() => handleTargetToggle(teacher.id)}
+                      className="w-4 h-4 text-[var(--primary)] border-[var(--border)] rounded focus:ring-[var(--primary)]"
+                    />
+                    <div className="ml-3">
+                      <div className="font-medium text-sm text-[var(--text)]">
+                        {teacher.user?.firstName} {teacher.user?.lastName}
+                      </div>
+                      <div className="text-xs text-[var(--text-3)]">
+                        {teacher.employeeCode} • {teacher.department}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            {errors.targetIds && (
+              <p className="mt-1 text-xs font-medium text-[var(--rose)]">
+                {errors.targetIds.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Notice Type */}
+>>>>>>> e60cc82 (feat: add notice target in notice-board with edit and delete)
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Notice Type
@@ -331,7 +573,13 @@ export default function NoticeForm({
           disabled={isSubmitting}
           className="btn-primary px-5 h-auto py-2 text-sm rounded-[var(--radius-sm)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          {isSubmitting ? "Creating..." : "Post Notice"}
+          {isSubmitting
+            ? initialData
+              ? "Updating..."
+              : "Creating..."
+            : initialData
+              ? "Update Notice"
+              : "Post Notice"}
         </button>
       </div>
     </form>

@@ -73,7 +73,6 @@ export default function HomeworkPage() {
     dispatch(fetchStudentSubmissions());
   }, [dispatch]);
 
-  // Transform API data to match StudentSubmission interface
   const transformSubmissionData = (
     item: StudentSubmissionItem,
   ): StudentSubmission => {
@@ -101,7 +100,6 @@ export default function HomeworkPage() {
     };
   };
 
-  // Use real submissions data when available
   const transformedSubmissions: StudentSubmission[] = studentSubmissions
     ? studentSubmissions.map(transformSubmissionData)
     : [];
@@ -123,7 +121,6 @@ export default function HomeworkPage() {
     setDetailLoading(false);
   };
 
-  // Student submission handlers
   const handleViewSubmission = (submission: StudentSubmission) => {
     setSelectedSubmission(submission);
     setShowSubmissionModal(true);
@@ -204,21 +201,6 @@ export default function HomeworkPage() {
         iconBgColor="--blue-light"
         iconColor="--blue"
       />
-
-      <div
-        className="bg-white border-[1.5px] border-[#dde3f5] rounded-2xl mb-[18px] shadow-[0_1px_4px_rgba(61,108,244,0.06),0_4px_14px_rgba(61,108,244,0.07)] overflow-hidden animate-fadeUp"
-        style={{ animationDelay: "0.05s" }}
-      >
-        <div className="px-[22px] py-5">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search homework..."
-              className="w-full px-4 py-3 border-[1.5px] border-[#dde3f5] rounded-lg font-[var(--font-sans)] text-[13.5px] text-[#111827] outline-none transition-all duration-200 bg-[#fafbff] cursor-text focus:border-[#3d6cf4] focus:shadow-[0_0_0_3px_rgba(61,108,244,0.1)]"
-            />
-          </div>
-        </div>
-      </div>
 
       <div
         className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"

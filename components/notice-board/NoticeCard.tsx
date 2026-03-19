@@ -4,6 +4,8 @@ import {
   Calendar,
   PartyPopper,
   Paperclip,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import TruncatedText from "@/components/ui/TruncatedText";
 
@@ -24,6 +26,9 @@ interface Notice {
 interface NoticeCardProps {
   notice: Notice;
   index: number;
+  onEdit?: (notice: Notice) => void;
+  onDelete?: (notice: Notice) => void;
+  showActions?: boolean;
 }
 
 const getLucideIcon = (iconName: string) => {
@@ -61,7 +66,13 @@ const getPriorityBadge = (priority: string) => {
   }
 };
 
-export default function NoticeCard({ notice, index }: NoticeCardProps) {
+export default function NoticeCard({
+  notice,
+  index,
+  onEdit,
+  onDelete,
+  showActions,
+}: NoticeCardProps) {
   return (
     <div
       className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm transition-all duration-200 relative hover:-translate-y-0.5 hover:shadow-md"
@@ -69,12 +80,32 @@ export default function NoticeCard({ notice, index }: NoticeCardProps) {
         animationDelay: `${index * 0.04}s`,
       }}
     >
-      <div
-        className="text-xs font-bold uppercase tracking-wide mb-1.5 flex items-center"
-        style={{ color: notice.iconColor }}
-      >
-        {getLucideIcon(notice.icon)}
-        <span className="ml-1">{notice.type}</span>
+      <div className="flex justify-between items-start mb-1.5">
+        <div
+          className="text-xs font-bold uppercase tracking-wide flex items-center"
+          style={{ color: notice.iconColor }}
+        >
+          {getLucideIcon(notice.icon)}
+          <span className="ml-1">{notice.type}</span>
+        </div>
+        {showActions && (
+          <div className="flex gap-2 text-[var(--text-3)]">
+            <button
+              onClick={() => onEdit?.(notice)}
+              className="p-1 hover:text-[var(--primary)] hover:bg-[var(--surface-2)] rounded transition-colors"
+              title="Edit notice"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete?.(notice)}
+              className="p-1 hover:text-[var(--rose)] hover:bg-[var(--rose-light)] rounded transition-colors"
+              title="Delete notice"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
       <div className="text-base font-bold mb-1">{notice.title}</div>
       <div className="text-sm text-gray-600 mb-3">

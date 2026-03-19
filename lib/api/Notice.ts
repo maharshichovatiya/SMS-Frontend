@@ -40,6 +40,10 @@ export interface CreateNoticePayload {
   publishDate: string;
   expiryDate: string;
   attachmentUrl?: string | null;
+  noticeTargets?: Array<{
+    targetType: string;
+    targetId: string;
+  }>;
 }
 
 export const createNotice = async (

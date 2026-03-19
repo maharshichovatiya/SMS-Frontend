@@ -51,6 +51,10 @@ export const addNotice = createAsyncThunk(
       publishDate: string;
       expiryDate: string;
       attachmentUrl?: string | null;
+      noticeTargets?: Array<{
+        targetType: string;
+        targetId: string;
+      }>;
     },
     { rejectWithValue },
   ) => {
@@ -82,6 +86,10 @@ export const editNotice = createAsyncThunk(
         publishDate: string;
         expiryDate: string;
         attachmentUrl?: string | null;
+        noticeTargets?: Array<{
+          targetType: string;
+          targetId: string;
+        }>;
       }>;
     },
     { rejectWithValue },
