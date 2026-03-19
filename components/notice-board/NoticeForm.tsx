@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createNoticeSchema,
   CreateNoticeFormValues,
 } from "@/lib/validations/NoticeSchema";
 import { showToast } from "@/lib/utils/Toast";
+import { addNotice } from "@/lib/store/NoticeSlice";
+import type { AppDispatch } from "@/lib/store/Index";
 import {
   Megaphone,
   FileText,
@@ -123,6 +126,7 @@ export default function NoticeForm({
   onClose,
 }: NoticeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const {
     register,
@@ -142,11 +146,27 @@ export default function NoticeForm({
     try {
       setIsSubmitting(true);
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Map form data to API payload
+      const apiPayload = {
+        title: data.title,
+        description: data.body,
+        noticeType: data.type,
+        priority: data.priority,
+        publishDate: data.publishDate,
+        expiryDate: data.expireDate,
+      };
 
-      showToast.success("Notice created successfully!");
-      onSubmitSuccess?.();
-      onClose();
+      const result = await dispatch(addNotice(apiPayload));
+
+      if (addNotice.fulfilled.match(result)) {
+        showToast.success("Notice created successfully!");
+        onSubmitSuccess?.();
+        onClose();
+      } else {
+        throw new Error(
+          (result.payload as string) || "Failed to create notice",
+        );
+      }
     } catch (error) {
       showToast.apiError(error);
     } finally {

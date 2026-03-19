@@ -61,6 +61,11 @@ export const SIDEBAR_MENUS: RoleMenus = {
           label: "Classes",
           path: "/classes",
         },
+        {
+          icon: "Calendar",
+          label: "Notice-board",
+          path: "/notice-board",
+        },
       ],
     },
     {
@@ -114,7 +119,12 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/teacherview/notifications",
         },
         {
-          icon: "Folder",
+          icon: "Calendar",
+          label: "Notice-board",
+          path: "/notice-board",
+        },
+        {
+          icon: "FileText",
           label: "Resources",
           path: "/resources",
         },

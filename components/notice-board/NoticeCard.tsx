@@ -5,6 +5,7 @@ import {
   PartyPopper,
   Paperclip,
 } from "lucide-react";
+import TruncatedText from "@/components/ui/TruncatedText";
 
 interface Notice {
   id: string;
@@ -76,7 +77,9 @@ export default function NoticeCard({ notice, index }: NoticeCardProps) {
         <span className="ml-1">{notice.type}</span>
       </div>
       <div className="text-base font-bold mb-1">{notice.title}</div>
-      <div className="text-sm text-gray-600 mb-3">{notice.body}</div>
+      <div className="text-sm text-gray-600 mb-3">
+        <TruncatedText text={notice.body} maxChars={150} />
+      </div>
       <div className="flex items-center gap-2 pt-2.5 border-t border-gray-200 text-xs text-gray-600 flex-wrap">
         {getPriorityBadge(notice.priority)}
         {notice.hasAttachment && (

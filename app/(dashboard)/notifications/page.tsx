@@ -1,8 +1,13 @@
 "use client";
 import PageHeader from "@/components/layout/PageHeader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Bell } from "lucide-react";
 import NotificationItem from "@/components/notifications/NotificationItem";
+import { fetchNotices } from "@/lib/store/NoticeSlice";
+import { RootState } from "@/lib/store/Index";
+import type { AppDispatch } from "@/lib/store/Index";
+import type { ApiNotice } from "@/lib/types/Notice";
 
 interface Notification {
   id: string;
@@ -13,84 +18,83 @@ interface Notification {
   isUnread: boolean;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    icon: "FileText",
-    bgColor: "var(--rose-l)",
-    message:
-      "<strong>Mid-Term Exam Schedule</strong> has been published. Check the notice board for details.",
-    time: "10 min ago",
-    isUnread: true,
-  },
-  {
-    id: "2",
-    icon: "ClipboardCheck",
-    bgColor: "var(--blue-l)",
-    message:
-      "New homework <strong>Quadratic Equations</strong> assigned by Sunita Mishra for Class 10-A.",
-    time: "1 hr ago",
-    isUnread: true,
-  },
-  {
-    id: "3",
-    icon: "Check",
-    bgColor: "var(--green-l)",
-    message:
-      "<strong>32 students</strong> have submitted Quadratic Equations homework.",
-    time: "2 hrs ago",
-    isUnread: true,
-  },
-  {
-    id: "4",
-    icon: "Megaphone",
-    bgColor: "var(--amber-l)",
-    message:
-      "<strong>Holi Holiday</strong> notice posted. School closed March 14-15.",
-    time: "5 hrs ago",
-    isUnread: false,
-  },
-  {
-    id: "5",
-    icon: "BookOpen",
-    bgColor: "var(--indigo-l)",
-    message:
-      "New resource <strong>Quadratic Equations Notes</strong> uploaded by Sunita Mishra.",
-    time: "Yesterday",
-    isUnread: false,
-  },
-  {
-    id: "6",
-    icon: "Video",
-    bgColor: "var(--cyan-l)",
-    message:
-      "Video resource <strong>Chemical Bonding Lecture</strong> added to Science chapter.",
-    time: "Yesterday",
-    isUnread: false,
-  },
-  {
-    id: "7",
-    icon: "Calendar",
-    bgColor: "var(--rose-l)",
-    message:
-      "<strong>Science Exhibition 2026</strong> registration open. Deadline: March 22.",
-    time: "2 days ago",
-    isUnread: false,
-  },
-  {
-    id: "8",
-    icon: "User",
-    bgColor: "var(--green-l)",
-    message:
-      "<strong>Arjun Kumar</strong> admitted to Class 10-A successfully.",
-    time: "3 days ago",
-    isUnread: false,
-  },
-];
+const mapNoticeToNotification = (notice: ApiNotice): Notification => {
+  const getIconAndBgColor = (noticeType: string) => {
+    switch (noticeType.toLowerCase()) {
+      case "exam":
+        return { icon: "FileText", bgColor: "var(--rose-l)" };
+      case "holiday":
+        return { icon: "Calendar", bgColor: "var(--amber-l)" };
+      case "event":
+        return { icon: "Megaphone", bgColor: "var(--blue-l)" };
+      case "general":
+      default:
+        return { icon: "Megaphone", bgColor: "var(--green-l)" };
+    }
+  };
+
+  const { icon, bgColor } = getIconAndBgColor(notice.noticeType);
+
+  const formatRelativeTime = (dateString: string) => {
+    const noticeDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - noticeDate.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return "Just now";
+    if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return noticeDate.toLocaleDateString();
+  };
+
+  return {
+    id: `notice-${notice.id}`,
+    icon,
+    bgColor,
+    message: `<strong>${notice.title}</strong> - ${notice.description}`,
+    time: formatRelativeTime(notice.createdAt),
+    isUnread: notice.status === "active",
+  };
+};
 
 function Page() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    apiNotices,
+    loading: noticesLoading,
+    error: noticesError,
+  } = useSelector((state: RootState) => state.notices);
+
+  useEffect(() => {
+    const fetchNoticesData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await dispatch(fetchNotices()).unwrap();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch notices",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNoticesData();
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (apiNotices.length > 0) {
+      const noticeNotifications = apiNotices.map(mapNoticeToNotification);
+      setNotifications(noticeNotifications);
+    }
+  }, [apiNotices]);
 
   const handleMarkAllRead = () => {
     setNotifications(prev =>
@@ -108,6 +112,34 @@ function Page() {
     );
   };
 
+  if (loading || noticesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading notifications...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || noticesError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">Error</div>
+          <p className="text-gray-600 mb-4">{error || noticesError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
@@ -121,13 +153,20 @@ function Page() {
       />
 
       <div className="mt-5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] divide-y divide-[var(--border)]">
-        {notifications.map(notification => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-            onClick={handleNotificationClick}
-          />
-        ))}
+        {notifications.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg">No notifications</div>
+            <p className="text-gray-400 mt-2">You&apos;re all caught up!</p>
+          </div>
+        ) : (
+          notifications.map(notification => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onClick={handleNotificationClick}
+            />
+          ))
+        )}
       </div>
     </div>
   );
