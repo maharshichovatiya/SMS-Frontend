@@ -90,14 +90,34 @@ export const SIDEBAR_MENUS: RoleMenus = {
       items: [
         {
           icon: "Building",
+          label: "Homework",
+          path: "/teacherview/homework",
+        },
+        {
+          icon: "Building",
+          label: "My Class",
+          path: "/teacherview/myclass",
+        },
+        {
+          icon: "UserCheck",
+          label: "Assign Classes & Subjects",
+          path: "/teacherview/classes",
+        },
+        {
+          icon: "Bell",
           label: "Notifications",
           path: "/teacherview/notifications",
         },
         {
-          icon: "Building",
+          icon: "Folder",
           label: "Resources",
           path: "/teacherview/resources",
         },
+      ],
+    },
+    {
+      title: "General",
+      items: [
         {
           icon: "UserCircle",
           label: "Profile",
@@ -131,17 +151,17 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/subjects",
         },
         {
-          icon: "BookOpen",
+          icon: "FileText",
           label: "Resources",
           path: "/resources",
         },
         {
-          icon: "BookOpen",
+          icon: "Bell",
           label: "Notifications",
           path: "/notifications",
         },
         {
-          icon: "BookOpen",
+          icon: "Calendar",
           label: "Notice-board",
           path: "/notice-board",
         },

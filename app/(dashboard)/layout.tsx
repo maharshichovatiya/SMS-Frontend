@@ -5,6 +5,7 @@ import Sidebar from "@/components/layout/Sidebar";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [hasModalOpen, setHasModalOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setCollapsed(window.innerWidth < 768);
@@ -13,9 +14,31 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const checkForModals = () => {
+      const modals = document.querySelectorAll('[data-modal="true"]');
+      setHasModalOpen(modals.length > 0);
+    };
+
+    checkForModals();
+
+    const observer = new MutationObserver(checkForModals);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-modal"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
-      {}
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] overflow-x-hidden relative">
+      {hasModalOpen && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 pointer-events-none" />
+      )}
+
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(prev => !prev)}

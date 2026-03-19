@@ -146,7 +146,6 @@ export default function ChapterResourceForm({
   const onSubmit = async (data: CreateChapterResourceFormValues) => {
     try {
       setIsSubmitting(true);
-
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       showToast.success("Resource uploaded successfully!");
@@ -166,6 +165,7 @@ export default function ChapterResourceForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
+        {/* Chapter Info */}
         <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
           <h3 className="text-sm font-semibold text-[var(--text)] mb-2">
             Chapter Information
@@ -218,7 +218,6 @@ export default function ChapterResourceForm({
           )}
         </div>
 
-        {/* Resource Type */}
         <div>
           <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
             Resource Type
@@ -283,7 +282,6 @@ export default function ChapterResourceForm({
           </div>
         )}
 
-        {/* File Upload - Show for non-Link types */}
         {selectedResourceType !== "Link" && (
           <div>
             <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
@@ -304,7 +302,6 @@ export default function ChapterResourceForm({
           </div>
         )}
 
-        {/* Hidden Fields */}
         <input type="hidden" {...register("chapterId")} />
         <input
           type="hidden"
@@ -314,7 +311,6 @@ export default function ChapterResourceForm({
         <input type="hidden" {...register("status")} value="active" />
       </div>
 
-      {/* Form Actions */}
       <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-[var(--border)]">
         <button
           type="button"

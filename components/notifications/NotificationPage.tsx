@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store/Index";
 import NotificationFilters from "./NotificationFilters";
+import CommonTeacherHeader from "@/components/layout/CommonTeacherHeader";
 
 interface Notification {
   id: string;
@@ -247,12 +248,6 @@ const NotificationPage: React.FC = () => {
     return result;
   }, [notifications]);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const handleMarkAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-  };
-
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, isRead: true } : n)),
@@ -263,38 +258,14 @@ const NotificationPage: React.FC = () => {
   const read = filteredNotifications.filter(n => n.isRead);
 
   return (
-    <div className="font-[var(--font-sans)] min-h-screen bg-[var(--color-bg)] p-0">
-      <div className="bg-[var(--notification-bg)] border-[1.5px] border-[var(--notification-border)] rounded-[var(--radius-md)] px-[30px] py-6 mb-5 flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-[14px]">
-          <div className="w-12 h-12 rounded-[var(--radius-sm)] bg-[#eef1ff] text-[#3d6cf4] flex items-center justify-center text-2xl font-bold flex-shrink-0">
-            N
-          </div>
-          <div>
-            <div className="text-[22px] font-extrabold tracking-[-0.5px] text-[var(--notification-text-primary)]">
-              Notifications
-            </div>
-            <div className="text-[13px] text-[var(--notification-text-secondary)] mt-0.5">
-              Stay updated with latest activities
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2.5 items-center">
-          <span className="px-[14px] py-1.5 rounded-full bg-[var(--notification-accent-light)] text-[var(--notification-accent)] text-[12px] font-bold capitalize border-[1.5px] border-[var(--notification-accent)]">
-            {userRole} View
-          </span>
-
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="px-5 py-2.5 rounded-[var(--radius-sm)] border-[1.5px] border-[var(--notification-border)] bg-[var(--notification-bg)] text-[13.5px] font-semibold text-[var(--notification-text-primary)] cursor-pointer font-[var(--font-sans)] transition-all duration-200 hover:bg-[var(--notification-bg-hover)] hover:text-[var(--notification-accent)]"
-            >
-              ✓ Mark All Read
-            </button>
-          )}
-        </div>
-      </div>
-
+    <CommonTeacherHeader
+      title="Notifications"
+      subtitle="Stay updated with latest activities"
+      showSearch={false}
+      showFilter={true}
+      useApiData={false}
+      userRole={userRole}
+    >
       <NotificationFilters
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
@@ -325,7 +296,7 @@ const NotificationPage: React.FC = () => {
             <div className="text-[13px] text-[var(--notification-text-muted)] font-[var(--font-sans)]">
               {activeFilter === "all"
                 ? "You're all caught up! No notifications at the moment."
-                : `No notifications in the "${activeFilter}" category yet.`}
+                : `No notifications in "${activeFilter}" category yet.`}
             </div>
           </div>
         ) : (
@@ -367,7 +338,7 @@ const NotificationPage: React.FC = () => {
           </>
         )}
       </div>
-    </div>
+    </CommonTeacherHeader>
   );
 };
 
