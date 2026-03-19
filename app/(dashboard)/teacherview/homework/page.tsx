@@ -165,7 +165,7 @@ export default function HomeworkPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
-  const __isTeacher = true;
+  const [_isTeacher] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHomework, setEditingHomework] =
     useState<TransformedHomework | null>(null);

@@ -101,7 +101,7 @@ export const submissionApis = {
     formData.append("homeworkId", data.homeworkId);
 
     data.attachments.forEach(file => {
-      formData.append(`attachments`, file);
+      formData.append("attachments", file);
     });
 
     const res = await api.post("/homework-submissions", formData, {
@@ -123,7 +123,7 @@ export const submissionApis = {
     formData.append("attachmentDate", data.attachmentDate);
 
     data.attachments.forEach(file => {
-      formData.append(`attachments`, file);
+      formData.append("attachments", file);
     });
 
     const res = await api.patch(
