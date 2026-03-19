@@ -2,10 +2,7 @@ import { z } from "zod";
 
 export const createChapterResourceSchema = z
   .object({
-    chapterId: z
-      .string()
-      .uuid("Invalid chapter ID format")
-      .min(1, "Chapter is required"),
+    chapterId: z.string().min(1, "Chapter is required"),
     title: z
       .string()
       .min(1, "Resource title is required")
@@ -22,17 +19,22 @@ export const createChapterResourceSchema = z
         /^[^<>"'&]*$/,
         "Description cannot contain special characters like < > \" ' &",
       )
-      .optional(),
-    resourceType: z
-      .enum(["PDF", "Video", "Notes", "Link"])
-      .refine(val => val !== undefined, {
-        message: "Resource type is required",
-      }),
-    fileUrl: z.string().url("Please enter a valid URL").optional(),
-    uploadedBy: z
+      .optional()
+      .or(z.literal("")),
+    resourceType: z.enum([
+      "PDF",
+      "Word",
+      "PowerPoint",
+      "Image",
+      "Text",
+      "Link",
+      "Notes",
+    ]),
+    fileUrl: z
       .string()
-      .uuid("Invalid uploader ID format")
-      .min(1, "Uploader information is required"),
+      .url("Please enter a valid URL")
+      .optional()
+      .or(z.literal("")),
     status: z.enum(["active", "inactive"]).optional().default("active"),
   })
   .refine(
@@ -58,7 +60,14 @@ export interface ChapterResource {
   chapterId: string;
   title: string;
   description?: string;
-  resourceType: "PDF" | "Video" | "Notes" | "Link";
+  resourceType:
+    | "PDF"
+    | "Word"
+    | "PowerPoint"
+    | "Image"
+    | "Text"
+    | "Link"
+    | "Notes";
   fileUrl?: string;
   uploadedBy: string;
   status: "active" | "inactive";

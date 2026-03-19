@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8,8 +9,36 @@ import {
   CreateChapterResourceFormValues,
 } from "@/lib/validations/ChapterResourceSchema";
 import { showToast } from "@/lib/utils/Toast";
-import { FileText, Video, FileText as Notes, Link, Upload } from "lucide-react";
+import {
+  FileText,
+  FileText as Notes,
+  Link,
+  Upload,
+  FileType,
+  Presentation,
+  Image,
+  FileCode,
+} from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import {
+  fetchSubjectsForHomework,
+  selectHomeworkFormSubjects,
+  selectHomeworkFormLoading,
+  SubjectData,
+} from "@/lib/store/HomeworkFormSlice";
+import { subjectApis } from "@/lib/api/Subject";
+import { Chapter } from "@/lib/types/SubjectTypes";
+import { AppDispatch } from "@/lib/store/Index";
+import { resourcesApis } from "@/lib/api/Resources";
+
+const selectAuth = (state: {
+  auth: {
+    userId: string | null;
+    schoolId: string | null;
+    role: string | null;
+    isAuthenticated: boolean;
+  };
+}) => state.auth;
 
 interface ChapterResourceFormProps {
   chapterId?: string;
@@ -21,9 +50,17 @@ interface ChapterResourceFormProps {
 
 const resourceTypes = [
   { value: "PDF", label: "PDF Document", icon: FileText, color: "rose" },
-  { value: "Video", label: "Video", icon: Video, color: "blue" },
-  { value: "Notes", label: "Notes", icon: Notes, color: "amber" },
+  { value: "Word", label: "Word Document", icon: FileType, color: "blue" },
+  {
+    value: "PowerPoint",
+    label: "PowerPoint",
+    icon: Presentation,
+    color: "orange",
+  },
+  { value: "Image", label: "Image", icon: Image, color: "purple" },
+  { value: "Text", label: "Text File", icon: FileCode, color: "gray" },
   { value: "Link", label: "Link", icon: Link, color: "green" },
+  { value: "Notes", label: "Notes", icon: Notes, color: "amber" },
 ];
 
 interface CustomSelectProps {
@@ -114,12 +151,48 @@ function CustomSelect({
 
 export default function ChapterResourceForm({
   chapterId,
-  chapterName,
-  subjectName,
+  chapterName: _chapterName,
+  subjectName: _subjectName,
   onSubmitSuccess,
   onClose,
 }: ChapterResourceFormProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const subjects = useSelector(selectHomeworkFormSubjects);
+  const reduxLoading = useSelector(selectHomeworkFormLoading);
+  const auth = useSelector(selectAuth);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chaptersLoading, setChaptersLoading] = useState(false);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedChapterId, setSelectedChapterId] = useState(chapterId || "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchSubjectsForHomework());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const fetchChapters = async () => {
+      if (selectedSubjectId) {
+        try {
+          setChaptersLoading(true);
+          const chaptersData =
+            await subjectApis.getChaptersBySubject(selectedSubjectId);
+          const chaptersArray = Array.isArray(chaptersData) ? chaptersData : [];
+          setChapters(chaptersArray);
+        } catch (error) {
+          setChapters([]);
+        } finally {
+          setChaptersLoading(false);
+        }
+      } else {
+        setChapters([]);
+      }
+    };
+
+    fetchChapters();
+  }, [selectedSubjectId]);
 
   const {
     register,
@@ -136,17 +209,68 @@ export default function ChapterResourceForm({
       description: "",
       resourceType: "PDF",
       fileUrl: "",
-      uploadedBy: "",
       status: "active",
     },
   });
 
   const selectedResourceType = watch("resourceType");
 
+  const handleSubjectChange = (subjectId: string) => {
+    setSelectedSubjectId(subjectId);
+    setSelectedChapterId("");
+    setValue("chapterId", "");
+  };
+
+  const handleChapterChange = (chapterId: string) => {
+    setSelectedChapterId(chapterId);
+    setValue("chapterId", chapterId);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      const file = files[0];
+      const fileSizeMB = file.size / (1024 * 1024);
+      if (fileSizeMB <= 50) {
+        setSelectedFile(file);
+      } else {
+        showToast.error("File size must be less than 50MB");
+      }
+    }
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+  };
+
   const onSubmit = async (data: CreateChapterResourceFormValues) => {
+    if (!selectedChapterId) {
+      showToast.error("Please select a chapter");
+      return;
+    }
+    if (selectedResourceType !== "Link" && !selectedFile) {
+      showToast.error("Please upload a file");
+      return;
+    }
+    if (!auth.userId) {
+      showToast.error("You must be logged in to upload resources");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const resourceData = {
+        chapterId: selectedChapterId,
+        title: data.title,
+        description: data.description,
+        resourceType: data.resourceType,
+        uploadedBy: auth.userId,
+        file: selectedFile || undefined,
+        fileUrl: selectedResourceType === "Link" ? data.fileUrl : undefined,
+      };
+
+      await resourcesApis.createResource(resourceData);
 
       showToast.success("Resource uploaded successfully!");
       onSubmitSuccess?.();
@@ -165,34 +289,53 @@ export default function ChapterResourceForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="space-y-6">
-        {/* Chapter Info */}
-        <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-[var(--text)] mb-2">
-            Chapter Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-                Chapter Name
-              </label>
-              <input
-                type="text"
-                value={chapterName || ""}
-                disabled
-                className="w-full px-3.5 py-2.5 text-sm text-[var(--text-3)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
-                Subject Name
-              </label>
-              <input
-                type="text"
-                value={subjectName || ""}
-                disabled
-                className="w-full px-3.5 py-2.5 text-sm text-[var(--text-3)] bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none"
-              />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+              Subject
+              <span className="text-[var(--rose)] ml-0.5">*</span>
+            </label>
+            <select
+              value={selectedSubjectId}
+              onChange={e => handleSubjectChange(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)]"
+              disabled={reduxLoading.subjects}
+            >
+              <option value="">
+                {reduxLoading.subjects
+                  ? "Loading subjects..."
+                  : "Select Subject"}
+              </option>
+              {Array.isArray(subjects) &&
+                subjects.map((subject: SubjectData) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.subjectName}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[var(--text)] mb-1.5 uppercase tracking-wide">
+              Chapter
+              <span className="text-[var(--rose)] ml-0.5">*</span>
+            </label>
+            <select
+              value={selectedChapterId}
+              onChange={e => handleChapterChange(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-[var(--radius-sm)] outline-none transition-colors duration-[var(--duration)] focus:bg-[var(--surface)] focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--blue-muted)] disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!selectedSubjectId || chaptersLoading}
+            >
+              <option value="">
+                {chaptersLoading ? "Loading chapters..." : "Select Chapter"}
+              </option>
+              {Array.isArray(chapters) &&
+                chapters.map(chapter => (
+                  <option key={chapter.id} value={chapter.id}>
+                    Chapter {chapter.chapterNo}: {chapter.chapterName}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
 
@@ -225,12 +368,20 @@ export default function ChapterResourceForm({
           </label>
           <CustomSelect
             value={selectedResourceType || ""}
-            onChange={value =>
+            onChange={value => {
               setValue(
                 "resourceType",
-                value as "PDF" | "Video" | "Notes" | "Link",
-              )
-            }
+                value as
+                  | "PDF"
+                  | "Word"
+                  | "PowerPoint"
+                  | "Image"
+                  | "Text"
+                  | "Link"
+                  | "Notes",
+              );
+              setSelectedFile(null);
+            }}
             options={resourceTypes}
             placeholder="Select resource type"
             error={errors.resourceType?.message}
@@ -288,25 +439,81 @@ export default function ChapterResourceForm({
               Upload File
               <span className="text-[var(--rose)] ml-0.5">*</span>
             </label>
-            <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 text-[var(--text-3)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--text)]">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-[var(--text-3)]">
-                {selectedResourceType === "PDF" && "PDF files only"}
-                {selectedResourceType === "Video" && "MP4, AVI, MOV files"}
-                {selectedResourceType === "Notes" && "TXT, DOC, DOCX files"}
-              </p>
-            </div>
+
+            {selectedFile ? (
+              <div className="flex items-center justify-between p-3 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[var(--blue)]" />
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text)]">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-[var(--text-3)]">
+                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  className="text-[var(--rose)] hover:text-[var(--rose)] text-sm font-medium"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-8 text-center">
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                  accept={
+                    selectedResourceType === "PDF"
+                      ? ".pdf"
+                      : selectedResourceType === "Word"
+                        ? ".doc,.docx"
+                        : selectedResourceType === "PowerPoint"
+                          ? ".ppt,.pptx"
+                          : selectedResourceType === "Image"
+                            ? ".jpg,.jpeg,.png,.gif,.webp"
+                            : selectedResourceType === "Text"
+                              ? ".txt"
+                              : ".txt,.doc,.docx"
+                  }
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="cursor-pointer flex flex-col items-center"
+                >
+                  <Upload className="w-12 h-12 text-[var(--text-3)] mx-auto mb-2" />
+                  <p className="text-sm text-[var(--text)]">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-[var(--text-3)]">
+                    {selectedResourceType === "PDF" &&
+                      "PDF files only (max 50MB)"}
+                    {selectedResourceType === "Word" &&
+                      "Word documents (.doc, .docx) (max 50MB)"}
+                    {selectedResourceType === "PowerPoint" &&
+                      "PowerPoint files (.ppt, .pptx) (max 50MB)"}
+                    {selectedResourceType === "Image" &&
+                      "Image files (.jpg, .png, .gif) (max 50MB)"}
+                    {selectedResourceType === "Text" &&
+                      "Text files (.txt) (max 50MB)"}
+                    {selectedResourceType === "Notes" &&
+                      "Notes files (.txt, .doc, .docx) (max 50MB)"}
+                  </p>
+                </label>
+              </div>
+            )}
           </div>
         )}
 
-        <input type="hidden" {...register("chapterId")} />
         <input
           type="hidden"
-          {...register("uploadedBy")}
-          value="current-user-id"
+          {...register("chapterId")}
+          value={selectedChapterId}
         />
         <input type="hidden" {...register("status")} value="active" />
       </div>

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getClassSummary } from "@/lib/api/Classes";
-import { studentApis } from "@/lib/api/Student";
 import { subjectApis } from "@/lib/api/Subject";
+import api from "@/lib/Axios";
 
 export interface ClassData {
   id: string;
@@ -20,6 +20,7 @@ export interface StudentData {
   name: string;
   email: string;
   classId: string | null;
+  status: string;
 }
 
 export interface SubjectData {
@@ -112,17 +113,44 @@ export const fetchStudentsForHomework = createAsyncThunk(
   "homeworkForm/fetchStudents",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await studentApis.getAll();
-      if (response.data && response.data.data) {
-        return response.data.data.map(student => ({
-          id: student.id,
-          name: `${student.user.firstName} ${student.user.lastName}`,
-          email: student.user.email,
-          classId:
-            student.academics && student.academics.length > 0
-              ? student.academics[0].class.id
-              : null,
-        }));
+      const response = await api.get("/dashboard/teacher");
+      const data = response.data?.data?.data;
+
+      if (data && data.classes) {
+        // Get all students from all classes and filter for active status
+        const allStudents: StudentData[] = [];
+
+        data.classes.forEach(
+          (classItem: {
+            id: string;
+            className: string;
+            students?: Array<{
+              id: string;
+              firstName: string;
+              lastName: string;
+              email: string;
+              status?: string;
+              academics?: Array<{ class?: { id: string } }>;
+            }>;
+          }) => {
+            if (classItem.students && Array.isArray(classItem.students)) {
+              classItem.students.forEach(student => {
+                // Only include active students
+                if (student.status === "active") {
+                  allStudents.push({
+                    id: student.id,
+                    name: `${student.firstName} ${student.lastName}`,
+                    email: student.email,
+                    classId: student.academics?.[0]?.class?.id || classItem.id,
+                    status: student.status || "active",
+                  });
+                }
+              });
+            }
+          },
+        );
+
+        return allStudents;
       }
       throw new Error("No student data available");
     } catch (error) {

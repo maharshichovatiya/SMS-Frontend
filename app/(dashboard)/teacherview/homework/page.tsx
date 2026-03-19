@@ -656,7 +656,6 @@ export default function HomeworkPage() {
               }}
               onDelete={() => handleDeleteHomework(hw.id)}
               onStudentAssignment={() => handleStudentAssignment(hw)}
-              onClassClick={handleClassClick}
             />
           </div>
         ))}

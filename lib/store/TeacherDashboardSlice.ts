@@ -7,9 +7,10 @@ export interface Student {
   rollNo: string | null;
   firstName: string;
   lastName: string;
+  middleName?: string | null;
+  name?: string;
   email: string;
   phone: string;
-  middleName?: string | null;
   admissionDate?: string | null;
   dob?: string | null;
   gender?: string | null;
@@ -30,42 +31,71 @@ export interface Student {
   branch?: string | null;
   fatherPhone?: string | null;
   academics?: {
+    id?: string;
+    rollNo?: string | null;
     status?: string | null;
     promotionStatus?: string | null;
     percentage?: string | null;
     remarks?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
     academicYear?: {
+      id?: string;
       yearName?: string | null;
       startDate?: string | null;
       endDate?: string | null;
+      isCurrent?: boolean;
+      status?: string | null;
     };
     class?: {
+      id?: string;
+      className?: string | null;
       section?: string | null;
     };
   }[];
+  role?: {
+    id: string;
+    roleName: string;
+  };
+  school?: {
+    id: string;
+    name: string;
+    address: string;
+  };
 }
 
-export interface ClassData {
-  classId: string;
+export interface ClassTeacherClass {
+  id: string;
   className: string;
-  section: string;
-  studentCount: number;
+  students: Student[];
+}
+
+export interface ClassTeacherData {
+  class: ClassTeacherClass;
+}
+
+export interface TeacherClass {
+  id: string;
+  className: string;
   students: Student[];
 }
 
 export interface TeacherDashboardSummary {
-  totalStudents: number;
-  classes: ClassData[];
-  summary: {
-    totalClasses: number;
-    averageStudentsPerClass: number;
-  };
+  classTeacher: ClassTeacherData;
+  classes: TeacherClass[];
 }
 
 export interface TeacherDashboardResponse {
   statusCode: number;
   message: string;
-  data: TeacherDashboardSummary;
+  data: {
+    statusCode: number;
+    message: string;
+    data: {
+      classTeacher: ClassTeacherData;
+      classes: TeacherClass[];
+    };
+  };
 }
 
 export interface TeacherDashboardState {
@@ -86,10 +116,9 @@ export const fetchTeacherDashboardData = createAsyncThunk<
   { rejectValue: string }
 >("teacherDashboard/fetchData", async (_, { rejectWithValue }) => {
   try {
-    const response = await api.get<TeacherDashboardResponse>(
-      "/dashboard/students/classteacher",
-    );
-    return response.data.data;
+    const response =
+      await api.get<TeacherDashboardResponse>("/dashboard/teacher");
+    return response.data.data.data;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "An error occurred",

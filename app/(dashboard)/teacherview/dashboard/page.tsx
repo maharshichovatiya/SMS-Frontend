@@ -84,8 +84,9 @@ const TeacherDashboard: React.FC = () => {
   const stats = {
     totalAssignedClasses: assignClassData?.summary?.totalClasses || 0,
     totalAssignedSubjects: assignSubjectData?.totalSubjects || 0,
-    totalAssignedStudents: dashboardData?.totalStudents || 0,
-    totalClassTeacherClasses: dashboardData?.summary?.totalClasses || 0,
+    totalAssignedStudents:
+      dashboardData?.classTeacher?.class?.students?.length || 0,
+    totalClassTeacherClasses: dashboardData?.classTeacher?.class ? 1 : 0,
     homeworkAssigned: 12,
     avgAttendance: 95,
     yearsOfExperience: teacherData?.totalExpMonths
@@ -325,7 +326,7 @@ const TeacherDashboard: React.FC = () => {
               }) => (
                 <div
                   key={classItem.classId}
-                  className="flex items-center gap-3 p-3 bg-[#fafbff] rounded-xl border border-[#dde3f5] transition-all duration-200 hover:bg-[#f0f4ff] hover:border-[#3d6cf4]"
+                  className="flex items-center gap-3 p-3 bg-[#fafbff] rounded-xl border border-[#dde3f5]"
                 >
                   <div className="w-10 h-10 bg-[#eef1ff] rounded-lg flex items-center justify-center">
                     <Building className="w-5 h-5 text-[#3d6cf4]" />
@@ -338,9 +339,6 @@ const TeacherDashboard: React.FC = () => {
                       {classItem.studentCount} students
                     </div>
                   </div>
-                  <div className="text-[11px] text-[#3d6cf4] font-medium">
-                    {classItem.subjects?.length || 0} subjects
-                  </div>
                 </div>
               ),
             ) || (
@@ -352,41 +350,33 @@ const TeacherDashboard: React.FC = () => {
         </SectionCard>
 
         <SectionCard
-          title="Class Teacher Classes"
-          subtitle={`${stats.totalClassTeacherClasses} classes where you are class teacher`}
+          title="Class Teacher Class"
+          subtitle={
+            dashboardData?.classTeacher?.class
+              ? `Class ${dashboardData.classTeacher.class.className}`
+              : "No class assigned"
+          }
           delay={0.11}
         >
           <div className="space-y-2">
-            {dashboardData?.classes?.map(
-              (classItem: {
-                classId: string;
-                className: string;
-                section: string;
-                studentCount: number;
-              }) => (
-                <div
-                  key={classItem.classId}
-                  className="flex items-center gap-3 p-3 bg-[#e6faf5] rounded-xl border border-[#12a47e]/20 transition-all duration-200 hover:bg-[#d4f4ec] hover:border-[#12a47e]"
-                >
-                  <div className="w-10 h-10 bg-[#12a47e] rounded-lg flex items-center justify-center">
-                    <Award className="w-5 h-5 text-white" />
+            {dashboardData?.classTeacher?.class ? (
+              <div className="flex items-center gap-3 p-3 bg-[#e6faf5] rounded-xl border border-[#12a47e]/20">
+                <div className="w-10 h-10 bg-[#12a47e] rounded-lg flex items-center justify-center">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-[14px] text-[#111827]">
+                    Class {dashboardData.classTeacher.class.className}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-[14px] text-[#111827]">
-                      Class {classItem.className}-{classItem.section}
-                    </div>
-                    <div className="text-[11px] text-[#5c6a8a]">
-                      {classItem.studentCount} students
-                    </div>
-                  </div>
-                  <div className="text-[11px] text-[#12a47e] font-medium">
-                    Class Teacher
+                  <div className="text-[11px] text-[#5c6a8a]">
+                    {dashboardData.classTeacher.class.students?.length || 0}{" "}
+                    students
                   </div>
                 </div>
-              ),
-            ) || (
+              </div>
+            ) : (
               <div className="text-center text-[13px] text-[#9aa5c4] py-4">
-                No class teacher assignments yet
+                No class teacher assignment yet
               </div>
             )}
           </div>
