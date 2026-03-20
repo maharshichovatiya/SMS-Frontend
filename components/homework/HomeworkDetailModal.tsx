@@ -72,32 +72,6 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
     }
   };
 
-  const getStatusBadge = () => {
-    switch (homework.status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "expired":
-        return "bg-rose-100 text-rose-800";
-      case "draft":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-blue-100 text-blue-800";
-    }
-  };
-
-  const getStatusText = () => {
-    switch (homework.status) {
-      case "completed":
-        return "Completed";
-      case "expired":
-        return "Expired";
-      case "draft":
-        return "Draft";
-      default:
-        return "Active";
-    }
-  };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-[var(--z-modal)]">
       <div
@@ -173,7 +147,9 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                       Assigned Date
                     </p>
                     <p className="text-sm font-medium text-[#111827]">
-                      {new Date(homework.assignedDate).toLocaleDateString()}
+                      {new Date(homework.assignedDate).toLocaleDateString(
+                        "en-GB",
+                      )}
                     </p>
                   </div>
                   <div>
@@ -181,7 +157,7 @@ export const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({
                       Due Date
                     </p>
                     <p className="text-sm font-medium text-[#111827]">
-                      {new Date(homework.dueDate).toLocaleDateString()}
+                      {new Date(homework.dueDate).toLocaleDateString("en-GB")}
                     </p>
                   </div>
                   <div>

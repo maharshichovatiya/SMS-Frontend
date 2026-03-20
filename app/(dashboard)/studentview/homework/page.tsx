@@ -47,6 +47,7 @@ interface TransformedHomework {
   description: string;
   chapterName?: string;
   chapterId?: string;
+  chapterNo?: number;
 }
 
 export default function HomeworkPage() {
@@ -155,13 +156,18 @@ export default function HomeworkPage() {
       class: hw.classno || "Not Assigned",
       teacher:
         `${hw.teacher?.firstName} ${hw.teacher?.lastName}` || "Not Assigned",
-      dueDate: hw.dueDate,
+      dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
       submitted: 0, // Will be updated when submission data is available
       total: 1,
       status: hw.isOverdue ? "overdue" : "active",
       description: hw.description,
       chapterName: hw.chapter?.chapterName || "",
-      chapterId: hw.chapterId || undefined,
+      chapterId: hw.chapter?.id || hw.chapterId || undefined,
+      chapterNo: hw.chapter?.chapterNo || undefined,
     })) || [];
 
   if (error) {
@@ -218,6 +224,7 @@ export default function HomeworkPage() {
                 title={hw.title}
                 subject={hw.subject}
                 className={hw.class || ""}
+                chapterNo={hw.chapterNo}
                 teacher={hw.teacher}
                 dueDate={hw.dueDate}
                 submitted={hw.submitted}
@@ -231,14 +238,12 @@ export default function HomeworkPage() {
                 onEdit={() => {}}
                 onDelete={() => {}}
                 onStudentAssignment={() => {}}
-                onClassClick={() => {}}
               />
             </div>
           ))
         )}
       </div>
 
-      {/* Student Submissions Table */}
       <div className="mt-8">
         <StudentSubmissionTable
           submissions={transformedSubmissions}
