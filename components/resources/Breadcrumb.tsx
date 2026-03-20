@@ -34,7 +34,7 @@ export default function Breadcrumb({
       <div className="mt-5 flex items-center gap-1.5 mb-4.5 text-sm font-medium text-[var(--text-2)] flex-wrap">
         <button
           onClick={onBackToClasses}
-          className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2"
+          className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           All Classes
@@ -51,7 +51,7 @@ export default function Breadcrumb({
     <div className="mt-5 flex items-center gap-1.5 mb-4.5 text-sm font-medium text-[var(--text-2)] flex-wrap">
       <button
         onClick={onBackToClasses}
-        className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2"
+        className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         All Classes
@@ -59,7 +59,7 @@ export default function Breadcrumb({
       <span className="text-xs text-[var(--text-3)] select-none">/</span>
       <button
         onClick={onBackToSubjects}
-        className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2"
+        className="font-semibold text-[var(--blue)] hover:text-[var(--blue-d)] hover:underline transition-colors flex items-center gap-2 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         {selectedClass?.className}
