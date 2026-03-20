@@ -20,6 +20,7 @@ interface Notice {
   iconColor: string;
   hasAttachment: boolean;
   author: string;
+  authorRole?: string;
   date: string;
 }
 
@@ -119,8 +120,16 @@ export default function NoticeCard({
             {notice.priority === "high" ? "Attachment" : "Guidelines"}
           </span>
         )}
-        <span className="ml-auto">
-          By: {notice.author} · {notice.date}
+        <span className="ml-auto flex items-center gap-1.5">
+          <span className="text-[var(--text-3)] text-gray-500">By:</span>
+          <span className="font-medium text-gray-700">{notice.author}</span>
+          {notice.authorRole && (
+            <span className="px-1.5 py-[2px] bg-slate-100 text-slate-600 rounded text-[10px] uppercase font-bold tracking-wider border border-slate-200 leading-none">
+              {notice.authorRole}
+            </span>
+          )}
+          <span className="text-gray-400 mx-0.5">·</span>
+          <span className="text-gray-500">{notice.date}</span>
         </span>
       </div>
     </div>

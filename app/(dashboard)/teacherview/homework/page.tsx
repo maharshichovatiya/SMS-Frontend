@@ -12,11 +12,15 @@ import {
 import PageHeader from "@/components/layout/PageHeader";
 import HomeworkSkeleton from "@/components/skeletons/HomeworkSkeleton";
 import { getClassSummary } from "@/lib/api/Classes";
-import { homeworkApis } from "@/lib/api/Homework";
 import { subjectApis } from "@/lib/api/Subject";
 import api from "@/lib/Axios";
-import { createNewHomework, fetchAllHomework } from "@/lib/store/HomeworkSlice";
-import { RootState } from "@/lib/store/Index";
+import {
+  createNewHomework,
+  deleteHomeworkAsync,
+  fetchAllHomework,
+  updateHomeworkAsync,
+} from "@/lib/store/HomeworkSlice";
+import { AppDispatch, RootState } from "@/lib/store/Index";
 import { Subject } from "@/lib/types/SubjectTypes";
 import { showToast } from "@/lib/utils/Toast";
 import { BookOpen } from "lucide-react";
@@ -99,16 +103,6 @@ interface HomeworkAssignment {
   };
 }
 
-interface HomeworkOriginalData {
-  assignments?: HomeworkAssignment[];
-}
-
-interface HomeworkForAssignment {
-  id: string;
-  title: string;
-  originalData?: HomeworkOriginalData;
-}
-
 interface HomeworkListItem {
   id: string;
   title: string;
@@ -154,10 +148,11 @@ interface TransformedHomework {
   chapterId?: string;
   chapterName?: string;
   chapterNo?: number;
+  rawDueDate?: string;
 }
 
 export default function HomeworkPage() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { homeworkList, loading, error, createLoading, createError } =
     useSelector((state: RootState) => state.homework);
 
@@ -166,7 +161,7 @@ export default function HomeworkPage() {
   const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
     useState<HomeworkListItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
+  const [_homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
   const [_isTeacher] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -185,13 +180,13 @@ export default function HomeworkPage() {
   const [, setSubjectsLoading] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [, setClassesLoading] = useState(false);
-  const [students, setStudents] = useState<StudentData[]>([]);
+  const [_students, setStudents] = useState<StudentData[]>([]);
   const [, setStudentsLoading] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
   const [showClassStudents, setShowClassStudents] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+    dispatch(fetchAllHomework());
 
     const fetchSubjects = async () => {
       setSubjectsLoading(true);
@@ -302,15 +297,13 @@ export default function HomeworkPage() {
 
     setIsDeleting(true);
     try {
-      const response = await homeworkApis.delete(homeworkToDelete.id);
-      if (response) {
-        dispatch(
-          fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
-        );
-        showToast.success("Homework deleted successfully");
-      }
-    } catch (_error) {
-      showToast.error("Failed to delete homework");
+      await dispatch(deleteHomeworkAsync(homeworkToDelete.id));
+      dispatch(fetchAllHomework());
+      showToast.success("Homework deleted successfully");
+    } catch (_error: unknown) {
+      const errorMessage =
+        _error instanceof Error ? _error.message : "Failed to delete homework";
+      showToast.error(errorMessage);
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -319,7 +312,6 @@ export default function HomeworkPage() {
   };
 
   const handleViewDetails = async (homeworkId: string) => {
-    setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
     if (homeworkList && homeworkList.homework) {
@@ -329,6 +321,7 @@ export default function HomeworkPage() {
 
       if (homeworkData) {
         setSelectedHomeworkDetail(homeworkData);
+        setSelectedHomework(homeworkData);
       } else {
         const fallbackData = homeworkList.homework?.find(
           (hw: HomeworkListItem) => hw.id === homeworkId,
@@ -349,7 +342,7 @@ export default function HomeworkPage() {
   const handleStudentAssignment = (homework: HomeworkListItem) => {
     setShowStudentAssignment(true);
     setHomeworkStudentsLoading(true);
-    _setHomeworkStudents([]);
+    setHomeworkStudents([]);
 
     const homeworkData = (homeworkList as unknown as HomeworkListResponse)
       ?.homework;
@@ -487,18 +480,24 @@ export default function HomeworkPage() {
           formData.append("attachments", file);
         });
 
-        await api.patch(`/homework/${editingHomework.id}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await dispatch(
+          updateHomeworkAsync({
+            homeworkId: editingHomework.id,
+            data: formData,
+          }),
+        );
       } else {
-        await homeworkApis.update(editingHomework.id, apiData);
+        await dispatch(
+          updateHomeworkAsync({
+            homeworkId: editingHomework.id,
+            data: apiData,
+          }),
+        );
       }
 
       setShowCreateForm(false);
       setEditingHomework(null);
-      dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
+      dispatch(fetchAllHomework());
       showToast.success("Homework updated successfully");
     } catch (error: unknown) {
       let errorMessage = "Failed to update homework";
@@ -562,9 +561,7 @@ export default function HomeworkPage() {
     };
 
     try {
-      const result = await dispatch(
-        createNewHomework(apiData) as unknown as Parameters<typeof dispatch>[0],
-      );
+      const result = await dispatch(createNewHomework(apiData));
 
       if (createNewHomework.rejected.match(result)) {
         let errorMessage = "Failed to create homework";
@@ -666,6 +663,7 @@ export default function HomeworkPage() {
         chapterId: hw.chapterId || hw.chapter?.id,
         chapterName: hw.chapterName || hw.chapter?.chapterName,
         chapterNo: hw.chapterNo || hw.chapter?.chapterNo,
+        rawDueDate: hw.dueDate,
       }),
     ) || [];
 
@@ -689,7 +687,7 @@ export default function HomeworkPage() {
     );
   }
 
-  const showHomeworkDetail = selectedHomework !== null;
+  const showHomeworkDetail = selectedHomework !== null || detailLoading;
 
   return (
     <div>
@@ -749,7 +747,10 @@ export default function HomeworkPage() {
                 }
                 onViewDetails={() => handleViewDetails(hw.id)}
                 onEdit={() => {
-                  setEditingHomework(hw);
+                  setEditingHomework({
+                    ...hw,
+                    dueDate: hw.rawDueDate || hw.dueDate,
+                  });
                   setShowCreateForm(true);
                 }}
                 onDelete={() => handleDeleteHomework(hw.id)}
@@ -822,7 +823,7 @@ export default function HomeworkPage() {
             }
             loading={createLoading}
             error={createError}
-            editingHomework={null}
+            editingHomework={editingHomework}
           />
         </>
       )}

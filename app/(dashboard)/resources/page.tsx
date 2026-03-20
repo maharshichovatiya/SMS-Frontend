@@ -115,17 +115,27 @@ function Page() {
   const renderClasses = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {resourcesData.map((classItem, i) => (
-          <ClassCard
-            key={classItem.classId}
-            classItem={classItem}
-            index={i}
-            onClick={classItem => {
-              setSelectedClass(classItem);
-              setCurrentView("subjects");
-            }}
-          />
-        ))}
+        {resourcesData.length > 0 ? (
+          resourcesData.map((classItem, i) => (
+            <ClassCard
+              key={classItem.classId}
+              classItem={classItem}
+              index={i}
+              onClick={classItem => {
+                setSelectedClass(classItem);
+                setCurrentView("subjects");
+              }}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-3 w-full text-center">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No classes assigned yet</p>
+            <p className="text-sm mt-1">
+              Classes assigned to you will appear here.
+            </p>
+          </div>
+        )}
       </div>
     );
   };
@@ -135,13 +145,23 @@ function Page() {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {selectedClass.subjects.map(subject => (
-          <SubjectCard
-            key={subject.subjectId}
-            subject={subject}
-            onClick={handleSubjectClick}
-          />
-        ))}
+        {selectedClass.subjects.length > 0 ? (
+          selectedClass.subjects.map(subject => (
+            <SubjectCard
+              key={subject.subjectId}
+              subject={subject}
+              onClick={handleSubjectClick}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-3 w-full text-center">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No subjects found</p>
+            <p className="text-sm mt-1">
+              {`There are currently no subjects assigned to "${selectedClass.className}".`}
+            </p>
+          </div>
+        )}
       </div>
     );
   };
@@ -164,38 +184,50 @@ function Page() {
           resourceFilter={resourceFilter}
           onFilterChange={setResourceFilter}
         />
-        {filteredChapters.map((chapter, chapterIndex) => (
-          <div
-            key={chapter.chapterId}
-            className="mb-8 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]"
-          >
-            <ChapterHeader
-              chapter={chapter}
-              isSelected={selectedChapter?.chapterName === chapter.chapterName}
-              onClick={() => handleChapterSelect(chapter)}
-            />
-            {chapter.resources.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4 mt-4">
-                {chapter.resources.map((resource, resourceIndex) => (
-                  <ResourceCard
-                    key={resource.id}
-                    resource={resource}
-                    chapter={chapter}
-                    selectedSubject={selectedSubject}
-                    onUploadClick={(chapter, subject) => {
-                      setSelectedChapter(chapter);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-[var(--text-3)]">
-                No resources found for this chapter
-              </div>
-            )}
+        {filteredChapters.length > 0 ? (
+          filteredChapters.map((chapter, chapterIndex) => (
+            <div
+              key={chapter.chapterId}
+              className="mb-8 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]"
+            >
+              <ChapterHeader
+                chapter={chapter}
+                isSelected={
+                  selectedChapter?.chapterName === chapter.chapterName
+                }
+                onClick={() => handleChapterSelect(chapter)}
+              />
+              {chapter.resources.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4 mt-4">
+                  {chapter.resources.map((resource, resourceIndex) => (
+                    <ResourceCard
+                      key={resource.id}
+                      resource={resource}
+                      chapter={chapter}
+                      selectedSubject={selectedSubject}
+                      onUploadClick={(chapter, subject) => {
+                        setSelectedChapter(chapter);
+                        setIsModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-[var(--text-3)]">
+                  No resources found for this chapter
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] w-full text-center">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No chapters found</p>
+            <p className="text-sm mt-1">
+              {`There are currently no chapters assigned to "${selectedSubject.subjectName}".`}
+            </p>
           </div>
-        ))}
+        )}
       </div>
     );
   };

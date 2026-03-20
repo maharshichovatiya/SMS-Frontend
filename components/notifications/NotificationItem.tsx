@@ -17,12 +17,40 @@ interface Notification {
   message: string;
   time: string;
   isUnread: boolean;
+  author?: string;
+  authorRole?: string;
+  priority?: "high" | "medium" | "low";
 }
 
 interface NotificationItemProps {
   notification: Notification;
   onClick: (id: string) => void;
 }
+
+const getPriorityBadge = (priority: string) => {
+  switch (priority) {
+    case "high":
+      return (
+        <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full text-[10px] uppercase tracking-wider font-bold">
+          High Priority
+        </span>
+      );
+    case "medium":
+      return (
+        <span className="px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full text-[10px] uppercase tracking-wider font-bold">
+          Medium Priority
+        </span>
+      );
+    case "low":
+      return (
+        <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full text-[10px] uppercase tracking-wider font-bold">
+          Low Priority
+        </span>
+      );
+    default:
+      return null;
+  }
+};
 
 const getLucideIcon = (iconName: string) => {
   const iconMap: { [key: string]: React.ReactNode } = {
@@ -72,8 +100,23 @@ export default function NotificationItem({
             className="inline"
           />
         </div>
-        <div className="text-[11px] text-[var(--text3)] mt-[3px]">
-          {notification.time}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          {notification.priority && getPriorityBadge(notification.priority)}
+          {notification.author && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-gray-500 font-medium">
+                {notification.author}
+              </span>
+              {notification.authorRole && (
+                <span className="px-1.5 py-[2px] bg-slate-100 text-slate-600 rounded text-[9px] uppercase font-bold tracking-wider border border-slate-200 leading-none">
+                  {notification.authorRole}
+                </span>
+              )}
+            </div>
+          )}
+          <div className="text-[11px] text-[var(--text3)]">
+            {notification.time}
+          </div>
         </div>
       </div>
     </div>

@@ -155,7 +155,7 @@ export const updateHomeworkAsync = createAsyncThunk(
     {
       homeworkId,
       data,
-    }: { homeworkId: string; data: Partial<CreateHomeworkPayload> },
+    }: { homeworkId: string; data: Partial<CreateHomeworkPayload> | FormData },
     { rejectWithValue },
   ) => {
     try {

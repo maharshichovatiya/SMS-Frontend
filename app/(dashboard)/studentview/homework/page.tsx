@@ -32,6 +32,8 @@ interface StudentSubmission {
   teacher: string;
   description: string;
   className: string;
+  maxMarks?: number;
+  fileUrl?: string;
 }
 
 interface TransformedHomework {
@@ -96,9 +98,13 @@ export default function HomeworkPage() {
         : undefined,
       grade: isGraded ? item.submission?.marksObtained?.toString() : undefined,
       feedback: isGraded ? (item.submission?.feedback ?? undefined) : undefined,
+      fileUrl: isSubmitted
+        ? item.submission?.submissionAttachments?.[0]?.fileUrl
+        : undefined,
       teacher: `${item.teacher.firstName} ${item.teacher.lastName}`,
       description: item.description,
       className: item.subject.subjectName,
+      maxMarks: item.subject.maxMarks,
     };
   };
 
@@ -107,7 +113,6 @@ export default function HomeworkPage() {
     : [];
 
   const handleViewDetails = async (homeworkId: string) => {
-    setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
     const homeworkData = homeworkList?.homework?.find(
@@ -116,6 +121,7 @@ export default function HomeworkPage() {
 
     if (homeworkData) {
       setSelectedHomeworkDetail(homeworkData);
+      setSelectedHomework(homeworkData);
     } else {
       setSelectedHomeworkDetail(null);
       setSelectedHomework(null);
@@ -161,7 +167,7 @@ export default function HomeworkPage() {
         day: "numeric",
         year: "numeric",
       }),
-      submitted: 0, // Will be updated when submission data is available
+      submitted: 0,
       total: 1,
       status: hw.isOverdue ? "overdue" : "active",
       description: hw.description,
@@ -186,7 +192,7 @@ export default function HomeworkPage() {
     );
   }
 
-  const showHomeworkDetail = selectedHomework !== null;
+  const showHomeworkDetail = selectedHomework !== null || detailLoading;
 
   return (
     <div>

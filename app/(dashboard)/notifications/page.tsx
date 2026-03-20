@@ -17,6 +17,9 @@ interface Notification {
   message: string;
   time: string;
   isUnread: boolean;
+  author?: string;
+  authorRole?: string;
+  priority?: "high" | "medium" | "low";
 }
 
 const mapNoticeToNotification = (notice: ApiNotice): Notification => {
@@ -57,6 +60,11 @@ const mapNoticeToNotification = (notice: ApiNotice): Notification => {
     message: `<strong>${notice.title}</strong> - ${notice.description}`,
     time: formatRelativeTime(notice.createdAt),
     isUnread: notice.status === "active",
+    author: notice.sentByUser
+      ? `${notice.sentByUser.firstName} ${notice.sentByUser.lastName}`
+      : "Admin",
+    authorRole: notice.sentByUser?.role,
+    priority: notice.priority,
   };
 };
 
