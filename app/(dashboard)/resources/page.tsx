@@ -13,6 +13,8 @@ import ChapterHeader from "@/components/resources/ChapterHeader";
 import ResourceCard from "@/components/resources/ResourceCard";
 import ResourceFilter from "@/components/resources/ResourceFilter";
 import ChapterResourceModal from "@/components/resources/ChapterResourceModal";
+import ResourceSkeleton from "@/components/skeletons/ResourceSkeleton";
+
 type ResourceType = "all" | "pdf" | "video" | "notes";
 
 function Page() {
@@ -199,6 +201,10 @@ function Page() {
   };
 
   const renderContent = () => {
+    if (loading) {
+      return <ResourceSkeleton />;
+    }
+
     switch (currentView) {
       case "classes":
         return renderClasses();
@@ -235,8 +241,8 @@ function Page() {
               : `Resources for ${selectedSubject?.subjectName}`
         }
         icon={FolderOpen}
-        iconBgColor="lightcyan"
-        iconColor="cyan"
+        iconBgColor="--cyan-light"
+        iconColor="--cyan"
         {...(!isStudent && {
           buttonText: "Upload Resource",
           onButtonClick: handleUploadResource,

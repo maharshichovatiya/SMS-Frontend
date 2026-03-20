@@ -10,6 +10,7 @@ import {
   submitStudentHomework,
 } from "@/lib/store/SubmissionSlice";
 import { fetchStudentHomework } from "@/lib/store/HomeworkSlice";
+import HomeworkSkeleton from "@/components/skeletons/HomeworkSkeleton";
 import { AppDispatch, RootState } from "@/lib/store/Index";
 import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
 import { BookOpen } from "lucide-react";
@@ -163,17 +164,6 @@ export default function HomeworkPage() {
       chapterId: hw.chapterId || undefined,
     })) || [];
 
-  if (loading && !homeworkList) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading homework...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -206,34 +196,46 @@ export default function HomeworkPage() {
         className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
-        {transformedHomeworkList.map(hw => (
-          <div
-            key={hw.id}
-            className="animate-fadeUp"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <HomeworkCardClassic
-              id={hw.id}
-              title={hw.title}
-              subject={hw.subject}
-              className={hw.class || ""}
-              teacher={hw.teacher}
-              dueDate={hw.dueDate}
-              submitted={hw.submitted}
-              total={hw.total}
-              status={hw.status}
-              description={hw.description}
-              chapterName={hw.chapterName}
-              isModalOpen={!!selectedHomework}
-              showActions={false}
-              onViewDetails={() => handleViewDetails(hw.id)}
-              onEdit={() => {}}
-              onDelete={() => {}}
-              onStudentAssignment={() => {}}
-              onClassClick={() => {}}
-            />
+        {loading && !homeworkList ? (
+          <HomeworkSkeleton />
+        ) : transformedHomeworkList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-2 w-full text-center">
+            <BookOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No homework assigned yet</p>
+            <p className="text-sm mt-1">
+              Check back later for new assignments.
+            </p>
           </div>
-        ))}
+        ) : (
+          transformedHomeworkList.map(hw => (
+            <div
+              key={hw.id}
+              className="animate-fadeUp"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <HomeworkCardClassic
+                id={hw.id}
+                title={hw.title}
+                subject={hw.subject}
+                className={hw.class || ""}
+                teacher={hw.teacher}
+                dueDate={hw.dueDate}
+                submitted={hw.submitted}
+                total={hw.total}
+                status={hw.status}
+                description={hw.description}
+                chapterName={hw.chapterName}
+                isModalOpen={!!selectedHomework}
+                showActions={false}
+                onViewDetails={() => handleViewDetails(hw.id)}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onStudentAssignment={() => {}}
+                onClassClick={() => {}}
+              />
+            </div>
+          ))
+        )}
       </div>
 
       {/* Student Submissions Table */}
