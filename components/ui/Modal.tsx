@@ -9,6 +9,7 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  zIndex?: string;
 }
 
 export default function Modal({
@@ -19,6 +20,7 @@ export default function Modal({
   children,
   footer,
   className,
+  zIndex,
 }: ModalProps) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -41,7 +43,10 @@ export default function Modal({
           animation: modalIn 200ms var(--ease-bounce) both;
         }
       `}</style>
-      <div className="fixed inset-0 flex items-center justify-center p-4 z-[var(--z-modal)]">
+      <div
+        className="fixed inset-0 flex items-center justify-center p-4"
+        style={{ zIndex: zIndex || "var(--z-modal)" }}
+      >
         <div
           className="absolute inset-0 bg-[rgba(17,24,39,0.45)] backdrop-blur-sm"
           onClick={onClose}

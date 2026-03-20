@@ -690,6 +690,54 @@ const TeacherProfilePage: React.FC = () => {
       <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
       {renderTab()}
 
+      {showForm && teacherData && (
+        <Modal
+          isOpen={showForm}
+          onClose={handleFormCancel}
+          title="Edit Profile"
+          description="Update your personal and professional information."
+          className="max-w-3xl"
+        >
+          <TeacherForm
+            mode="edit"
+            teacherId={teacherData.id}
+            onCancel={handleFormCancel}
+            onSuccess={handleFormSave}
+            defaultValues={{
+              email: teacherData.user.email,
+              firstName: teacherData.user.firstName,
+              middleName: teacherData.user.middleName || "",
+              lastName: teacherData.user.lastName,
+              phone: teacherData.user.phone,
+              gender: teacherData.user.gender,
+              dob: teacherData.user.dob,
+              department: teacherData.department,
+              designation: teacherData.designation,
+              dateOfJoining: teacherData.dateOfJoining,
+              salaryPackage: Number(teacherData.salaryPackage),
+              highestQualification: teacherData.highestQualification,
+              experienceYears: teacherData.totalExpMonths
+                ? Math.floor(teacherData.totalExpMonths / 12)
+                : 0,
+              experienceMonths: teacherData.totalExpMonths
+                ? teacherData.totalExpMonths % 12
+                : 0,
+              profilePhoto: null,
+              // Additional fields
+              bloodGroup: teacherData.user.bloodGroup || "",
+              aadhaarNo: teacherData.user.aadhaarNo || "",
+              panNo: teacherData.user.panNo || "",
+              permanentAddress: teacherData.user.permanentAddress || "",
+              currentAddress: teacherData.user.currentAddress || "",
+              bankName: teacherData.user.bankName || "",
+              accountNo: teacherData.user.accountNo || "",
+              ifscCode: teacherData.user.ifscCode || "",
+              branch: teacherData.user.branch || "",
+            }}
+          />
+        </Modal>
+      )}
+
       <style jsx>{`
         @keyframes fadeUp {
           from {
