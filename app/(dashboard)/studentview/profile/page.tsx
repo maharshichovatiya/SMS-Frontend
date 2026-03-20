@@ -7,6 +7,7 @@ import type {
   ProfileFieldProps,
 } from "@/lib/types/student-profile";
 import PageHeader from "@/components/layout/PageHeader";
+import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
 import Modal from "@/components/ui/Modal";
 import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import {
@@ -26,6 +27,21 @@ interface ApiStudentData {
   guardianPhone: string;
   createdAt: string;
   updatedAt: string;
+  academicYear?: {
+    id: string;
+    yearName: string;
+    startDate: string;
+    endDate: string;
+    isCurrent: boolean;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  class?: {
+    id: string;
+    className: string;
+    section: string;
+  };
   user: {
     id: string;
     email: string;
@@ -272,75 +288,76 @@ const StudentProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchStudentProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const profileData: StudentProfileData = await getStudentProfile();
+  const fetchStudentProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const profileData: StudentProfileData = await getStudentProfile();
 
-        // Map API response to existing interface
-        const mappedData: ApiStudentData = {
-          id: profileData.id,
-          status: profileData.status,
-          userId: profileData.user.id,
-          rollNumber: profileData.rollNo || "N/A",
-          grade: profileData.academics[0]?.class.className || "N/A",
-          section: profileData.academics[0]?.class.section || "N/A",
-          enrollmentDate: profileData.admissionDate,
-          guardianName:
-            profileData.fatherName || profileData.guardianName || "N/A",
-          guardianPhone: profileData.fatherPhone || "N/A",
-          createdAt: "",
-          updatedAt: "",
-          user: {
-            id: profileData.user.id,
-            email: profileData.user.email,
-            firstName: profileData.user.firstName,
-            middleName: profileData.user.middleName,
-            lastName: profileData.user.lastName,
-            phone: profileData.user.phone,
-            gender: profileData.user.gender,
-            dob: profileData.user.dob,
-            bloodGroup: profileData.user.bloodGroup,
-            permanentAddress: profileData.user.permanentAddress,
-            currentAddress: profileData.user.currentAddress,
-            profilePhoto: profileData.user.profilePhoto,
-            school: {
-              id: profileData.user.school.id,
-              name: profileData.user.school.name,
-              address: profileData.user.school.address,
-              affiliationBoard: profileData.user.school.affiliationBoard,
-            },
-            role: {
-              id: profileData.user.role.id,
-              roleName: profileData.user.role.roleName,
-            },
+      // Map API response to existing interface
+      const mappedData: ApiStudentData = {
+        id: profileData.id,
+        status: profileData.status,
+        userId: profileData.user.id,
+        rollNumber: profileData.rollNo || "",
+        grade: profileData.academics[0]?.class.className || "",
+        section: profileData.academics[0]?.class.section || "",
+        enrollmentDate: profileData.admissionDate,
+        guardianName: profileData.fatherName || profileData.guardianName || "",
+        guardianPhone: profileData.fatherPhone || "",
+        createdAt: "",
+        updatedAt: "",
+        academicYear: profileData.academics[0]?.academicYear,
+        class: profileData.academics[0]?.class,
+        user: {
+          id: profileData.user.id,
+          email: profileData.user.email,
+          firstName: profileData.user.firstName,
+          middleName: profileData.user.middleName,
+          lastName: profileData.user.lastName,
+          phone: profileData.user.phone,
+          gender: profileData.user.gender,
+          dob: profileData.user.dob,
+          bloodGroup: profileData.user.bloodGroup,
+          permanentAddress: profileData.user.permanentAddress,
+          currentAddress: profileData.user.currentAddress,
+          profilePhoto: profileData.user.profilePhoto,
+          school: {
+            id: profileData.user.school.id,
+            name: profileData.user.school.name,
+            address: profileData.user.school.address,
+            affiliationBoard: profileData.user.school.affiliationBoard,
           },
-        };
+          role: {
+            id: profileData.user.role.id,
+            roleName: profileData.user.role.roleName,
+          },
+        },
+      };
 
-        setStudentData(mappedData);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch student profile";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setStudentData(mappedData);
+    } catch (err) {
+      setError("Failed to load student profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStudentProfile();
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
+      <div>
+        <PageHeader
+          title="Student Profile"
+          description="Manage your personal and academic information"
+          icon={Award}
+          iconBgColor="--blue-light"
+          iconColor="--blue"
+        />
+        <ProfileSkeleton />
       </div>
     );
   }
@@ -378,6 +395,8 @@ const StudentProfilePage: React.FC = () => {
 
   const handleFormSave = async () => {
     setShowForm(false);
+    // Refetch student profile data after successful update
+    await fetchStudentProfile();
   };
 
   const _handleFormCancel = () => {
@@ -680,30 +699,62 @@ const StudentProfilePage: React.FC = () => {
       {renderTab()}
 
       {/* Edit Profile Modal */}
-      <Modal
-        isOpen={showForm}
-        onClose={_handleFormCancel}
-        title="Edit Profile"
-        description="Update your personal information"
-      >
-        <StudentForm
-          initialData={{
-            firstName: studentData?.user.firstName,
-            lastName: studentData?.user.lastName,
-            middleName: studentData?.user.middleName,
-            email: studentData?.user.email,
-            phone: studentData?.user.phone,
-            gender: studentData?.user.gender,
-            dob: studentData?.user.dob,
-            bloodGroup: studentData?.user.bloodGroup,
-            permanentAddress: studentData?.user.permanentAddress,
-            currentAddress: studentData?.user.currentAddress,
-            guardianName: studentData?.guardianName,
-            guardianPhone: studentData?.guardianPhone,
-          }}
-          onSubmitSuccess={handleFormSave}
-        />
-      </Modal>
+      {showForm && studentData && (
+        <Modal
+          isOpen={showForm}
+          onClose={_handleFormCancel}
+          title="Edit Profile"
+          description="Update your personal information"
+          className="max-w-3xl"
+        >
+          <StudentForm
+            initialData={{
+              id: studentData.id,
+              firstName: studentData.user.firstName || "",
+              middleName: studentData.user.middleName || undefined,
+              lastName: studentData.user.lastName || "",
+              email: studentData.user.email || "",
+              phone: studentData.user.phone || "",
+              gender:
+                (studentData.user.gender as "male" | "female" | "other" | "") ||
+                "",
+              dob: studentData.user.dob || undefined,
+              bloodGroup: studentData.user.bloodGroup || undefined,
+              rollNo:
+                (studentData.rollNumber === "N/A"
+                  ? ""
+                  : studentData.rollNumber) || "",
+              admissionDate: studentData.enrollmentDate || "",
+              guardianName:
+                (studentData.guardianName === "N/A"
+                  ? ""
+                  : studentData.guardianName) || "",
+              guardianPhone:
+                (studentData.guardianPhone === "N/A"
+                  ? ""
+                  : studentData.guardianPhone) || "",
+              fatherName:
+                (studentData.guardianName === "N/A"
+                  ? ""
+                  : studentData.guardianName) || "",
+              fatherPhone:
+                (studentData.guardianPhone === "N/A"
+                  ? ""
+                  : studentData.guardianPhone) || "",
+              permanentAddress: studentData.user.permanentAddress || "",
+              currentAddress: studentData.user.currentAddress || "",
+              academicYearId: studentData.academicYear?.id || "",
+              classId: studentData.class?.id || "",
+              user: {
+                gender: studentData.user.gender || "",
+              },
+            }}
+            onSubmitSuccess={handleFormSave}
+            onClose={_handleFormCancel}
+            roleId={studentData.user.role.id}
+          />
+        </Modal>
+      )}
 
       <style jsx>{`
         @keyframes fadeUp {

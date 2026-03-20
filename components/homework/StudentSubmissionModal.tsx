@@ -34,6 +34,8 @@ interface StudentSubmission {
   teacher: string;
   description: string;
   className: string;
+  maxMarks?: number;
+  fileUrl?: string;
 }
 
 interface StudentSubmissionModalProps {
@@ -42,6 +44,22 @@ interface StudentSubmissionModalProps {
   submission: StudentSubmission | null;
   onSubmit: (data: { file: File }) => void;
 }
+
+const getLetterGrade = (marksObtained: number | null | undefined): string => {
+  if (
+    marksObtained === null ||
+    marksObtained === undefined ||
+    isNaN(marksObtained)
+  )
+    return "—";
+  if (marksObtained >= 90) return "A+";
+  if (marksObtained >= 80) return "A";
+  if (marksObtained >= 70) return "B";
+  if (marksObtained >= 60) return "C";
+  if (marksObtained >= 50) return "D";
+  if (marksObtained >= 35) return "E";
+  return "F";
+};
 
 export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
   isOpen,
@@ -188,7 +206,7 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
       setTimeout(() => {
         setUploading(false);
         onClose();
-        reset(); // Reset form state
+        reset();
       }, 500);
     } catch (_error) {
       setUploading(false);
@@ -230,19 +248,21 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
       }`}
       className="max-w-2xl"
       footer={
-        <div className="flex gap-3 w-full">
+        <div className="flex items-center gap-3">
           {isPending ? (
             <>
               <button
+                type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-[var(--surface-2)] text-[var(--text)] rounded-lg hover:bg-[var(--surface-3)] transition-colors"
+                className="px-7 h-[52px] cursor-pointer rounded-[14px] border border-[var(--border)] text-[var(--text-2)] font-bold hover:bg-[var(--bg-2)] transition"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSubmit(handleFormSubmit)}
                 disabled={selectedFiles.length === 0 || uploading}
-                className="flex-1 px-4 py-2 bg-[var(--blue)] text-white rounded-lg hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="btn-primary disabled:opacity-60"
               >
                 {uploading && (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -253,8 +273,9 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
             </>
           ) : (
             <button
+              type="button"
               onClick={onClose}
-              className="w-full px-4 py-2 bg-[var(--blue)] text-white rounded-lg hover:bg-[var(--blue-dark)] transition-colors"
+              className="px-7 h-[52px] cursor-pointer rounded-[14px] bg-[var(--blue)] text-white font-bold hover:bg-[var(--blue-dark)] transition"
             >
               Close
             </button>
@@ -424,7 +445,6 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
 
         {submission.status === "submitted" && (
           <div>
-            {/* Success banner */}
             <div className="bg-[#f0fdf4] rounded-xl py-8 px-4 text-center mb-5">
               <div className="w-12 h-12 bg-[#dcfce7] rounded-xl flex items-center justify-center mx-auto mb-3">
                 <CheckCircle className="w-7 h-7 text-[#16a34a]" />
@@ -465,10 +485,22 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
               </div>
               <div className="flex justify-between items-center px-5 py-3.5 border-b border-[var(--border)]">
                 <span className="text-sm text-[var(--text-3)]">File</span>
-                <span className="text-sm font-medium text-[var(--text)] flex items-center gap-1.5">
-                  <Paperclip className="w-3.5 h-3.5 text-[var(--text-3)]" />
-                  {submission.file} ({submission.fileSize})
-                </span>
+                {submission.fileUrl ? (
+                  <a
+                    href={submission.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-[var(--blue)] hover:underline flex items-center gap-1.5 transition-colors"
+                  >
+                    <Paperclip className="w-3.5 h-3.5 text-[var(--blue)]" />
+                    {submission.file} ({submission.fileSize})
+                  </a>
+                ) : (
+                  <span className="text-sm font-medium text-[var(--text)] flex items-center gap-1.5">
+                    <Paperclip className="w-3.5 h-3.5 text-[var(--text-3)]" />
+                    {submission.file} ({submission.fileSize})
+                  </span>
+                )}
               </div>
               <div className="flex justify-between items-center px-5 py-3.5">
                 <span className="text-sm text-[var(--text-3)]">Status</span>
@@ -512,11 +544,14 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 style={{ borderColor: "rgba(22, 163, 74, 0.5)" }}
               >
                 <span className="text-2xl font-bold text-[#16a34a]">
-                  {submission.grade}
+                  {getLetterGrade(Number(submission.grade))}
                 </span>
               </div>
-              <div className="text-base font-semibold text-[var(--text)]">
-                Your Grade
+              <div className="text-base font-semibold text-[var(--text)] flex flex-col items-center gap-1">
+                <span>Your Grade</span>
+                <span className="text-sm font-medium text-[#16a34a] bg-[#dcfce7] px-2.5 py-0.5 rounded-full border border-green-200">
+                  {submission.grade} / {submission.maxMarks || 100} Marks
+                </span>
               </div>
             </div>
 
@@ -566,15 +601,30 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
               </div>
               <div className="flex justify-between items-center px-5 py-3.5 border-b border-[var(--border)]">
                 <span className="text-sm text-[var(--text-3)]">File</span>
-                <span className="text-sm font-medium text-[var(--text)] flex items-center gap-1.5">
-                  <Paperclip className="w-3.5 h-3.5 text-[var(--text-3)]" />
-                  {submission.file} ({submission.fileSize})
-                </span>
+                {submission.fileUrl ? (
+                  <a
+                    href={submission.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-[var(--blue)] hover:underline flex items-center gap-1.5 transition-colors"
+                  >
+                    <Paperclip className="w-3.5 h-3.5 text-[var(--blue)]" />
+                    {submission.file} ({submission.fileSize})
+                  </a>
+                ) : (
+                  <span className="text-sm font-medium text-[var(--text)] flex items-center gap-1.5">
+                    <Paperclip className="w-3.5 h-3.5 text-[var(--text-3)]" />
+                    {submission.file} ({submission.fileSize})
+                  </span>
+                )}
               </div>
               <div className="flex justify-between items-center px-5 py-3.5">
-                <span className="text-sm text-[var(--text-3)]">Grade</span>
+                <span className="text-sm text-[var(--text-3)]">
+                  Grade / Marks
+                </span>
                 <span className="text-base font-bold text-[#16a34a]">
-                  {submission.grade}
+                  {getLetterGrade(Number(submission.grade))} ({submission.grade}
+                  )
                 </span>
               </div>
             </div>

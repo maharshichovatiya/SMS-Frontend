@@ -18,32 +18,8 @@ import {
 } from "@/lib/store/AssignSubjectSlice";
 import { showToast } from "@/lib/utils/Toast";
 import StatCard from "@/components/ui/StatCard";
+import TeacherDashboardSkeleton from "@/components/skeletons/TeacherDashboardSkeleton";
 import { ProfileData } from "@/lib/types/Profile";
-
-type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
-
-interface BadgeProps {
-  children: React.ReactNode;
-  variant?: BadgeVariant;
-}
-
-function Badge({ children, variant = "blue" }: BadgeProps) {
-  const variants: Record<BadgeVariant, string> = {
-    blue: "bg-[var(--blue-light)] text-[var(--blue)]",
-    green: "bg-[var(--green-light)] text-[var(--green)]",
-    amber: "bg-[var(--amber-light)] text-[var(--amber)]",
-    rose: "bg-[var(--rose-light)] text-[var(--rose)]",
-    indigo: "bg-[var(--indigo-light)] text-[var(--indigo)]",
-    cyan: "bg-[var(--cyan-light)] text-[var(--cyan)]",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-[11px] py-[3px] rounded-full text-[11.5px] font-semibold ${variants[variant]}`}
-    >
-      {children}
-    </span>
-  );
-}
 
 interface QuickItemProps {
   icon: React.ReactNode;
@@ -181,19 +157,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
     return "Good evening";
   }, []);
 
-  if (dashboardLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  if (dashboardLoading || (loading && !teacherData)) {
+    return <TeacherDashboardSkeleton />;
   }
 
   if (!userId) {
-    return null;
-  }
-
-  if (loading && !teacherData) {
     return null;
   }
 

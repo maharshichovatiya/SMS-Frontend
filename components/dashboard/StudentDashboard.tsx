@@ -12,6 +12,7 @@ import {
 } from "@/lib/store/StudentDashboardSlice";
 
 import StatCard from "@/components/ui/StatCard";
+import StudentDashboardSkeleton from "@/components/skeletons/StudentDashboardSkeleton";
 import { ProfileData } from "@/lib/types/Profile";
 
 type BadgeVariant = "blue" | "green" | "amber" | "rose" | "indigo" | "cyan";
@@ -143,8 +144,15 @@ export default function StudentDashboard({
     return "Good evening";
   };
 
+  const isInitialLoading =
+    loading.summary && loading.upcomingHomework && loading.subjects;
+
+  if (isInitialLoading) {
+    return <StudentDashboardSkeleton />;
+  }
+
   const handleViewAllHomework = () => {
-    router.push("/homework");
+    router.push("studentview/homework");
   };
 
   const handleViewAllSubjects = () => {

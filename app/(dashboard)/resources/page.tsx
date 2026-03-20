@@ -17,6 +17,7 @@ import ResourceFilter, {
 } from "@/components/resources/ResourceFilter";
 import ChapterResourceModal from "@/components/resources/ChapterResourceModal";
 import { showToast } from "@/lib/utils/Toast";
+import ResourceSkeleton from "@/components/skeletons/ResourceSkeleton";
 
 function Page() {
   const [currentView, setCurrentView] = useState<
@@ -135,17 +136,27 @@ function Page() {
   const renderClasses = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {resourcesData.map((classItem, i) => (
-          <ClassCard
-            key={classItem.classId}
-            classItem={classItem}
-            index={i}
-            onClick={classItem => {
-              setSelectedClass(classItem);
-              setCurrentView("subjects");
-            }}
-          />
-        ))}
+        {resourcesData.length > 0 ? (
+          resourcesData.map((classItem, i) => (
+            <ClassCard
+              key={classItem.classId}
+              classItem={classItem}
+              index={i}
+              onClick={classItem => {
+                setSelectedClass(classItem);
+                setCurrentView("subjects");
+              }}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-3 w-full text-center">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No classes assigned yet</p>
+            <p className="text-sm mt-1">
+              Classes assigned to you will appear here.
+            </p>
+          </div>
+        )}
       </div>
     );
   };
@@ -155,13 +166,23 @@ function Page() {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {selectedClass.subjects.map(subject => (
-          <SubjectCard
-            key={subject.subjectId}
-            subject={subject}
-            onClick={handleSubjectClick}
-          />
-        ))}
+        {selectedClass.subjects.length > 0 ? (
+          selectedClass.subjects.map(subject => (
+            <SubjectCard
+              key={subject.subjectId}
+              subject={subject}
+              onClick={handleSubjectClick}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-3 w-full text-center">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No subjects found</p>
+            <p className="text-sm mt-1">
+              {`There are currently no subjects assigned to "${selectedClass.className}".`}
+            </p>
+          </div>
+        )}
       </div>
     );
   };
@@ -219,6 +240,10 @@ function Page() {
   };
 
   const renderContent = () => {
+    if (loading) {
+      return <ResourceSkeleton />;
+    }
+
     switch (currentView) {
       case "classes":
         return renderClasses();
@@ -255,8 +280,8 @@ function Page() {
               : `Resources for ${selectedSubject?.subjectName}`
         }
         icon={FolderOpen}
-        iconBgColor="lightcyan"
-        iconColor="cyan"
+        iconBgColor="--cyan-light"
+        iconColor="--cyan"
         {...(!isStudent && {
           buttonText: "Upload Resource",
           onButtonClick: handleUploadResource,

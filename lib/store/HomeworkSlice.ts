@@ -92,7 +92,18 @@ export const createNewHomework = createAsyncThunk(
     try {
       const response = await homeworkApis.create(data);
       return response;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const axiosErr = error as {
+          response?: {
+            data?: { message?: string | string[]; statusCode?: number };
+          };
+        };
+        const backendMsg = axiosErr.response?.data?.message;
+        if (backendMsg !== undefined) {
+          return rejectWithValue({ message: backendMsg });
+        }
+      }
       return rejectWithValue(
         error instanceof Error ? error.message : "Failed to create homework",
       );
@@ -144,7 +155,7 @@ export const updateHomeworkAsync = createAsyncThunk(
     {
       homeworkId,
       data,
-    }: { homeworkId: string; data: Partial<CreateHomeworkPayload> },
+    }: { homeworkId: string; data: Partial<CreateHomeworkPayload> | FormData },
     { rejectWithValue },
   ) => {
     try {

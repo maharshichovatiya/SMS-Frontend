@@ -116,7 +116,7 @@ export const SIDEBAR_MENUS: RoleMenus = {
         {
           icon: "Bell",
           label: "Notifications",
-          path: "/teacherview/notifications",
+          path: "/notifications",
         },
         {
           icon: "FileText",
