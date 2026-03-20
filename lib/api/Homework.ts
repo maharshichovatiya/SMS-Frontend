@@ -103,11 +103,19 @@ export const homeworkApis = {
     return res.data;
   },
 
-  update: async (homeworkId: string, data: Partial<CreateHomeworkPayload>) => {
-    const filteredData = filterEmptyOptionalFields(data);
+  update: async (
+    homeworkId: string,
+    data: Partial<CreateHomeworkPayload> | FormData,
+  ) => {
+    let payload;
+    if (data instanceof FormData) {
+      payload = data;
+    } else {
+      payload = filterEmptyOptionalFields(data);
+    }
     const res = await api.patch<HomeworkResponse>(
       `/homework/${homeworkId}`,
-      filteredData,
+      payload,
     );
     return res.data;
   },

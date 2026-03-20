@@ -6,6 +6,13 @@ export interface ApiNotice {
   noticeType: string;
   priority: "high" | "medium" | "low";
   sentBy: string;
+  sentByUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  };
   publishDate: string;
   expiryDate: string;
   attachmentUrl: string | null;
@@ -26,6 +33,7 @@ export interface Notice {
   iconColor: string;
   hasAttachment: boolean;
   author: string;
+  authorRole?: string;
   date: string;
 }
 
@@ -84,7 +92,10 @@ export const mapApiNoticeToNotice = (apiNotice: ApiNotice): Notice => {
     borderColor,
     iconColor,
     hasAttachment: !!apiNotice.attachmentUrl,
-    author: "Admin",
+    author: apiNotice.sentByUser
+      ? `${apiNotice.sentByUser.firstName} ${apiNotice.sentByUser.lastName}`
+      : "Admin",
+    authorRole: apiNotice.sentByUser?.role,
     date: formatDate(apiNotice.publishDate),
   };
 };

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Bell } from "lucide-react";
 import NotificationItem from "@/components/notifications/NotificationItem";
+import NotificationSkeleton from "@/components/skeletons/NotificationSkeleton";
 import { fetchNotices } from "@/lib/store/NoticeSlice";
 import { RootState } from "@/lib/store/Index";
 import type { AppDispatch } from "@/lib/store/Index";
@@ -16,6 +17,9 @@ interface Notification {
   message: string;
   time: string;
   isUnread: boolean;
+  author?: string;
+  authorRole?: string;
+  priority?: "high" | "medium" | "low";
 }
 
 const mapNoticeToNotification = (notice: ApiNotice): Notification => {
@@ -56,6 +60,11 @@ const mapNoticeToNotification = (notice: ApiNotice): Notification => {
     message: `<strong>${notice.title}</strong> - ${notice.description}`,
     time: formatRelativeTime(notice.createdAt),
     isUnread: notice.status === "active",
+    author: notice.sentByUser
+      ? `${notice.sentByUser.firstName} ${notice.sentByUser.lastName}`
+      : "Admin",
+    authorRole: notice.sentByUser?.role,
+    priority: notice.priority,
   };
 };
 
@@ -112,17 +121,6 @@ function Page() {
     );
   };
 
-  if (loading || noticesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading notifications...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error || noticesError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -153,7 +151,9 @@ function Page() {
       />
 
       <div className="mt-5 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)] divide-y divide-[var(--border)]">
-        {notifications.length === 0 ? (
+        {loading || noticesLoading ? (
+          <NotificationSkeleton />
+        ) : notifications.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg">No notifications</div>
             <p className="text-gray-400 mt-2">You&apos;re all caught up!</p>
