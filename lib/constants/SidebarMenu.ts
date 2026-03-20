@@ -119,11 +119,6 @@ export const SIDEBAR_MENUS: RoleMenus = {
           path: "/teacherview/notifications",
         },
         {
-          icon: "Calendar",
-          label: "Notice-board",
-          path: "/notice-board",
-        },
-        {
           icon: "FileText",
           label: "Resources",
           path: "/resources",

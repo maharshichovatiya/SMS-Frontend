@@ -195,6 +195,9 @@ export const CreateHomeworkForm: React.FC<CreateHomeworkFormProps> = ({
   );
 
   const filteredStudents = students.filter((student: StudentData) => {
+    if (student.status !== "active") {
+      return false;
+    }
     if (formData.selectedClass && student.classId !== formData.selectedClass) {
       return false;
     }

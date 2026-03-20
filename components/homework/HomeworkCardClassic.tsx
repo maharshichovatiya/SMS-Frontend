@@ -1,22 +1,14 @@
 "use client";
 
 import React from "react";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  Calendar,
-  User,
-  BookOpen,
-  Users,
-} from "lucide-react";
+import { Eye, Edit, Trash2, Calendar, BookOpen, Users } from "lucide-react";
 
 interface HomeworkCardClassicProps {
   id: string;
   title: string;
   subject: string;
-  className: string;
-  teacher: string;
+  className?: string;
+  teacher?: string;
   dueDate: string;
   submitted: number;
   total: number;
@@ -26,45 +18,16 @@ interface HomeworkCardClassicProps {
   chapterNo?: number;
   isModalOpen?: boolean;
   onViewDetails: () => void;
-  onDetails?: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onStudentAssignment: () => void;
-  onClassClick?: (classId: string) => void;
   showActions?: boolean;
-  assignments?: Array<{
-    id: string;
-    class?: {
-      id: string;
-      className: string;
-      section: string;
-      studentCapacity?: number;
-      classTeacher?: {
-        user: {
-          firstName: string;
-          lastName: string;
-        };
-      };
-      students?: Array<{
-        id: string;
-        user: {
-          firstName: string;
-          lastName: string;
-          email: string;
-        };
-        status?: string;
-        submittedDate?: string;
-      }>;
-    };
-  }>;
 }
 
 export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   id,
   title,
   subject,
-  className,
-  teacher,
   dueDate,
   submitted,
   total,
@@ -74,24 +37,21 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
   chapterNo,
   isModalOpen = false,
   onViewDetails,
-  onDetails,
   onEdit,
   onDelete,
   onStudentAssignment,
-  onClassClick,
-  showActions = true, // Default to true for backward compatibility
-  assignments = [],
+  showActions = true,
 }) => {
   const getStatusBadge = () => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-[var(--green-light)] text-[var(--green)] border border-[var(--green)]/20";
       case "overdue":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-[var(--rose-light)] text-[var(--rose)] border border-[var(--rose)]/20";
       case "draft":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-[var(--surface-2)] text-[var(--text-2)] border border-[var(--border)]";
       default:
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-[var(--blue-light)] text-[var(--blue)] border border-[var(--blue)]/20";
     }
   };
 
@@ -108,199 +68,89 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
     }
   };
 
-  const getDueDateColor = () => {
-    const due = new Date(dueDate);
-    const today = new Date();
-
-    const daysUntilDue = Math.ceil(
-      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    if (daysUntilDue < 0) return "text-red-600";
-    if (daysUntilDue <= 2) return "text-orange-600";
-    return "text-gray-600";
-  };
-
   return (
     <div
       data-homework-id={id}
-      className={`bg-white border-2 border-gray-300 rounded-2xl shadow-lg overflow-hidden ${
+      className={`bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-[var(--shadow)] overflow-hidden ${
         isModalOpen ? "opacity-60 pointer-events-none" : ""
       }`}
     >
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
+      {/* Header */}
+      <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold text-black mb-3 leading-tight">
+            <h3 className="text-[17px] font-bold text-[var(--text)] mb-1 truncate">
               {title}
             </h3>
-
-            {description && (
-              <p className="text-sm text-gray-800 mb-3 line-clamp-2 leading-relaxed font-medium">
-                {description}
-              </p>
-            )}
-
-            <div className="flex flex-col space-y-2 text-sm">
-              <div className="flex items-center">
-                <BookOpen className="w-4 h-4 mr-2 text-purple-600" />
-                <span className="text-black font-semibold">{subject}</span>
-              </div>
-
-              {(chapterNo || chapterName) && (
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  <span className="text-black font-semibold">
-                    {chapterNo && `Chapter ${chapterNo}: `}
-                    {chapterName}
-                  </span>
-                </div>
-              )}
+            <div className="flex items-center gap-2 text-sm text-[var(--text-2)]">
+              <BookOpen className="w-4 h-4 text-[var(--indigo)]" />
+              <span className="font-medium">{subject}</span>
             </div>
           </div>
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${getStatusBadge()}`}
+          >
+            {getStatusText()}
+          </span>
         </div>
+      </div>
 
-        {assignments &&
-          Array.isArray(assignments) &&
-          assignments.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm font-medium text-gray-600 mb-2">
-                Assigned To:
-              </p>
-              <div className="space-y-2">
-                {assignments.map(assignment => {
-                  if (assignment.class && !assignment.student) {
-                    const classInfo = assignment.class;
-                    return (
-                      <div
-                        key={assignment.id}
-                        className="bg-gray-50 p-3 rounded-lg border border border-gray-200"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-800">
-                              Class: {classInfo.className} - {classInfo.section}
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              {classInfo.studentCapacity} students • Teacher:{" "}
-                              {classInfo.classTeacher?.user?.firstName}{" "}
-                              {classInfo.classTeacher?.user?.lastName}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => onClassClick?.(classInfo.id!)}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            View All Students
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
+      {/* Content */}
+      <div className="p-[18px]">
+        {description && (
+          <p className="text-sm text-[var(--text-2)] mb-4 line-clamp-2">
+            {description}
+          </p>
+        )}
 
-                  if (assignment.student && assignment.student.user) {
-                    const student = assignment.student;
-                    return (
-                      <div
-                        key={assignment.id}
-                        className="bg-blue-50 p-3 rounded-lg border border border-blue-200"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-800">
-                              Student: {student.user.firstName}{" "}
-                              {student.user.lastName}
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              {student.user.email} • Status:{" "}
-                              {assignment.status || "Active"}
-                              {assignment.submittedDate && (
-                                <span>
-                                  Submitted:{" "}
-                                  {new Date(
-                                    assignment.submittedDate,
-                                  ).toLocaleDateString()}
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                assignment.status === "submitted"
-                                  ? "bg-green-100 text-green-800"
-                                  : assignment.status === "graded"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {assignment.status === "submitted"
-                                ? "Submitted"
-                                : assignment.status === "graded"
-                                  ? "Graded"
-                                  : "Active"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })}
-              </div>
-            </div>
-          )}
-
-        <div className="space-y-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-black font-medium">
-              <User className="w-4 h-4 mr-2 text-gray-500" />
-              <span>{teacher}</span>
-            </div>
-
-            <div
-              className={`flex items-center text-sm font-bold text-black bg-gray-100 px-3 py-1 rounded-lg`}
-            >
-              <Calendar className="w-4 h-4 mr-2 text-red-500" />
-              <span>Due Date: {new Date(dueDate).toLocaleDateString()}</span>
-            </div>
+        {(chapterNo || chapterName) && (
+          <div className="flex items-center gap-2 mb-4 text-sm">
+            <span className="px-2 py-0.5 rounded-md bg-[var(--amber-light)] text-[var(--amber)] text-xs font-semibold">
+              {chapterNo && `Ch ${chapterNo}`}
+              {chapterName && `: ${chapterName}`}
+            </span>
           </div>
+        )}
+
+        {/* Due Date */}
+        <div className="flex items-center gap-2 text-sm text-[var(--text-2)] mb-4">
+          <Calendar className="w-4 h-4 text-[var(--rose)]" />
+          <span>Due: {dueDate}</span>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
-          <div className="flex space-x-2">
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+          <div className="flex items-center gap-1">
             <button
               onClick={onViewDetails}
-              className="p-3 text-blue-500 rounded-lg cursor-pointer"
-              title="View Details"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--blue)] bg-[var(--blue-light)] rounded-lg"
             >
               <Eye className="w-4 h-4" />
+              View
             </button>
             {showActions && (
               <button
                 onClick={onStudentAssignment}
-                className="p-3 text-purple-500 rounded-lg cursor-pointer"
-                title="View Students"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--indigo)] bg-[var(--indigo-light)] rounded-lg"
               >
                 <Users className="w-4 h-4" />
+                Students
               </button>
             )}
           </div>
 
           {showActions && (
-            <div className="flex space-x-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={onEdit}
-                className="p-3 text-green-500 rounded-lg cursor-pointer"
+                className="p-2 text-[var(--text-2)] rounded-lg hover:bg-[var(--surface-2)] hover:text-[var(--green)] transition-colors"
                 title="Edit"
               >
                 <Edit className="w-4 h-4" />
               </button>
-
               <button
                 onClick={onDelete}
-                className="p-3 text-red-500 rounded-lg cursor-pointer"
+                className="p-2 text-[var(--text-2)] rounded-lg hover:bg-[var(--surface-2)] hover:text-[var(--rose)] transition-colors"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />

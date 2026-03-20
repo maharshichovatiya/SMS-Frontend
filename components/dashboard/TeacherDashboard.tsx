@@ -135,8 +135,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
     () => ({
       totalAssignedClasses: assignClassData?.summary?.totalClasses || 0,
       totalAssignedSubjects: assignSubjectData?.totalSubjects || 0,
-      totalAssignedStudents: dashboardData?.totalStudents || 0,
-      totalClassTeacherClasses: dashboardData?.summary?.totalClasses || 0,
+      totalAssignedStudents:
+        dashboardData?.classTeacher?.class?.students?.length || 0,
+      totalClassTeacherClasses: dashboardData?.classTeacher?.class ? 1 : 0,
       yearsOfExperience: teacherData?.totalExpMonths
         ? Math.floor(teacherData.totalExpMonths / 12)
         : 0,
@@ -144,8 +145,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
     [
       assignClassData?.summary?.totalClasses,
       assignSubjectData?.totalSubjects,
-      dashboardData?.totalStudents,
-      dashboardData?.summary?.totalClasses,
+      dashboardData?.classTeacher?.class?.students,
+      dashboardData?.classTeacher?.class,
       teacherData?.totalExpMonths,
     ],
   );
@@ -223,8 +224,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
           glowColor="var(--blue)"
           label="Assigned Classes"
           value={getStatValue(stats.totalAssignedClasses)}
-          trend={`${stats.totalAssignedClasses} classes`}
-          trendUp
         />
         <StatCard
           icon={<BookOpen className="w-[18px] h-[18px]" />}
@@ -233,8 +232,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
           glowColor="var(--green)"
           label="Assigned Subjects"
           value={getStatValue(stats.totalAssignedSubjects)}
-          trend={`${stats.totalAssignedSubjects} subjects`}
-          trendUp
         />
         <StatCard
           icon={<Users className="w-[18px] h-[18px]" />}
@@ -243,8 +240,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
           glowColor="var(--cyan)"
           label="Total Students"
           value={getStatValue(stats.totalAssignedStudents)}
-          trend={`${stats.totalAssignedStudents} students`}
-          trendUp
         />
         <StatCard
           icon={<Award className="w-[18px] h-[18px]" />}
@@ -253,8 +248,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ profile }) => {
           glowColor="var(--amber)"
           label="Class Teacher"
           value={getStatValue(stats.totalClassTeacherClasses)}
-          trend={`${stats.totalClassTeacherClasses} classes`}
-          trendUp={stats.totalClassTeacherClasses > 0}
         />
       </div>
 
