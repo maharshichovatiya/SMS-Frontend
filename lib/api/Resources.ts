@@ -17,6 +17,7 @@ export interface Resource {
     | "Text"
     | "Link"
     | "Notes";
+  fileUrl?: string;
   uploadedBy: UploadedBy;
   createdAt: string;
   updatedAt: string;
@@ -69,6 +70,10 @@ export const resourcesApis = {
   getChapterResources: async (): Promise<Class[]> => {
     const res = await api.get<ChapterResourcesResponse>("/chapter-resources");
     return res.data.data;
+  },
+
+  deleteResource: async (id: string): Promise<void> => {
+    await api.delete(`/chapter-resources/${id}`);
   },
 
   createResource: async (data: CreateResourceData): Promise<Resource> => {

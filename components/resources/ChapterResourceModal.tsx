@@ -9,6 +9,7 @@ interface ChapterResourceModalProps {
   onSubmitSuccess?: () => void;
   chapterId?: string;
   chapterName?: string;
+  subjectId?: string;
   subjectName?: string;
 }
 
@@ -18,6 +19,7 @@ export default function ChapterResourceModal({
   onSubmitSuccess,
   chapterId,
   chapterName,
+  subjectId,
   subjectName,
 }: ChapterResourceModalProps) {
   return (
@@ -31,6 +33,7 @@ export default function ChapterResourceModal({
       <ChapterResourceForm
         chapterId={chapterId}
         chapterName={chapterName}
+        subjectId={subjectId}
         subjectName={subjectName}
         onSubmitSuccess={onSubmitSuccess}
         onClose={onClose}

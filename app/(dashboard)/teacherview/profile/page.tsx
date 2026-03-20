@@ -8,6 +8,8 @@ import type {
 } from "@/lib/types/teacher-profile";
 import PageHeader from "@/components/layout/PageHeader";
 import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
+import Modal from "@/components/ui/Modal";
+import TeacherForm from "@/components/forms/TeacherForm";
 
 interface ApiTeacherData {
   id: string;

@@ -1,8 +1,9 @@
 "use client";
 import PageHeader from "@/components/layout/PageHeader";
 import { resourcesApis } from "@/lib/api/Resources";
-import { Class, Subject, Chapter } from "@/lib/types/Resources";
-import { useState, useEffect } from "react";
+import { Class, Subject, Chapter, Resource } from "@/lib/types/Resources";
+import ResourceDeleteModal from "@/components/resources/ResourceDeleteModal";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store/Index";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
@@ -11,11 +12,12 @@ import ClassCard from "@/components/resources/ClassCard";
 import SubjectCard from "@/components/resources/SubjectCard";
 import ChapterHeader from "@/components/resources/ChapterHeader";
 import ResourceCard from "@/components/resources/ResourceCard";
-import ResourceFilter from "@/components/resources/ResourceFilter";
+import ResourceFilter, {
+  ResourceType,
+} from "@/components/resources/ResourceFilter";
 import ChapterResourceModal from "@/components/resources/ChapterResourceModal";
+import { showToast } from "@/lib/utils/Toast";
 import ResourceSkeleton from "@/components/skeletons/ResourceSkeleton";
-
-type ResourceType = "all" | "pdf" | "video" | "notes";
 
 function Page() {
   const [currentView, setCurrentView] = useState<
@@ -28,22 +30,41 @@ function Page() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [resourcesData, setResourcesData] = useState<Class[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(
+    null,
+  );
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const userRole = useSelector((state: RootState) => state.auth.role);
   const isStudent = userRole === "student";
+  const isTeacher = !isStudent;
+
+  const fetchResources = useCallback(async () => {
+    try {
+      const data = await resourcesApis.getChapterResources();
+      setResourcesData(data);
+    } catch (_error) {
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const data = await resourcesApis.getChapterResources();
-        setResourcesData(data);
-      } catch (_error) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchResources();
-  }, []);
+  }, [fetchResources]);
+
+  const handleDeleteResource = async () => {
+    if (!resourceToDelete) return;
+    setIsDeleting(true);
+    try {
+      await resourcesApis.deleteResource(resourceToDelete.id);
+      setResourceToDelete(null);
+      await fetchResources();
+    } catch (_error) {
+      showToast.apiError(_error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Initialize with active class
   // const activeClass = resourcesData.find(c => c.code === "10-A");
@@ -184,50 +205,36 @@ function Page() {
           resourceFilter={resourceFilter}
           onFilterChange={setResourceFilter}
         />
-        {filteredChapters.length > 0 ? (
-          filteredChapters.map((chapter, chapterIndex) => (
-            <div
-              key={chapter.chapterId}
-              className="mb-8 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]"
-            >
-              <ChapterHeader
-                chapter={chapter}
-                isSelected={
-                  selectedChapter?.chapterName === chapter.chapterName
-                }
-                onClick={() => handleChapterSelect(chapter)}
-              />
-              {chapter.resources.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4 mt-4">
-                  {chapter.resources.map((resource, resourceIndex) => (
-                    <ResourceCard
-                      key={resource.id}
-                      resource={resource}
-                      chapter={chapter}
-                      selectedSubject={selectedSubject}
-                      onUploadClick={(chapter, subject) => {
-                        setSelectedChapter(chapter);
-                        setIsModalOpen(true);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-[var(--text-3)]">
-                  No resources found for this chapter
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] w-full text-center">
-            <FolderOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
-            <p className="text-lg font-medium">No chapters found</p>
-            <p className="text-sm mt-1">
-              {`There are currently no chapters assigned to "${selectedSubject.subjectName}".`}
-            </p>
+        {filteredChapters.map((chapter, chapterIndex) => (
+          <div
+            key={chapter.chapterId}
+            className="mb-8 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-md)]"
+          >
+            <ChapterHeader
+              chapter={chapter}
+              isSelected={selectedChapter?.chapterName === chapter.chapterName}
+              onClick={() => handleChapterSelect(chapter)}
+            />
+            {chapter.resources.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4 mt-4">
+                {chapter.resources.map((resource, resourceIndex) => (
+                  <ResourceCard
+                    key={resource.id}
+                    resource={resource}
+                    chapter={chapter}
+                    selectedSubject={selectedSubject}
+                    isTeacher={isTeacher}
+                    onDeleteClick={res => setResourceToDelete(res)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-[var(--text-3)]">
+                No resources found for this chapter
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </div>
     );
   };
@@ -317,11 +324,23 @@ function Page() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmitSuccess={() => {
-            // TODO: Refresh resources list after upload
+            fetchResources();
           }}
           chapterId={selectedChapter?.chapterId}
           chapterName={selectedChapter?.chapterName}
+          subjectId={selectedSubject?.subjectId}
           subjectName={selectedSubject?.subjectName}
+        />
+      )}
+
+      {/* Delete Confirmation Modal - only for teacher/admin */}
+      {isTeacher && (
+        <ResourceDeleteModal
+          isOpen={!!resourceToDelete}
+          onClose={() => setResourceToDelete(null)}
+          resource={resourceToDelete}
+          onConfirm={handleDeleteResource}
+          isDeleting={isDeleting}
         />
       )}
     </div>

@@ -1,8 +1,16 @@
 export interface Resource {
   id: string;
   title: string;
-  description: string;
-  resourceType: "PDF" | "Video" | "Notes" | "Link";
+  description?: string;
+  resourceType:
+    | "PDF"
+    | "Word"
+    | "PowerPoint"
+    | "Image"
+    | "Text"
+    | "Link"
+    | "Notes";
+  fileUrl?: string;
   uploadedBy: {
     id: string;
     name: string;

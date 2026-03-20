@@ -43,6 +43,7 @@ const selectAuth = (state: {
 interface ChapterResourceFormProps {
   chapterId?: string;
   chapterName?: string;
+  subjectId?: string;
   subjectName?: string;
   onSubmitSuccess?: () => void;
   onClose: () => void;
@@ -152,6 +153,7 @@ function CustomSelect({
 export default function ChapterResourceForm({
   chapterId,
   chapterName: _chapterName,
+  subjectId,
   subjectName: _subjectName,
   onSubmitSuccess,
   onClose,
@@ -164,7 +166,7 @@ export default function ChapterResourceForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [chaptersLoading, setChaptersLoading] = useState(false);
-  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState(subjectId || "");
   const [selectedChapterId, setSelectedChapterId] = useState(chapterId || "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
