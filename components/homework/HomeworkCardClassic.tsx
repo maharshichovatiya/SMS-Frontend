@@ -75,7 +75,6 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
         isModalOpen ? "opacity-60 pointer-events-none" : ""
       }`}
     >
-      {/* Header */}
       <div className="px-[22px] py-[18px] border-b border-[var(--border)]">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -95,7 +94,6 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-[18px]">
         {description && (
           <p className="text-sm text-[var(--text-2)] mb-4 line-clamp-2">
@@ -112,13 +110,11 @@ export const HomeworkCardClassic: React.FC<HomeworkCardClassicProps> = ({
           </div>
         )}
 
-        {/* Due Date */}
         <div className="flex items-center gap-2 text-sm text-[var(--text-2)] mb-4">
           <Calendar className="w-4 h-4 text-[var(--rose)]" />
           <span>Due: {dueDate}</span>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
           <div className="flex items-center gap-1">
             <button

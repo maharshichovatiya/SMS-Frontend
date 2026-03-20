@@ -11,6 +11,7 @@ import NoticeFilter from "@/components/notice-board/NoticeFilter";
 import NoticeSearch from "@/components/notice-board/NoticeSearch";
 import NoticeFormModal from "@/components/notice-board/NoticeFormModal";
 import NoticeDeleteModal from "@/components/notice-board/NoticeDeleteModal";
+import NoticeCardSkeleton from "@/components/skeletons/NoticeCardSkeleton";
 import { NoticeFilterType, Notice, ApiNotice } from "@/lib/types/Notice";
 import { removeNotice } from "@/lib/store/NoticeSlice";
 import { showToast } from "@/lib/utils/Toast";
@@ -102,17 +103,6 @@ function Page() {
     dispatch(fetchNotices());
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading notices...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -155,7 +145,9 @@ function Page() {
       </div>
 
       <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredNotices.length === 0 ? (
+        {loading ? (
+          <NoticeCardSkeleton />
+        ) : filteredNotices.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-500 text-lg">No notices found</div>
             <p className="text-gray-400 mt-2">

@@ -14,6 +14,7 @@ const getLetterGrade = (marksObtained: number | null | undefined): string => {
   if (marksObtained >= 70) return "B";
   if (marksObtained >= 60) return "C";
   if (marksObtained >= 50) return "D";
+  if (marksObtained >= 35) return "E";
   return "F";
 };
 

@@ -7,6 +7,7 @@ import type {
   ProfileFieldProps,
 } from "@/lib/types/student-profile";
 import PageHeader from "@/components/layout/PageHeader";
+import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
 import Modal from "@/components/ui/Modal";
 import StudentForm from "@/components/forms/StudentSections/StudentForm";
 import {
@@ -348,11 +349,15 @@ const StudentProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
-        </div>
+      <div>
+        <PageHeader
+          title="Student Profile"
+          description="Manage your personal and academic information"
+          icon={Award}
+          iconBgColor="--blue-light"
+          iconColor="--blue"
+        />
+        <ProfileSkeleton />
       </div>
     );
   }

@@ -10,6 +10,7 @@ import {
   submitStudentHomework,
 } from "@/lib/store/SubmissionSlice";
 import { fetchStudentHomework } from "@/lib/store/HomeworkSlice";
+import HomeworkSkeleton from "@/components/skeletons/HomeworkSkeleton";
 import { AppDispatch, RootState } from "@/lib/store/Index";
 import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
 import { BookOpen } from "lucide-react";
@@ -31,6 +32,8 @@ interface StudentSubmission {
   teacher: string;
   description: string;
   className: string;
+  maxMarks?: number;
+  fileUrl?: string;
 }
 
 interface TransformedHomework {
@@ -46,6 +49,7 @@ interface TransformedHomework {
   description: string;
   chapterName?: string;
   chapterId?: string;
+  chapterNo?: number;
 }
 
 export default function HomeworkPage() {
@@ -94,9 +98,13 @@ export default function HomeworkPage() {
         : undefined,
       grade: isGraded ? item.submission?.marksObtained?.toString() : undefined,
       feedback: isGraded ? (item.submission?.feedback ?? undefined) : undefined,
+      fileUrl: isSubmitted
+        ? item.submission?.submissionAttachments?.[0]?.fileUrl
+        : undefined,
       teacher: `${item.teacher.firstName} ${item.teacher.lastName}`,
       description: item.description,
       className: item.subject.subjectName,
+      maxMarks: item.subject.maxMarks,
     };
   };
 
@@ -105,7 +113,6 @@ export default function HomeworkPage() {
     : [];
 
   const handleViewDetails = async (homeworkId: string) => {
-    setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
     const homeworkData = homeworkList?.homework?.find(
@@ -114,6 +121,7 @@ export default function HomeworkPage() {
 
     if (homeworkData) {
       setSelectedHomeworkDetail(homeworkData);
+      setSelectedHomework(homeworkData);
     } else {
       setSelectedHomeworkDetail(null);
       setSelectedHomework(null);
@@ -154,25 +162,19 @@ export default function HomeworkPage() {
       class: hw.classno || "Not Assigned",
       teacher:
         `${hw.teacher?.firstName} ${hw.teacher?.lastName}` || "Not Assigned",
-      dueDate: hw.dueDate,
-      submitted: 0, // Will be updated when submission data is available
+      dueDate: new Date(hw.dueDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      submitted: 0,
       total: 1,
       status: hw.isOverdue ? "overdue" : "active",
       description: hw.description,
       chapterName: hw.chapter?.chapterName || "",
-      chapterId: hw.chapterId || undefined,
+      chapterId: hw.chapter?.id || hw.chapterId || undefined,
+      chapterNo: hw.chapter?.chapterNo || undefined,
     })) || [];
-
-  if (loading && !homeworkList) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading homework...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -190,7 +192,7 @@ export default function HomeworkPage() {
     );
   }
 
-  const showHomeworkDetail = selectedHomework !== null;
+  const showHomeworkDetail = selectedHomework !== null || detailLoading;
 
   return (
     <div>
@@ -206,37 +208,48 @@ export default function HomeworkPage() {
         className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
-        {transformedHomeworkList.map(hw => (
-          <div
-            key={hw.id}
-            className="animate-fadeUp"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <HomeworkCardClassic
-              id={hw.id}
-              title={hw.title}
-              subject={hw.subject}
-              className={hw.class || ""}
-              teacher={hw.teacher}
-              dueDate={hw.dueDate}
-              submitted={hw.submitted}
-              total={hw.total}
-              status={hw.status}
-              description={hw.description}
-              chapterName={hw.chapterName}
-              isModalOpen={!!selectedHomework}
-              showActions={false}
-              onViewDetails={() => handleViewDetails(hw.id)}
-              onEdit={() => {}}
-              onDelete={() => {}}
-              onStudentAssignment={() => {}}
-              onClassClick={() => {}}
-            />
+        {loading && !homeworkList ? (
+          <HomeworkSkeleton />
+        ) : transformedHomeworkList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-2 w-full text-center">
+            <BookOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No homework assigned yet</p>
+            <p className="text-sm mt-1">
+              Check back later for new assignments.
+            </p>
           </div>
-        ))}
+        ) : (
+          transformedHomeworkList.map(hw => (
+            <div
+              key={hw.id}
+              className="animate-fadeUp"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <HomeworkCardClassic
+                id={hw.id}
+                title={hw.title}
+                subject={hw.subject}
+                className={hw.class || ""}
+                chapterNo={hw.chapterNo}
+                teacher={hw.teacher}
+                dueDate={hw.dueDate}
+                submitted={hw.submitted}
+                total={hw.total}
+                status={hw.status}
+                description={hw.description}
+                chapterName={hw.chapterName}
+                isModalOpen={!!selectedHomework}
+                showActions={false}
+                onViewDetails={() => handleViewDetails(hw.id)}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onStudentAssignment={() => {}}
+              />
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Student Submissions Table */}
       <div className="mt-8">
         <StudentSubmissionTable
           submissions={transformedSubmissions}

@@ -7,8 +7,7 @@ import type {
   ProfileFieldProps,
 } from "@/lib/types/teacher-profile";
 import PageHeader from "@/components/layout/PageHeader";
-import TeacherForm from "@/components/forms/TeacherForm";
-import Modal from "@/components/ui/Modal";
+import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
 
 interface ApiTeacherData {
   id: string;
@@ -283,7 +282,18 @@ const TeacherProfilePage: React.FC = () => {
   }, [teacherData]);
 
   if (loading && !teacherData) {
-    return null;
+    return (
+      <div>
+        <PageHeader
+          title="Teacher Profile"
+          description="Manage your personal and professional information"
+          icon={Award}
+          iconBgColor="--blue-light"
+          iconColor="--blue"
+        />
+        <ProfileSkeleton />
+      </div>
+    );
   }
 
   if (error && !teacherData) {

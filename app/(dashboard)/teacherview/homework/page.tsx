@@ -1,24 +1,31 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
-import {
-  StudentListModal,
-  HomeworkData,
-} from "@/components/homework/StudentListModal";
-import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { ClassStudentsModal } from "@/components/homework/ClassStudentsModal";
 import { CreateHomeworkForm } from "@/components/homework/CreateHomeworkForm";
-import { fetchAllHomework, createNewHomework } from "@/lib/store/HomeworkSlice";
-import { homeworkApis } from "@/lib/api/Homework";
-import { RootState } from "@/lib/store/Index";
-import { Subject } from "@/lib/types/SubjectTypes";
+import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
+import HomeworkDeleteModal from "@/components/homework/HomeworkDeleteModal";
+import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
+import {
+  HomeworkData,
+  StudentListModal,
+} from "@/components/homework/StudentListModal";
+import PageHeader from "@/components/layout/PageHeader";
+import HomeworkSkeleton from "@/components/skeletons/HomeworkSkeleton";
+import { getClassSummary } from "@/lib/api/Classes";
 import { subjectApis } from "@/lib/api/Subject";
 import api from "@/lib/Axios";
+import {
+  createNewHomework,
+  deleteHomeworkAsync,
+  fetchAllHomework,
+  updateHomeworkAsync,
+} from "@/lib/store/HomeworkSlice";
+import { AppDispatch, RootState } from "@/lib/store/Index";
+import { Subject } from "@/lib/types/SubjectTypes";
+import { showToast } from "@/lib/utils/Toast";
 import { BookOpen } from "lucide-react";
-import { getClassSummary } from "@/lib/api/Classes";
-import PageHeader from "@/components/layout/PageHeader";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 interface Student {
   id: string;
@@ -96,16 +103,6 @@ interface HomeworkAssignment {
   };
 }
 
-interface HomeworkOriginalData {
-  assignments?: HomeworkAssignment[];
-}
-
-interface HomeworkForAssignment {
-  id: string;
-  title: string;
-  originalData?: HomeworkOriginalData;
-}
-
 interface HomeworkListItem {
   id: string;
   title: string;
@@ -151,10 +148,11 @@ interface TransformedHomework {
   chapterId?: string;
   chapterName?: string;
   chapterNo?: number;
+  rawDueDate?: string;
 }
 
 export default function HomeworkPage() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { homeworkList, loading, error, createLoading, createError } =
     useSelector((state: RootState) => state.homework);
 
@@ -163,12 +161,18 @@ export default function HomeworkPage() {
   const [selectedHomeworkDetail, setSelectedHomeworkDetail] =
     useState<HomeworkListItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [homeworkStudents, _setHomeworkStudents] = useState<Student[]>([]);
+  const [_homeworkStudents, setHomeworkStudents] = useState<Student[]>([]);
   const [, setHomeworkStudentsLoading] = useState(false);
   const [_isTeacher] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHomework, setEditingHomework] =
     useState<TransformedHomework | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [homeworkToDelete, setHomeworkToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showStudentAssignment, setShowStudentAssignment] = useState(false);
   const [selectedHomeworkForStudents, setSelectedHomeworkForStudents] =
     useState<HomeworkData | null>(null);
@@ -176,13 +180,13 @@ export default function HomeworkPage() {
   const [, setSubjectsLoading] = useState(false);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [, setClassesLoading] = useState(false);
-  const [students, setStudents] = useState<StudentData[]>([]);
+  const [_students, setStudents] = useState<StudentData[]>([]);
   const [, setStudentsLoading] = useState(false);
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
   const [showClassStudents, setShowClassStudents] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAllHomework() as Parameters<typeof dispatch>[0]);
+    dispatch(fetchAllHomework());
 
     const fetchSubjects = async () => {
       setSubjectsLoading(true);
@@ -277,23 +281,37 @@ export default function HomeworkPage() {
     fetchStudents();
   }, [dispatch]);
 
-  const handleDeleteHomework = async (homeworkId: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this homework? This action cannot be undone.",
-      )
-    ) {
-      const response = await homeworkApis.delete(homeworkId);
-      if (response) {
-        dispatch(
-          fetchAllHomework() as unknown as Parameters<typeof dispatch>[0],
-        );
-      }
+  const handleDeleteHomework = (homeworkId: string) => {
+    const hw = transformedHomeworkList?.find(h => h.id === homeworkId);
+    if (hw) {
+      setHomeworkToDelete({ id: homeworkId, title: hw.title });
+      setIsDeleteModalOpen(true);
+    } else {
+      setHomeworkToDelete({ id: homeworkId, title: "this assignment" });
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!homeworkToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteHomeworkAsync(homeworkToDelete.id));
+      dispatch(fetchAllHomework());
+      showToast.success("Homework deleted successfully");
+    } catch (_error: unknown) {
+      const errorMessage =
+        _error instanceof Error ? _error.message : "Failed to delete homework";
+      showToast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+      setHomeworkToDelete(null);
     }
   };
 
   const handleViewDetails = async (homeworkId: string) => {
-    setSelectedHomework(homeworkId);
     setDetailLoading(true);
 
     if (homeworkList && homeworkList.homework) {
@@ -303,6 +321,7 @@ export default function HomeworkPage() {
 
       if (homeworkData) {
         setSelectedHomeworkDetail(homeworkData);
+        setSelectedHomework(homeworkData);
       } else {
         const fallbackData = homeworkList.homework?.find(
           (hw: HomeworkListItem) => hw.id === homeworkId,
@@ -323,7 +342,7 @@ export default function HomeworkPage() {
   const handleStudentAssignment = (homework: HomeworkListItem) => {
     setShowStudentAssignment(true);
     setHomeworkStudentsLoading(true);
-    _setHomeworkStudents([]);
+    setHomeworkStudents([]);
 
     const homeworkData = (homeworkList as unknown as HomeworkListResponse)
       ?.homework;
@@ -461,22 +480,45 @@ export default function HomeworkPage() {
           formData.append("attachments", file);
         });
 
-        await api.patch(`/homework/${editingHomework.id}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await dispatch(
+          updateHomeworkAsync({
+            homeworkId: editingHomework.id,
+            data: formData,
+          }),
+        );
       } else {
-        await homeworkApis.update(editingHomework.id, apiData);
+        await dispatch(
+          updateHomeworkAsync({
+            homeworkId: editingHomework.id,
+            data: apiData,
+          }),
+        );
       }
 
       setShowCreateForm(false);
       setEditingHomework(null);
-      dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
-    } catch (_error) {
-      throw new Error(
-        _error instanceof Error ? _error.message : "Failed to update homework",
-      );
+      dispatch(fetchAllHomework());
+      showToast.success("Homework updated successfully");
+    } catch (error: unknown) {
+      let errorMessage = "Failed to update homework";
+
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const err = error as {
+          response?: { data?: { message?: string | string[] } };
+        };
+
+        const msg = err.response?.data?.message;
+
+        if (Array.isArray(msg)) {
+          errorMessage = msg[0];
+        } else if (typeof msg === "string") {
+          errorMessage = msg;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      showToast.error(errorMessage);
     }
   };
 
@@ -518,18 +560,64 @@ export default function HomeworkPage() {
       ),
     };
 
-    const result = await dispatch(
-      createNewHomework(apiData) as unknown as Parameters<typeof dispatch>[0],
-    );
+    try {
+      const result = await dispatch(createNewHomework(apiData));
 
-    if (createNewHomework.rejected.match(result)) {
-      throw new Error(
-        (result.payload as string) || "Failed to create homework",
-      );
+      if (createNewHomework.rejected.match(result)) {
+        let errorMessage = "Failed to create homework";
+
+        if (Array.isArray(result.payload)) {
+          errorMessage = result.payload[0];
+        } else if (
+          result.payload &&
+          typeof result.payload === "object" &&
+          "message" in result.payload
+        ) {
+          const msg = (
+            result.payload as {
+              message?: string | string[];
+            }
+          ).message;
+
+          if (Array.isArray(msg)) {
+            errorMessage = msg[0];
+          } else if (typeof msg === "string") {
+            errorMessage = msg;
+          }
+        } else if (typeof result.payload === "string") {
+          errorMessage = result.payload;
+        } else if (result.error?.message) {
+          errorMessage = result.error.message;
+        }
+
+        showToast.error(errorMessage);
+        return;
+      }
+
+      setShowCreateForm(false);
+      dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
+      showToast.success("Homework created successfully");
+    } catch (error: unknown) {
+      let errorMessage = "Failed to create homework";
+
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const err = error as {
+          response?: { data?: { message?: string | string[] } };
+        };
+
+        const msg = err.response?.data?.message;
+
+        if (Array.isArray(msg)) {
+          errorMessage = msg[0];
+        } else if (typeof msg === "string") {
+          errorMessage = msg;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      showToast.error(errorMessage);
     }
-
-    setShowCreateForm(false);
-    dispatch(fetchAllHomework() as unknown as Parameters<typeof dispatch>[0]);
   };
 
   interface HomeworkItem {
@@ -575,19 +663,9 @@ export default function HomeworkPage() {
         chapterId: hw.chapterId || hw.chapter?.id,
         chapterName: hw.chapterName || hw.chapter?.chapterName,
         chapterNo: hw.chapterNo || hw.chapter?.chapterNo,
+        rawDueDate: hw.dueDate,
       }),
     ) || [];
-
-  if (loading && !homeworkList) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading homework...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -609,7 +687,7 @@ export default function HomeworkPage() {
     );
   }
 
-  const showHomeworkDetail = selectedHomework !== null;
+  const showHomeworkDetail = selectedHomework !== null || detailLoading;
 
   return (
     <div>
@@ -627,38 +705,60 @@ export default function HomeworkPage() {
         className="grid mt-5 grid-cols-1 md:grid-cols-2 gap-[24px] animate-fadeUp"
         style={{ animationDelay: "0.3s" }}
       >
-        {transformedHomeworkList.map(hw => (
-          <div
-            key={hw.id}
-            className="animate-fadeUp"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <HomeworkCardClassic
-              id={hw.id}
-              title={hw.title}
-              subject={hw.subject}
-              className={hw.class || ""}
-              teacher={hw.teacher}
-              dueDate={hw.dueDate}
-              submitted={hw.submitted}
-              total={hw.total}
-              status={hw.status}
-              description={hw.description}
-              chapterName={hw.chapterName}
-              chapterNo={hw.chapterNo}
-              isModalOpen={
-                !!(selectedHomework || showStudentAssignment || showCreateForm)
-              }
-              onViewDetails={() => handleViewDetails(hw.id)}
-              onEdit={() => {
-                setEditingHomework(hw);
-                setShowCreateForm(true);
-              }}
-              onDelete={() => handleDeleteHomework(hw.id)}
-              onStudentAssignment={() => handleStudentAssignment(hw)}
-            />
+        {loading && !homeworkList ? (
+          <HomeworkSkeleton />
+        ) : transformedHomeworkList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center mt-24 text-[var(--text-2)] col-span-1 md:col-span-2 w-full text-center">
+            <BookOpen className="w-12 h-12 mb-3 opacity-30 mx-auto" />
+            <p className="text-lg font-medium">No homework found</p>
+            <p
+              className="text-sm cursor-pointer hover:text-[var(--blue)] transition-colors mt-1"
+              onClick={() => setShowCreateForm(true)}
+            >
+              Click &quot;Create Homework&quot; to get started.
+            </p>
           </div>
-        ))}
+        ) : (
+          transformedHomeworkList.map(hw => (
+            <div
+              key={hw.id}
+              className="animate-fadeUp"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <HomeworkCardClassic
+                id={hw.id}
+                title={hw.title}
+                subject={hw.subject}
+                className={hw.class || ""}
+                teacher={hw.teacher}
+                dueDate={hw.dueDate}
+                submitted={hw.submitted}
+                total={hw.total}
+                status={hw.status}
+                description={hw.description}
+                chapterName={hw.chapterName}
+                chapterNo={hw.chapterNo}
+                isModalOpen={
+                  !!(
+                    selectedHomework ||
+                    showStudentAssignment ||
+                    showCreateForm
+                  )
+                }
+                onViewDetails={() => handleViewDetails(hw.id)}
+                onEdit={() => {
+                  setEditingHomework({
+                    ...hw,
+                    dueDate: hw.rawDueDate || hw.dueDate,
+                  });
+                  setShowCreateForm(true);
+                }}
+                onDelete={() => handleDeleteHomework(hw.id)}
+                onStudentAssignment={() => handleStudentAssignment(hw)}
+              />
+            </div>
+          ))
+        )}
       </div>
 
       {showHomeworkDetail && (
@@ -723,9 +823,22 @@ export default function HomeworkPage() {
             }
             loading={createLoading}
             error={createError}
-            editingHomework={null}
+            editingHomework={editingHomework}
           />
         </>
+      )}
+
+      {isDeleteModalOpen && homeworkToDelete && (
+        <HomeworkDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setHomeworkToDelete(null);
+          }}
+          homeworkTitle={homeworkToDelete.title}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeleting}
+        />
       )}
 
       <style>{`
