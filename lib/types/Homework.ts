@@ -130,7 +130,7 @@ export interface StudentSubmissionAttachment {
 export interface StudentHomeworkSubmission {
   id: string;
   submissionDate: string;
-  status: "submitted" | "graded" | "pending";
+  status: "submitted" | "graded" | "pending" | "approved" | "rejected";
   marksObtained: number | null;
   feedback: string | null;
   submissionAttachments: StudentSubmissionAttachment[];

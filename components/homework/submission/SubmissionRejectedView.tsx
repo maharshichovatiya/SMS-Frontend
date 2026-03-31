@@ -1,0 +1,67 @@
+"use client";
+
+import React from "react";
+import { XCircle } from "lucide-react";
+import { StudentSubmission } from "./SubmissionTypes";
+import { SubmissionDetailsTable } from "./SubmissionDetailsTable";
+import { FeedbackBlock } from "./FeedbackBlock";
+
+interface SubmissionRejectedViewProps {
+  submission: StudentSubmission;
+}
+
+export const SubmissionRejectedView: React.FC<SubmissionRejectedViewProps> = ({
+  submission,
+}) => (
+  <div>
+    {/* Rejection banner */}
+    <div
+      className="rounded-xl border-2 bg-[#fef2f2] py-8 px-4 text-center mb-5"
+      style={{ borderColor: "rgba(220, 38, 38, 0.35)" }}
+    >
+      <div
+        className="w-20 h-20 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
+        style={{ borderColor: "rgba(220, 38, 38, 0.5)" }}
+      >
+        <XCircle className="w-9 h-9 text-[#dc2626]" />
+      </div>
+      <div className="text-base font-semibold text-[var(--text)] flex flex-col items-center gap-1">
+        <span>Submission Rejected</span>
+        <span className="text-sm font-medium text-[#dc2626] bg-[#fee2e2] px-2.5 py-0.5 rounded-full border border-red-200">
+          Teacher has rejected your submission
+        </span>
+      </div>
+    </div>
+
+    {/* Teacher feedback */}
+    {submission.feedback && (
+      <div className="mb-5">
+        <FeedbackBlock
+          emoji="💬"
+          label="TEACHER FEEDBACK"
+          text={submission.feedback}
+          accentColor="#dc2626"
+          borderColor="#fca5a5"
+        />
+      </div>
+    )}
+
+    {/* Details */}
+    <SubmissionDetailsTable
+      title={submission.title}
+      subject={submission.subject}
+      dueDate={submission.dueDate}
+      submittedAt={submission.submittedAt}
+      file={submission.file}
+      fileSize={submission.fileSize}
+      fileUrl={submission.fileUrl}
+      lastRowLabel="Status"
+      lastRowValue={
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#fee2e2] text-[#dc2626] border border-red-200">
+          <XCircle className="w-3.5 h-3.5" />
+          Rejected
+        </span>
+      }
+    />
+  </div>
+);

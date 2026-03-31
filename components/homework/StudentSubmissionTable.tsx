@@ -1,24 +1,8 @@
 "use client";
 
 import React from "react";
-import { FileText, Clock, CheckCircle } from "lucide-react";
-
-interface StudentSubmission {
-  id: string;
-  title: string;
-  subject: string;
-  dueDate: string;
-  status: "pending" | "submitted" | "graded";
-  submittedAt?: string;
-  file?: string;
-  fileSize?: string;
-  grade?: string;
-  feedback?: string;
-  notes?: string;
-  teacher: string;
-  description: string;
-  className: string;
-}
+import { FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import type { StudentSubmission } from "./submission/SubmissionTypes";
 
 interface StudentSubmissionTableProps {
   submissions: StudentSubmission[];
@@ -39,6 +23,8 @@ export const StudentSubmissionTable: React.FC<StudentSubmissionTableProps> = ({
         return "bg-[var(--blue-light)] text-[var(--blue)]";
       case "graded":
         return "bg-[var(--green-light)] text-[var(--green)]";
+      case "rejected":
+        return "bg-[#fef2f2] text-[#dc2626]";
       default:
         return "bg-[var(--gray-light)] text-[var(--gray)]";
     }
@@ -52,6 +38,8 @@ export const StudentSubmissionTable: React.FC<StudentSubmissionTableProps> = ({
         return <FileText className="w-3 h-3" />;
       case "graded":
         return <CheckCircle className="w-3 h-3" />;
+      case "rejected":
+        return <XCircle className="w-3 h-3" />;
       default:
         return <Clock className="w-3 h-3" />;
     }
@@ -150,7 +138,11 @@ export const StudentSubmissionTable: React.FC<StudentSubmissionTableProps> = ({
                       className={`inline-flex items-center gap-1.5 px-[11px] py-[3px] rounded-full text-[11.5px] font-semibold ${getStatusColor(submission.status)}`}
                     >
                       {getStatusIcon(submission.status)}
-                      <span className="capitalize">{submission.status}</span>
+                      <span className="capitalize">
+                        {submission.status === "rejected"
+                          ? "Rejected"
+                          : submission.status}
+                      </span>
                     </div>
                   </td>
                   <td className="py-4 px-4">

@@ -3,6 +3,7 @@
 import { HomeworkCardClassic } from "@/components/homework/HomeworkCardClassic";
 import { HomeworkDetailModal } from "@/components/homework/HomeworkDetailModal";
 import { StudentSubmissionModal } from "@/components/homework/StudentSubmissionModal";
+import type { StudentSubmission } from "@/components/homework/submission/SubmissionTypes";
 import { StudentSubmissionTable } from "@/components/homework/StudentSubmissionTable";
 import PageHeader from "@/components/layout/PageHeader";
 import {
@@ -16,25 +17,6 @@ import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
 import { BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-interface StudentSubmission {
-  id: string;
-  title: string;
-  subject: string;
-  dueDate: string;
-  status: "pending" | "submitted" | "graded";
-  submittedAt?: string;
-  file?: string;
-  fileSize?: string;
-  grade?: string;
-  feedback?: string;
-  notes?: string;
-  teacher: string;
-  description: string;
-  className: string;
-  maxMarks?: number;
-  fileUrl?: string;
-}
 
 interface TransformedHomework {
   id: string;
@@ -82,13 +64,20 @@ export default function HomeworkPage() {
   ): StudentSubmission => {
     const isSubmitted = item.submission !== null;
     const isGraded = isSubmitted && item.submission?.marksObtained !== null;
+    const isRejected = isSubmitted && item.submission?.status === "rejected";
 
     return {
       id: item.homeworkId,
       title: item.title,
       subject: item.subject.subjectName,
       dueDate: item.dueDate,
-      status: isGraded ? "graded" : isSubmitted ? "submitted" : "pending",
+      status: isRejected
+        ? "rejected"
+        : isGraded
+          ? "graded"
+          : isSubmitted
+            ? "submitted"
+            : "pending",
       submittedAt: isSubmitted ? item.submission?.submissionDate : undefined,
       file: isSubmitted
         ? item.submission?.submissionAttachments?.[0]?.fileName
