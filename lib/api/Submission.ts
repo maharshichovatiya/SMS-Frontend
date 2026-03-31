@@ -116,11 +116,9 @@ export const submissionApis = {
     submissionId: string,
     data: {
       attachments: File[];
-      attachmentDate: string;
     },
   ) => {
     const formData = new FormData();
-    formData.append("attachmentDate", data.attachmentDate);
 
     data.attachments.forEach(file => {
       formData.append("attachments", file);

@@ -1,17 +1,30 @@
 "use client";
 
 import React from "react";
-import { XCircle } from "lucide-react";
+import { XCircle, RefreshCw } from "lucide-react";
 import { StudentSubmission } from "./SubmissionTypes";
 import { SubmissionDetailsTable } from "./SubmissionDetailsTable";
 import { FeedbackBlock } from "./FeedbackBlock";
+import { FileUploadZone } from "./FileUploadZone";
 
 interface SubmissionRejectedViewProps {
   submission: StudentSubmission;
+  showResubmitZone: boolean;
+  resubmitFile: File | null;
+  onToggleResubmitZone: () => void;
+  onResubmitFileSelect: (file: File) => void;
+  onResubmitFileRemove: () => void;
+  canResubmit: boolean;
 }
 
 export const SubmissionRejectedView: React.FC<SubmissionRejectedViewProps> = ({
   submission,
+  showResubmitZone,
+  resubmitFile,
+  onToggleResubmitZone,
+  onResubmitFileSelect,
+  onResubmitFileRemove,
+  canResubmit,
 }) => (
   <div>
     {/* Rejection banner */}
@@ -31,7 +44,39 @@ export const SubmissionRejectedView: React.FC<SubmissionRejectedViewProps> = ({
           Teacher has rejected your submission
         </span>
       </div>
+
+      {canResubmit && (
+        <button
+          type="button"
+          onClick={onToggleResubmitZone}
+          className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            showResubmitZone
+              ? "bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border)] hover:bg-[var(--bg-2)]"
+              : "bg-[#dc2626] text-white hover:bg-[#b91c1c]"
+          }`}
+        >
+          <RefreshCw className="w-4 h-4" />
+          {showResubmitZone ? "Cancel Resubmit" : "Resubmit Homework"}
+        </button>
+      )}
     </div>
+
+    {/* Resubmit file zone */}
+    {showResubmitZone && (
+      <div className="mb-5">
+        <FileUploadZone
+          variant="compact"
+          file={resubmitFile}
+          onFileSelect={onResubmitFileSelect}
+          onFileRemove={onResubmitFileRemove}
+          label="Upload a new file to resubmit"
+          accentColor="#dc2626"
+          zoneBg="#fef2f2"
+          fileIconBg="#fee2e2"
+          fileIconColor="#dc2626"
+        />
+      </div>
+    )}
 
     {/* Teacher feedback */}
     {submission.feedback && (

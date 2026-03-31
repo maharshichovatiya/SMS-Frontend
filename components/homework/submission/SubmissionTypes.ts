@@ -1,5 +1,6 @@
 export interface StudentSubmission {
   id: string;
+  submissionId?: string;
   title: string;
   subject: string;
   dueDate: string;

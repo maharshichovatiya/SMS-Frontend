@@ -21,6 +21,7 @@ interface StudentSubmissionModalProps {
   onClose: () => void;
   submission: StudentSubmission | null;
   onSubmit: (data: { file: File }) => void;
+  onUpdate?: (data: { file: File }) => void;
 }
 
 // Re-export type so consumers don't need to import from two places
@@ -48,10 +49,21 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
   onClose,
   submission,
   onSubmit,
+  onUpdate,
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Separate form state for the update
+  const [updateFile, setUpdateFile] = useState<File | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showUpdateZone, setShowUpdateZone] = useState(false);
+
+  // Resubmit state (for rejected submissions)
+  const [resubmitFile, setResubmitFile] = useState<File | null>(null);
+  const [isResubmitting, setIsResubmitting] = useState(false);
+  const [showResubmitZone, setShowResubmitZone] = useState(false);
 
   const { handleSubmit, setValue, watch, reset } = useForm({
     resolver: zodResolver(homeworkSubmissionSchema),
@@ -89,9 +101,40 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
     }
   };
 
+  const handleUpdateSubmit = async () => {
+    if (!updateFile || !onUpdate) return;
+    setIsUpdating(true);
+    try {
+      await onUpdate({ file: updateFile });
+      setUpdateFile(null);
+      setShowUpdateZone(false);
+      onClose();
+    } catch {
+      alert("Failed to update submission. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleResubmitSubmit = async () => {
+    if (!resubmitFile || !onUpdate) return;
+    setIsResubmitting(true);
+    try {
+      await onUpdate({ file: resubmitFile });
+      setResubmitFile(null);
+      setShowResubmitZone(false);
+      onClose();
+    } catch {
+      alert("Failed to resubmit homework. Please try again.");
+    } finally {
+      setIsResubmitting(false);
+    }
+  };
+
   if (!isOpen || !submission) return null;
 
   const isPending = submission.status === "pending";
+  const isSubmitted = submission.status === "submitted";
 
   return (
     <Modal
@@ -122,6 +165,57 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
                 )}
                 <Upload className="w-4 h-4" />
                 Submit Homework
+              </button>
+            </>
+          ) : isSubmitted && showUpdateZone ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUpdateZone(false);
+                  setUpdateFile(null);
+                }}
+                className="px-7 h-[52px] cursor-pointer rounded-[14px] border border-[var(--border)] text-[var(--text-2)] font-bold hover:bg-[var(--bg-2)] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateSubmit}
+                disabled={!updateFile || isUpdating}
+                className="btn-primary disabled:opacity-60"
+              >
+                {isUpdating && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                <Upload className="w-4 h-4" />
+                Update Submission
+              </button>
+            </>
+          ) : submission?.status === "rejected" && showResubmitZone ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResubmitZone(false);
+                  setResubmitFile(null);
+                }}
+                className="px-7 h-[52px] cursor-pointer rounded-[14px] border border-[var(--border)] text-[var(--text-2)] font-bold hover:bg-[var(--bg-2)] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResubmitSubmit}
+                disabled={!resubmitFile || isResubmitting}
+                className="btn-primary disabled:opacity-60"
+                style={{ background: "var(--grad-primary)" }}
+              >
+                {isResubmitting && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                <Upload className="w-4 h-4" />
+                Resubmit Homework
               </button>
             </>
           ) : (
@@ -173,8 +267,19 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
           />
         )}
 
-        {submission.status === "submitted" && (
-          <SubmissionSubmittedView submission={submission} />
+        {isSubmitted && (
+          <SubmissionSubmittedView
+            submission={submission}
+            showUpdateZone={showUpdateZone}
+            updateFile={updateFile}
+            onToggleUpdateZone={() => {
+              setShowUpdateZone(v => !v);
+              setUpdateFile(null);
+            }}
+            onUpdateFileSelect={setUpdateFile}
+            onUpdateFileRemove={() => setUpdateFile(null)}
+            canUpdate={!!onUpdate && !!submission.submissionId}
+          />
         )}
 
         {submission.status === "graded" && (
@@ -182,7 +287,18 @@ export const StudentSubmissionModal: React.FC<StudentSubmissionModalProps> = ({
         )}
 
         {submission.status === "rejected" && (
-          <SubmissionRejectedView submission={submission} />
+          <SubmissionRejectedView
+            submission={submission}
+            showResubmitZone={showResubmitZone}
+            resubmitFile={resubmitFile}
+            onToggleResubmitZone={() => {
+              setShowResubmitZone(v => !v);
+              setResubmitFile(null);
+            }}
+            onResubmitFileSelect={setResubmitFile}
+            onResubmitFileRemove={() => setResubmitFile(null)}
+            canResubmit={!!onUpdate && !!submission.submissionId}
+          />
         )}
       </div>
     </Modal>

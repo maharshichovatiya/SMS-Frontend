@@ -43,7 +43,6 @@ const initialState: SubmissionState = {
   submitError: null,
 };
 
-
 export const fetchSubmissionsByHomework = createAsyncThunk(
   "submissions/fetchByHomework",
   async (homeworkId: string, { rejectWithValue }) => {
@@ -94,14 +93,12 @@ export const updateStudentSubmission = createAsyncThunk<
   {
     submissionId: string;
     attachments: File[];
-    attachmentDate: string;
   },
   { rejectValue: string }
 >("submissions/updateStudentSubmission", async (data, { rejectWithValue }) => {
   try {
     return await submissionApis.updateSubmission(data.submissionId, {
       attachments: data.attachments,
-      attachmentDate: data.attachmentDate,
     });
   } catch (error) {
     return rejectWithValue(
@@ -187,7 +184,6 @@ export const fetchSubmissionStats = createAsyncThunk(
   },
 );
 
-
 const submissionSlice = createSlice({
   name: "submissions",
   initialState,
@@ -242,10 +238,9 @@ const submissionSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    builder
-      .addCase(fetchStudentSubmissions.fulfilled, (state, action) => {
-        state.studentSubmissions = action.payload.data?.data?.homework || [];
-      });
+    builder.addCase(fetchStudentSubmissions.fulfilled, (state, action) => {
+      state.studentSubmissions = action.payload.data?.data?.homework || [];
+    });
 
     builder
       .addCase(submitStudentHomework.pending, state => {
@@ -259,33 +254,29 @@ const submissionSlice = createSlice({
         state.submitError = action.payload as string;
       });
 
-    builder
-      .addCase(updateStudentSubmission.fulfilled, state => {
-        state.submitLoading = false;
-      });
+    builder.addCase(updateStudentSubmission.fulfilled, state => {
+      state.submitLoading = false;
+    });
 
-    builder
-      .addCase(submitFeedback.fulfilled, (state, action) => {
-        const { studentId, data } = action.payload;
-        if (data) {
-          const index = state.currentHomeworkSubmissions.findIndex(
-            sub => sub.studentId === studentId,
-          );
-          if (index !== -1) {
-            state.currentHomeworkSubmissions[index] = data;
-          }
+    builder.addCase(submitFeedback.fulfilled, (state, action) => {
+      const { studentId, data } = action.payload;
+      if (data) {
+        const index = state.currentHomeworkSubmissions.findIndex(
+          sub => sub.studentId === studentId,
+        );
+        if (index !== -1) {
+          state.currentHomeworkSubmissions[index] = data;
         }
-      });
+      }
+    });
 
-    builder
-      .addCase(downloadSubmission.fulfilled, state => {
-        state.downloadLoading = false;
-      });
+    builder.addCase(downloadSubmission.fulfilled, state => {
+      state.downloadLoading = false;
+    });
 
-    builder
-      .addCase(fetchSubmissionStats.fulfilled, (state, action) => {
-        state.stats = action.payload;
-      });
+    builder.addCase(fetchSubmissionStats.fulfilled, (state, action) => {
+      state.stats = action.payload;
+    });
   },
 });
 

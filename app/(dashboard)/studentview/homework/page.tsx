@@ -9,6 +9,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import {
   fetchStudentSubmissions,
   submitStudentHomework,
+  updateStudentSubmission,
 } from "@/lib/store/SubmissionSlice";
 import { fetchStudentHomework } from "@/lib/store/HomeworkSlice";
 import HomeworkSkeleton from "@/components/skeletons/HomeworkSkeleton";
@@ -17,6 +18,7 @@ import { StudentHomework, StudentSubmissionItem } from "@/lib/types/Homework";
 import { BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { showToast } from "@/lib/utils/Toast";
 
 interface TransformedHomework {
   id: string;
@@ -68,6 +70,7 @@ export default function HomeworkPage() {
 
     return {
       id: item.homeworkId,
+      submissionId: item.submission?.id,
       title: item.title,
       subject: item.subject.subjectName,
       dueDate: item.dueDate,
@@ -139,7 +142,28 @@ export default function HomeworkPage() {
     );
 
     if (submitStudentHomework.fulfilled.match(result)) {
+      showToast.success("Homework submitted successfully!");
       dispatch(fetchStudentSubmissions());
+    } else {
+      showToast.apiError(result.payload);
+    }
+  };
+
+  const handleUpdateHomework = async (data: { file: File }) => {
+    if (!selectedSubmission?.submissionId) return;
+
+    const result = await dispatch(
+      updateStudentSubmission({
+        submissionId: selectedSubmission.submissionId,
+        attachments: [data.file],
+      }),
+    );
+
+    if (updateStudentSubmission.fulfilled.match(result)) {
+      showToast.success("Submission updated successfully!");
+      dispatch(fetchStudentSubmissions());
+    } else {
+      showToast.apiError(result.payload);
     }
   };
 
@@ -289,6 +313,7 @@ export default function HomeworkPage() {
           }}
           submission={selectedSubmission}
           onSubmit={handleSubmissionSubmit}
+          onUpdate={handleUpdateHomework}
         />
       )}
 
