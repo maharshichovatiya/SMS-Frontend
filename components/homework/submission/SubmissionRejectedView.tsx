@@ -20,10 +20,10 @@ export const SubmissionRejectedView: React.FC<SubmissionRejectedViewProps> = ({
       style={{ borderColor: "rgba(220, 38, 38, 0.35)" }}
     >
       <div
-        className="w-20 h-20 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
+        className="w-15 h-15 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
         style={{ borderColor: "rgba(220, 38, 38, 0.5)" }}
       >
-        <XCircle className="w-9 h-9 text-[#dc2626]" />
+        <XCircle className="text-xl font-bold text-[#dc2626]" />
       </div>
       <div className="text-base font-semibold text-[var(--text)] flex flex-col items-center gap-1">
         <span>Submission Rejected</span>

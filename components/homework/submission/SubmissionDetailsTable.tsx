@@ -45,7 +45,7 @@ export const SubmissionDetailsTable: React.FC<SubmissionDetailsTableProps> = ({
         <div className="flex justify-between items-center px-5 py-3.5 border-b border-[var(--border)]">
           <span className="text-sm text-[var(--text-3)]">Submitted</span>
           <span className="text-sm font-semibold text-[#16a34a]">
-            {submittedAt}
+            {formatDate(submittedAt)}
           </span>
         </div>
       )}

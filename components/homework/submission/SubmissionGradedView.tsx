@@ -19,10 +19,10 @@ export const SubmissionGradedView: React.FC<SubmissionGradedViewProps> = ({
       style={{ borderColor: "rgba(22, 163, 74, 0.35)" }}
     >
       <div
-        className="w-20 h-20 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
+        className="w-15 h-15 rounded-full border-2 flex items-center justify-center mx-auto mb-3"
         style={{ borderColor: "rgba(22, 163, 74, 0.5)" }}
       >
-        <span className="text-2xl font-bold text-[#16a34a]">
+        <span className="text-xl font-bold text-[#16a34a]">
           {getLetterGrade(Number(submission.grade))}
         </span>
       </div>
