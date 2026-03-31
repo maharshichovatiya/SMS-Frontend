@@ -19,13 +19,30 @@ export interface NoticeResponse {
   data: {
     notices: ApiNotice[];
     total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
   };
 }
 
-export const getNotices = async (): Promise<ApiNotice[]> => {
+export interface FetchNoticesParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getNotices = async (
+  params: FetchNoticesParams = {},
+): Promise<{ notices: ApiNotice[]; total: number; totalPages: number }> => {
   try {
-    const response = await api.get<NoticeResponse>("/notices");
-    return response.data.data.notices;
+    const { page = 1, limit = 4 } = params;
+    const response = await api.get<NoticeResponse>("/notices", {
+      params: { page, limit },
+    });
+    const data = response.data.data;
+    const notices = data.notices ?? [];
+    const total = data.total ?? notices.length;
+    const totalPages = data.totalPages ?? Math.max(1, Math.ceil(total / limit));
+    return { notices, total, totalPages };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
     throw new Error(err.response?.data?.message || "Failed to fetch notices");

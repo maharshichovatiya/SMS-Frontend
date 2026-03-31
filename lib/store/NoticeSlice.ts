@@ -5,6 +5,7 @@ import {
   updateNotice,
   deleteNotice,
   type ApiNotice,
+  type FetchNoticesParams,
 } from "@/lib/api/Notice";
 import { mapApiNoticeToNotice, type Notice } from "@/lib/types/Notice";
 
@@ -14,6 +15,9 @@ interface NoticeState {
   loading: boolean;
   error: string | null;
   total: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 const initialState: NoticeState = {
@@ -22,16 +26,23 @@ const initialState: NoticeState = {
   loading: false,
   error: null,
   total: 0,
+  currentPage: 1,
+  pageSize: 4,
+  totalPages: 1,
 };
 
 // Async thunks
 export const fetchNotices = createAsyncThunk(
   "notices/fetchNotices",
-  async (_, { rejectWithValue }) => {
+  async (params: FetchNoticesParams = {}, { rejectWithValue }) => {
     try {
-      const apiNotices = await getNotices();
+      const {
+        notices: apiNotices,
+        total,
+        totalPages,
+      } = await getNotices(params);
       const notices = apiNotices.map(mapApiNoticeToNotice);
-      return { notices, apiNotices, total: apiNotices.length };
+      return { notices, apiNotices, total, totalPages };
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error.message : "Failed to fetch notices",
@@ -132,6 +143,13 @@ const noticeSlice = createSlice({
       state.apiNotices = [];
       state.total = 0;
     },
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+    },
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+      state.currentPage = 1;
+    },
   },
   extraReducers: builder => {
     // Fetch notices
@@ -148,12 +166,14 @@ const noticeSlice = createSlice({
             notices: Notice[];
             apiNotices: ApiNotice[];
             total: number;
+            totalPages: number;
           }>,
         ) => {
           state.loading = false;
           state.notices = action.payload.notices;
           state.apiNotices = action.payload.apiNotices;
           state.total = action.payload.total;
+          state.totalPages = action.payload.totalPages;
           state.error = null;
         },
       )
@@ -246,5 +266,6 @@ const noticeSlice = createSlice({
   },
 });
 
-export const { clearError, clearNotices } = noticeSlice.actions;
+export const { clearError, clearNotices, setCurrentPage, setPageSize } =
+  noticeSlice.actions;
 export default noticeSlice.reducer;

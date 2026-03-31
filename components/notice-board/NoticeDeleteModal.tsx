@@ -45,14 +45,12 @@ export default function NoticeDeleteModal({
       }
     >
       <div className="w-[380px] py-4 text-center">
-        <p className="text-sm text-[var(--text-3)] mb-2">
-          Are you sure you want to delete this notice?
-        </p>
-        <span className="block px-4 py-2 mt-4 text-sm font-semibold text-[var(--rose)] bg-[var(--rose-light)] rounded border border-[var(--rose-muted)] mb-2">
-          {notice?.title}
-        </span>
-        <p className="text-sm text-[var(--text-3)] mt-4">
-          This action cannot be undone.
+        <p className="text-sm text-[var(--text-3)]">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-[var(--text)]">
+            {notice?.title}
+          </span>
+          ? This action cannot be undone.
         </p>
       </div>
     </Modal>

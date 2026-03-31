@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { AppDispatch } from "@/lib/store/Index";
 import { RootState } from "@/lib/store/Index";
-import { fetchNotices, clearError } from "@/lib/store/NoticeSlice";
+import {
+  fetchNotices,
+  clearError,
+  removeNotice,
+  setCurrentPage,
+  setPageSize,
+} from "@/lib/store/NoticeSlice";
 import { Megaphone, Plus } from "lucide-react";
 import NoticeCard from "@/components/notice-board/NoticeCard";
 import NoticeFilter from "@/components/notice-board/NoticeFilter";
@@ -13,8 +19,8 @@ import NoticeFormModal from "@/components/notice-board/NoticeFormModal";
 import NoticeDeleteModal from "@/components/notice-board/NoticeDeleteModal";
 import NoticeCardSkeleton from "@/components/skeletons/NoticeCardSkeleton";
 import { NoticeFilterType, Notice, ApiNotice } from "@/lib/types/Notice";
-import { removeNotice } from "@/lib/store/NoticeSlice";
 import { showToast } from "@/lib/utils/Toast";
+import Pagination from "@/components/ui/Pagination";
 
 function Page() {
   const [selectedFilter, setSelectedFilter] = useState<NoticeFilterType>("all");
@@ -26,15 +32,28 @@ function Page() {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { notices, apiNotices, loading, error } = useSelector(
-    (state: RootState) => state.notices,
-  );
+  const {
+    notices,
+    apiNotices,
+    loading,
+    error,
+    currentPage,
+    pageSize,
+    totalPages,
+    total,
+  } = useSelector((state: RootState) => state.notices);
   const userRole = useSelector((state: RootState) => state.auth.role);
   const isStudent = userRole === "student";
 
+  // Fetch whenever page or pageSize changes
   useEffect(() => {
-    dispatch(fetchNotices());
-  }, [dispatch]);
+    dispatch(fetchNotices({ page: currentPage, limit: pageSize }));
+  }, [dispatch, currentPage, pageSize]);
+
+  // Reset to page 1 when filter or search changes
+  useEffect(() => {
+    dispatch(setCurrentPage(1));
+  }, [dispatch, selectedFilter, searchQuery]);
 
   const filteredNotices = notices.filter(notice => {
     const matchesFilter =
@@ -96,11 +115,12 @@ function Page() {
   const handleNoticeCreated = () => {
     setIsModalOpen(false);
     setSelectedNotice(null);
+    dispatch(fetchNotices({ page: currentPage, limit: pageSize }));
   };
 
   const handleRetry = () => {
     dispatch(clearError());
-    dispatch(fetchNotices());
+    dispatch(fetchNotices({ page: currentPage, limit: pageSize }));
   };
 
   if (error) {
@@ -169,6 +189,20 @@ function Page() {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {!loading && notices.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={total || notices.length}
+          itemsPerPage={[4, 8, 12]}
+          onPageChange={page => dispatch(setCurrentPage(page))}
+          onPageSizeChange={size => dispatch(setPageSize(size))}
+          itemName="notices"
+        />
+      )}
 
       {!isStudent && (
         <>
